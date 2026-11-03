@@ -1,0 +1,1245 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#17665a">
+<title>Quý Phi – Quản lý Nhà trọ &amp; Thu chi</title>
+<style>
+  :root{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:#19332f;background:#f4f7f6;font-size:15px}
+  *{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button{cursor:pointer}
+  .top{background:#17665a;color:white;padding:19px max(16px,calc((100vw - 1080px)/2));box-shadow:0 2px 12px #153e341a}
+  .top-inner{max-width:1080px;margin:auto;display:flex;gap:14px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+  h1{font-size:22px;line-height:1.2;margin:0 0 5px}.subtitle{font-size:13px;opacity:.86}
+  .header-controls{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}.today-chip{font-size:13px;font-weight:600;color:#e9faf4;padding:8px 0}
+  .month-box{display:flex;align-items:center;gap:9px;font-weight:650}.month-box select{border:0;border-radius:9px;padding:10px 8px;background:#ffd166;color:#14352f;font-weight:800;min-width:68px;box-shadow:0 2px 6px #0003}.month-box select:focus{outline:3px solid #fff3c4;outline-offset:1px}.month-box option{background:#fff;color:#1b3732;font-weight:600}
+  .foot{max-width:1080px;margin:0 auto;text-align:center;color:#17665a;font-size:15px;font-weight:800;padding:16px 16px 32px;border-top:1px solid #d4e1de}
+  .shell{max-width:1080px;margin:0 auto;padding:16px 16px 45px}.tabs{display:flex;gap:8px;overflow-x:auto;margin-bottom:18px;padding-bottom:5px}
+  .tab{border:1px solid #d4e1de;background:white;padding:12px 16px;border-radius:12px;white-space:nowrap;font-weight:700;color:#3e5b55}
+  .tab.active{background:#17665a;color:white;border-color:#17665a}
+  .view{display:none}.view.active{display:block}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:13px}
+  h2{font-size:21px;margin:10px 0}h3{font-size:17px;margin:0 0 12px}.muted{color:#667b75}.small{font-size:13px}.note{background:#eaf5f0;border-left:4px solid #388778;padding:12px 14px;border-radius:8px;line-height:1.5;margin:13px 0}
+  .warn{background:#fff5e6;border-left-color:#b46b18}.danger-note{background:#fff0ed;border-left-color:#c44238}
+  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 22px}
+  .stat,.panel,.item{background:white;border:1px solid #e0eae7;border-radius:15px;box-shadow:0 2px 9px #103f3010}
+  .stat{padding:17px}.stat-label{font-size:13px;color:#637972;margin-bottom:10px}.stat strong{display:block;font-size:21px;overflow-wrap:anywhere}
+  .panel{padding:17px;margin-bottom:14px}.stack{display:grid;gap:12px}.item{padding:15px}.item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .item-title{font-size:18px;font-weight:800}.detail{margin:7px 0;color:#58706a;line-height:1.55}.price{font-weight:800;color:#17665a;font-size:19px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .btn{background:#17665a;border:1px solid #17665a;color:white;padding:11px 15px;border-radius:10px;font-weight:700;min-height:42px}
+  .btn:hover{filter:brightness(.95)}.btn.secondary{background:white;color:#17665a;border-color:#a8cbc1}.btn.danger{background:white;color:#b33d33;border-color:#e8ada8}.btn.soft{background:#e9f5f1;color:#17665a;border-color:#d4e9e3}
+  .badge{display:inline-block;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:800}.badge.paid{background:#dff6e9;color:#126e42}.badge.unpaid{background:#fff1d6;color:#985f09}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field{display:flex;flex-direction:column;gap:6px;margin:9px 0}.field label{font-weight:650;font-size:14px}
+  .field input,.field select{background:white;border:1px solid #b9cbc5;padding:11px 12px;min-height:43px;border-radius:9px;width:100%;color:#1e3732}
+  input:read-only{background:#edf2f0!important;color:#61766f}.field input:focus,.field select:focus{outline:2px solid #b6dcd1;outline-offset:1px}
+  .check-grid{display:flex;flex-wrap:wrap;gap:10px}.check-grid label{background:#f3f8f6;border:1px solid #d5e8e1;border-radius:10px;padding:10px;display:flex;gap:7px;align-items:center}
+  .subheading{background:#edf5f1;border-left:4px solid #17665a;padding:10px 12px;border-radius:8px;margin:20px 0 10px;font-size:16px;font-weight:800}
+  .inline-info{background:#eff7f4;padding:10px 12px;border-radius:9px;color:#365f53;font-size:13px;line-height:1.55}
+  .wide{grid-column:1/-1}.vehicle-editor{background:#f8fbfa;border:1px solid #d9e7e1;border-radius:11px;padding:12px;margin-bottom:10px}
+  .vehicle-editor .grid2{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}.vehicle-header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .invoice-info{background:#f5faf7;border:1px solid #dcebe4;border-radius:9px;padding:12px;margin:8px 0 14px;font-size:13px;line-height:1.7}
+  .invoice-date{text-align:right;font-size:12px;color:#58716a;margin-bottom:8px}
+  /* Hai cột thông tin ngân hàng + mã QR, ảnh nằm bên phải. */
+  .transfer-box{border:1px solid #bfded2;border-radius:10px;padding:13px;margin-top:18px;
+    font-size:13px;line-height:1.8;display:grid;grid-template-columns:minmax(0,1fr) 164px;
+    gap:12px;align-items:center}
+  .transfer-box.no-qr{grid-template-columns:1fr}
+  .transfer-left{min-width:0;overflow-wrap:anywhere}
+  .transfer-right{text-align:center;align-self:center}
+  .transfer-right img{display:block;width:100%;max-width:164px;max-height:164px;
+    aspect-ratio:1;object-fit:contain;border:1px solid #dcebe4;border-radius:8px;
+    background:white;padding:5px;margin:0 auto}
+  .qr-caption{font-size:11px;color:#58716a;line-height:1.3;margin-top:5px}
+  /* Chọn ảnh QR trực tiếp trong Cài đặt; ảnh được lưu trong bản sao lưu JSON. */
+  .qr-editor{margin-top:15px;border-top:1px solid #deebe5;padding-top:14px;
+    display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .qr-preview{width:130px;height:130px;flex:none;border:1px dashed #a9cfc2;
+    border-radius:10px;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;background:#f6faf8;color:#647c74;text-align:center;font-size:12px;padding:7px}
+  .qr-preview img{display:block;width:100%;height:100%;object-fit:contain}
+  .qr-editor-help{flex:1;min-width:220px}
+  @media(max-width:560px){
+    .transfer-box{grid-template-columns:minmax(0,1fr) 120px;gap:8px;padding:10px;font-size:12px}
+    .transfer-right img{max-width:120px;max-height:120px;padding:3px}
+    .qr-caption{font-size:10px}
+  }
+  @media(max-width:390px){
+    .transfer-box:not(.no-qr){grid-template-columns:1fr}
+    .transfer-right{justify-self:center}
+  }
+  .transfer-box b{color:#146756}.transfer-label{font-weight:800;text-transform:uppercase;color:#17665a;margin-bottom:3px}.transfer-account{font-size:18px;font-weight:850;overflow-wrap:anywhere;color:#174c40}
+  .inline-vehicle-note{font-size:13px;color:#668077}.break-all{overflow-wrap:anywhere}
+  .empty{text-align:center;background:#fff;border:1px dashed #bed3cc;border-radius:15px;padding:30px 16px;color:#647c74}
+  .divider{border:0;border-top:1px solid #e0e9e5;margin:17px 0}.setting-fee{display:grid;grid-template-columns:1fr 140px auto auto;gap:8px;align-items:center;margin-bottom:10px}
+  .setting-fee input{min-width:0;border:1px solid #bfd0c9;border-radius:8px;padding:10px;width:100%}
+  dialog{border:0;border-radius:16px;padding:0;box-shadow:0 20px 70px #061d1b52;width:calc(100% - 24px);max-width:690px;max-height:94vh;color:#1d3430}
+  dialog::backdrop{background:#10221b99}.modal-body{padding:20px;max-height:calc(94vh - 80px);overflow:auto}.modal-footer{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;padding:13px 20px;background:#f5f8f6;border-top:1px solid #e2ece8}
+  .modal-title{display:flex;align-items:center;justify-content:space-between;gap:10px}.icon-close{border:none;background:transparent;font-size:26px;color:#61776f;padding:2px 10px}
+  .total-box{background:#e8f5ef;border-radius:11px;padding:15px;margin-top:13px;font-size:18px;font-weight:800;color:#11644f;text-align:right}
+  .invoice{background:white;padding:24px}.invoice-top{text-align:center;border-bottom:2px solid #17665a;padding-bottom:15px}.invoice-top h2{margin:5px 0;color:#17665a;letter-spacing:.5px}
+  .invoice-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;padding:17px 0}.invoice table{width:100%;border-collapse:collapse;font-size:14px}
+  .invoice th,.invoice td{padding:10px 6px;border-bottom:1px solid #dce7e2;text-align:left}.invoice th:last-child,.invoice td:last-child{text-align:right}
+  .invoice .n{text-align:right;white-space:nowrap}.invoice .tw{overflow-x:auto}.invoice td[colspan]{font-weight:600}@media(max-width:560px){.invoice table{font-size:12px}.invoice th,.invoice td{padding:8px 3px}}
+  .invoice tfoot td{font-weight:800;font-size:17px;color:#17665a;border-top:2px solid #17665a}.invoice-foot{text-align:center;color:#70827b;font-size:12px;margin-top:22px}
+  #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#173d36;color:white;padding:12px 18px;border-radius:11px;box-shadow:0 5px 30px #0003;z-index:9999;display:none;max-width:94vw}
+  @media(max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}.top{padding:15px}.shell{padding:12px 12px 35px}.panel{padding:14px}.stat{padding:13px}.stat strong{font-size:18px}.setting-fee{grid-template-columns:1fr 110px}.setting-fee .btn{padding:9px}.invoice{padding:15px}.invoice-meta{grid-template-columns:1fr}.modal-body{padding:16px}.vehicle-editor .grid2{grid-template-columns:1fr}.header-controls{width:100%;align-items:flex-start}.month-box input{max-width:205px}}
+  /* Sổ thu riêng và sổ chi phí */
+  .finance-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0 18px}
+  .finance-kpi{background:white;border:1px solid #dce9e3;border-radius:14px;padding:15px}
+  .finance-kpi span{font-size:13px;color:#627a71}.finance-kpi strong{display:block;font-size:22px;margin-top:7px;color:#17665a;overflow-wrap:anywhere}
+  .finance-kpi.negative strong{color:#ae3c35}.finance-kpi.net{background:#e9f5ef;border-color:#b7dacc}
+  .finance-card{background:#fff;border:1px solid #dce9e3;border-radius:14px;padding:16px;margin:12px 0}
+  .finance-card h3{margin:0 0 8px}.finance-card .actions{margin-top:8px}
+  .line-list{display:grid;gap:9px}.line{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid #e5eeea;padding:8px 0}
+  .line:last-child{border-bottom:0}.line .amount{font-weight:800;white-space:nowrap}.status-line{font-size:12px;color:#6d807a}
+  .meter-form{display:grid;grid-template-columns:minmax(110px,1fr) minmax(120px,160px) auto auto;align-items:end;gap:10px}
+  .meter-form .field{margin:2px 0}.meter-form .check-pay{display:flex;align-items:center;gap:6px;padding:11px 0;white-space:nowrap}
+  /* Nhập tên công tơ theo danh sách, không cần đếm tay. */
+  .field textarea{font:inherit;display:block;width:100%;min-height:88px;resize:vertical;border:1px solid #b9cbc5;border-radius:9px;padding:11px 12px;color:#1e3732;background:#fff;line-height:1.6}
+  .field textarea:focus{outline:2px solid #b6dcd1;outline-offset:1px}
+  .readonly-meter-name{min-height:43px;display:flex;align-items:center;font-weight:750;color:#174b40;background:#f1f7f4;border:1px solid #d6e7e0;border-radius:9px;padding:11px 12px}
+  .meter-archived{font-size:12px;color:#a55b16;margin-left:5px}
+  .extra-line-editor{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,150px) auto;gap:9px;align-items:end;margin:8px 0}
+  .extra-line-editor .field{margin:0}.soft-muted{font-size:13px;color:#6d807a;line-height:1.6}
+  .section-intro{padding:12px 14px;background:#edf6f3;border-left:4px solid #17665a;border-radius:8px;margin-bottom:15px}
+  .finance-section-title{margin:23px 0 12px}.report-tag{display:inline-block;padding:5px 9px;background:#fef1d8;border-radius:20px;color:#895600;font-size:12px;font-weight:800}
+  @media(max-width:720px){.finance-kpis{grid-template-columns:1fr 1fr}.meter-form{grid-template-columns:1fr 1fr}.meter-form button{align-self:end}.extra-line-editor{grid-template-columns:1fr 1fr}.extra-line-editor .btn{grid-column:2}}
+  @media(max-width:420px){.finance-kpis{grid-template-columns:1fr}.meter-form{grid-template-columns:1fr 1fr}.meter-form>.field:first-child{grid-column:1/-1}.extra-line-editor{grid-template-columns:1fr}.extra-line-editor .btn{grid-column:1}}
+  @media print{
+    .transfer-box{break-inside:avoid;page-break-inside:avoid;grid-template-columns:minmax(0,1fr) 154px!important}
+    .transfer-box.no-qr{grid-template-columns:1fr!important}
+    .transfer-right img{max-height:154px;max-width:154px}
+    body{background:white!important}body>*:not(#invoiceDialog){display:none!important}#invoiceDialog{position:static!important;display:block!important;width:100%!important;max-width:none!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;margin:0!important;border:0!important;padding:0!important}#invoiceDialog .modal-footer{display:none!important}#invoiceDialog .modal-body{padding:0!important;max-height:none!important;overflow:visible!important}#invoiceDialog .modal-title{display:none!important}.invoice{padding:4mm!important}.invoice-foot{margin-top:12mm}@page{size:A4;margin:14mm}}
+
+/* ===== ĐĂNG NHẬP VÀ ĐỒNG BỘ CLOUD ===== */
+#cloudGate[hidden], #cloudToolbar[hidden], #cloudLoginForm[hidden],
+#cloudSetupActions[hidden], #cloudConflictActions[hidden], #cloudRetryBtn[hidden],
+#cloudMigrateOld[hidden]{display:none!important}
+body.cloud-locked>.top, body.cloud-locked>.shell,
+body.cloud-locked>.foot{display:none!important}
+.cloud-gate{position:fixed;inset:0;z-index:9995;background:#eef5f1;display:flex;align-items:center;justify-content:center;padding:18px;overflow-y:auto}
+.cloud-card{width:100%;max-width:490px;background:#fff;border:1px solid #d4e5dd;box-shadow:0 15px 40px #123e3021;border-radius:17px;padding:26px}
+.cloud-card h2{color:#17665a;margin:0 0 10px}.cloud-card p{line-height:1.65}
+.cloud-card form .field{margin:12px 0}
+.cloud-gate-actions{display:grid;gap:10px;margin-top:12px}
+.cloud-gate-actions .btn{width:100%}
+.cloud-toolbar{background:#f5fcf9;border:1px solid #cfe6d9;border-radius:11px;padding:9px 12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap}
+.cloud-toolbar .cloud-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cloud-toolbar .btn{min-height:34px;padding:7px 11px;font-size:12px}
+.cloud-status{font-size:13px;font-weight:650;color:#17665a;line-height:1.5}
+.cloud-status[data-level="error"]{color:#aa362d}.cloud-status[data-level="pending"]{color:#9a6200}
+.cloud-account{font-size:12px;color:#597568}
+@media(max-width:560px){.cloud-card{padding:18px}.cloud-toolbar{align-items:flex-start}.cloud-toolbar .cloud-actions{width:100%}}
+
+</style>
+</head>
+<body class="cloud-locked">
+
+<!-- Bảo vệ ứng dụng trước khi đăng nhập / tải dữ liệu Cloud. -->
+<section class="cloud-gate" id="cloudGate" aria-label="Đăng nhập Quý Phi">
+  <div class="cloud-card">
+    <h2>☁️ Quý Phi Cloud</h2>
+    <p class="small muted">Quản lý nhà trọ &amp; thu chi · Dùng chung máy tính và điện thoại</p>
+    <p id="cloudGateMessage" class="note">Đang khởi tạo...</p>
+    <form id="cloudLoginForm" hidden>
+      <div class="field"><label for="cloudEmail">Email chủ trọ</label><input id="cloudEmail" type="email" autocomplete="username" required placeholder="email@vidu.com"></div>
+      <div class="field"><label for="cloudPassword">Mật khẩu</label><input id="cloudPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="Mật khẩu Supabase"></div>
+      <button class="btn" id="cloudLoginBtn" type="submit" style="width:100%">🔐 Đăng nhập</button>
+      <p class="small muted">Tài khoản được tạo ở Supabase Dashboard. Ứng dụng không cho đăng ký tài khoản công khai.</p>
+    </form>
+    <div id="cloudSetupActions" class="cloud-gate-actions" hidden>
+      <button class="btn" id="cloudMigrateOld" type="button">⬆ Chuyển dữ liệu v7 của máy này lên Cloud</button>
+      <button class="btn secondary" id="cloudSetupImport" type="button">📁 Nhập file sao lưu JSON v7</button>
+      <input id="cloudSetupFile" type="file" accept=".json,application/json" hidden>
+      <button class="btn secondary" id="cloudStartEmpty" type="button">Bắt đầu dữ liệu trống</button>
+    </div>
+    <div id="cloudConflictActions" class="cloud-gate-actions" hidden>
+      <button class="btn" id="cloudConflictExport" type="button">⬇ Xuất JSON các thay đổi trên máy này</button>
+      <button class="btn danger" id="cloudConflictReload" type="button">Bỏ thay đổi cục bộ và tải Cloud mới</button>
+    </div>
+    <button class="btn secondary" id="cloudRetryBtn" type="button" hidden>↻ Thử lại</button>
+  </div>
+</section>
+
+<header class="top"><div class="top-inner">
+  <div><h1>🏠 Quý Phi – Quản lý Nhà trọ &amp; Thu chi</h1><div class="subtitle">Phòng trọ · Hóa đơn · Thu riêng · Thu chi</div></div>
+  <div class="header-controls">
+    <div class="month-box"><label for="monthSel">Tháng</label><select id="monthSel"></select><label for="yearSel">Năm</label><select id="yearSel"></select></div>
+  </div>
+</div></header>
+<main class="shell">
+
+  <div class="cloud-toolbar" id="cloudToolbar" hidden>
+    <div><div id="cloudSyncStatus" class="cloud-status" aria-live="polite">☁️ Đang kết nối...</div><div class="cloud-account" id="cloudAccount"></div></div>
+    <div class="cloud-actions"><button class="btn secondary" id="cloudRefreshBtn" type="button">↻ Tải dữ liệu mới</button><button class="btn secondary" id="cloudLogoutBtn" type="button">Đăng xuất</button></div>
+  </div>
+
+  <div id="storageWarning" class="note danger-note" hidden>⚠️ Không lưu được bản sao tạm trên thiết bị. Hãy xuất file JSON và kiểm tra bộ nhớ trình duyệt.</div>
+  <nav class="tabs" aria-label="Chức năng">
+    <button class="tab active" data-tab="dashboard">📊 Tổng quan</button>
+    <button class="tab" data-tab="readings">🧮 Ghi số & hóa đơn</button>
+    <button class="tab" data-tab="flex">🧾 Thu riêng</button>
+    <button class="tab" data-tab="finance">💰 Thu chi</button>
+    <button class="tab" data-tab="rooms">🏘️ Phòng trọ</button>
+    <button class="tab" data-tab="settings">⚙️ Cài đặt</button>
+  </nav>
+  <section id="dashboard" class="view active"><div class="section-head"><h2>Tổng quan <span class="month-title"></span></h2></div>
+    <div id="stats" class="stats"></div>
+    <h3>Thu chi thực tế tháng <span class="month-title"></span></h3>
+    <div id="financeSnapshot" class="finance-kpis"></div>
+    <p class="soft-muted">Số dư này chỉ tính phòng thường: <b>đã thu − điện đã đóng − chi khác đã trả</b>. Thu riêng và tiền nước tổng theo dõi ở mục Thu riêng, không tính trùng.</p>
+    <h3>Hóa đơn đã lập</h3><div id="dashboardBills" class="stack"></div>
+  </section>
+  <section id="readings" class="view"><div class="section-head"><h2>Ghi số tháng <span class="month-title"></span></h2></div>
+    <div class="note">Chọn <b>Nhập chỉ số</b> tại mỗi phòng. Số cũ được lấy từ hóa đơn gần nhất trước tháng đang chọn. Tháng đầu tiên bạn tự nhập số cũ.</div>
+    <div id="readingList" class="stack"></div>
+  </section>
+  <section id="rooms" class="view"><div class="section-head"><h2>Danh sách phòng trọ</h2><button class="btn" id="addRoom">+ Thêm phòng</button></div>
+    <div id="roomList" class="stack"></div>
+  </section>
+  <section id="flex" class="view">
+    <div class="section-head"><h2>Phòng thu tiền linh hoạt <span class="month-title"></span></h2><button class="btn" type="button" id="addFlexRoom">+ Thêm phòng thu riêng</button></div>
+    <div class="section-intro"><b>Sổ Thu riêng – không cộng vào tổng thu chi phòng thường.</b> Mỗi phòng có thể nhập số tiền khác nhau theo tháng. Tiền nước tổng hằng tháng sẽ được trừ <b>chỉ trong sổ Thu riêng</b>.</div>
+    <div id="flexSummary" class="finance-kpis"></div>
+    <p class="soft-muted">Số dư dự kiến = <b>tổng phiếu Thu riêng</b> − <b>tiền nước phải trả</b>. Số dư thực tế = <b>Thu riêng đã nhận</b> − <b>tiền nước đã đóng</b>. Tiền nước này không được trừ vào phòng thường.</p>
+    <div class="note">💧 Nhập tiền nước phải đóng theo từng tháng tại tab <b>Thu chi → Tiền nước của Thu riêng</b>. Bảng tổng hợp ở đây sẽ tự cập nhật.</div>
+    <div id="flexRoomList" class="stack"></div>
+  </section>
+  <section id="finance" class="view">
+    <div class="section-head"><h2>Sổ thu chi <span class="month-title"></span></h2></div>
+    <div class="section-intro">Báo cáo thu chi chính <b>chỉ tính phòng thường</b>. Các công tơ điện và khoản chi khác được trừ từ phòng thường. Tiền nước tổng được ghi riêng, chỉ trừ vào Thu riêng; hai số dư không cộng lẫn.</div>
+    <div id="financeSummary" class="finance-kpis"></div>
+    <h3 class="finance-section-title">⚡ Tiền điện phải đóng hằng tháng (<span id="visibleMeterCount">3</span> công tơ)</h3>
+    <p class="soft-muted">Tên từng công tơ được khai báo tại <b>Cài đặt → Tên công tơ điện</b>. Mục này chỉ nhập <b>số tiền điện phải đóng</b> hằng tháng và đánh dấu đã đóng. Chỉ khoản đã đóng mới trừ vào tiền còn lại.</p>
+    <div id="meterList"></div>
+    <h3 class="finance-section-title">💧 Tiền nước phải đóng — trừ riêng vào Thu riêng</h3>
+    <p class="soft-muted">Nhập <b>một khoản tiền nước phải trả cho mỗi tháng</b>. Số tiền này chỉ được tính trong bảng Thu riêng; <b>không trừ lần nữa</b> ở báo cáo phòng thường. Có thể ghi nhận đã đóng hoặc chưa đóng.</p>
+    <form id="flexWaterForm" class="finance-card">
+      <div class="meter-form">
+        <div class="field"><label for="flexWaterMonthAmount">Tiền nước phải trả (đ)</label><input id="flexWaterMonthAmount" type="number" min="0" step="1" placeholder="VD: 500000" required></div>
+        <label class="check-pay"><input id="flexWaterPaid" type="checkbox"> Đã đóng tiền nước</label>
+        <button class="btn" type="submit">💾 Lưu tiền nước</button>
+        <button class="btn secondary" id="deleteFlexWater" type="button">Xóa khoản tháng này</button>
+      </div>
+      <div id="flexWaterNote" class="status-line" aria-live="polite"></div>
+    </form>
+    <h3 class="finance-section-title">🧮 Tổng hợp Thu riêng sau khi trừ tiền nước</h3>
+    <div id="flexFinanceSnapshot" class="finance-kpis"></div>
+    <div class="section-head" style="margin-top:22px"><h3>🧾 Các khoản chi khác (phòng thường)</h3></div>
+    <form id="expenseForm" class="finance-card">
+      <input type="hidden" id="expenseId">
+      <div class="grid2">
+        <div class="field"><label for="expenseName">Tên khoản chi</label><input id="expenseName" required maxlength="100" placeholder="VD: Sửa điện nước, phí vệ sinh"></div>
+        <div class="field"><label for="expenseAmount">Số tiền (đ)</label><input id="expenseAmount" type="number" min="0" step="1" required placeholder="VD: 250000"></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin:10px 0"><input id="expensePaid" type="checkbox" checked> Đã thanh toán khoản chi này</label>
+      <div class="actions"><button class="btn" type="submit">💾 Lưu khoản chi</button><button class="btn secondary" type="button" id="cancelExpense">Hủy sửa</button></div>
+    </form>
+    <div id="expenseList" class="stack"></div>
+  </section>
+  <section id="settings" class="view"><h2>Cài đặt</h2>
+    <div class="panel"><h3>⚡ Thiết lập tên công tơ điện</h3>
+      <p class="small muted">Nhập <b>tên từng công tơ</b>, cách nhau bằng <b>dấu phẩy (,)</b> hoặc <b>chấm phẩy (;)</b>. Ứng dụng tự đếm số lượng (từ 1 đến 50). Ví dụ: <b>Công tơ nhà trước; Công tơ dãy A; Công tơ dãy B</b>.</p>
+      <form id="meterConfigForm">
+        <div class="field"><label for="meterNamesInput">Danh sách tên công tơ đang sử dụng</label>
+          <textarea id="meterNamesInput" rows="3" maxlength="4300" required spellcheck="false" placeholder="Ví dụ: Điện nhà trước; Điện tầng 1; Điện tầng 2"></textarea></div>
+        <p id="meterNamesPreview" class="inline-info" aria-live="polite"></p>
+        <button class="btn" type="submit">💾 Lưu danh sách công tơ</button>
+      </form>
+      <div id="meterConfigNote" class="small muted" style="margin-top:9px"></div>
+      <p class="small muted">Tên được sửa ở đây và hiển thị cố định tại mục Thu chi; mỗi tháng bạn chỉ nhập số tiền. Tên theo thứ tự từ trái sang phải tương ứng mã công tơ đã lưu. <b>Đổi tên cũng đổi tên hiển thị khi xem lịch sử của công tơ đó</b>, nhưng số tiền và trạng thái thanh toán vẫn được giữ. Nếu giảm số lượng, công tơ cũ được ẩn, không xóa lịch sử.</p>
+    </div>
+    <div class="panel"><h3>Đơn giá mặc định khi thêm phòng</h3><form id="settingsForm">
+      <div class="grid2">
+        <div class="field"><label for="electricRate">Giá điện (đ/kWh)</label><input id="electricRate" type="number" min="0" step="1" required></div>
+        <div class="field"><label for="waterMode">Cách tính nước</label><select id="waterMode"><option value="meter">Theo đồng hồ (m³)</option><option value="person">Theo số người</option></select></div>
+        <div class="field"><label for="waterRate">Giá nước (đ/m³)</label><input id="waterRate" type="number" min="0" step="1" required></div>
+        <div class="field"><label for="waterPerPerson">Giá nước (đ/người/tháng)</label><input id="waterPerPerson" type="number" min="0" step="1" required></div>
+        <div class="field"><label for="payDay">Hạn thanh toán (ngày trong tháng, hiện cuối hóa đơn)</label><input id="payDay" type="number" min="1" max="31" step="1" required></div>
+      </div><button class="btn" type="submit">Lưu cài đặt</button>
+      <p class="muted small">Các giá này dùng làm gợi ý khi thêm phòng mới. Mỗi phòng có thể chọn giá riêng; thay đổi tại đây không tự sửa những phòng đã lưu hay hóa đơn cũ.</p>
+    </form></div>
+    <div class="panel"><h3>Phí cố định hằng tháng</h3><p class="muted small">Tiền rác và tiền mạng đã được nhập trực tiếp ở từng phòng. Khu vực này dành cho phí khác như giữ xe, vệ sinh...; tránh nhập trùng để không bị tính hai lần.</p>
+      <div id="feeList"></div><form id="addFeeForm" class="grid2">
+        <div class="field"><label for="newFeeName">Tên phí mới</label><input id="newFeeName" placeholder="VD: Tiền rác" required maxlength="60"></div>
+        <div class="field"><label for="newFeeAmount">Số tiền/tháng (đ)</label><input id="newFeeAmount" type="number" min="0" step="1" required placeholder="VD: 30000"></div>
+        <div><button class="btn" type="submit">+ Thêm loại phí</button></div>
+      </form></div>
+    <div class="panel"><h3>🏦 Thông tin chuyển khoản trên hóa đơn</h3>
+      <p class="small muted">Nhập một lần, ứng dụng tự hiện cuối hóa đơn của mọi phòng. Để trống số tài khoản nếu chưa muốn hiển thị.</p>
+      <form id="bankForm"><div class="grid2">
+        <div class="field"><label for="bankName">Tên ngân hàng</label><input id="bankName" maxlength="80" placeholder="VD: Vietcombank"></div>
+        <div class="field"><label for="bankAccount">Số tài khoản</label><input id="bankAccount" inputmode="numeric" autocomplete="off" maxlength="25" placeholder="VD: 0123456789"></div>
+        <div class="field wide"><label for="bankHolder">Chủ tài khoản</label><input id="bankHolder" maxlength="100" placeholder="VD: NGUYEN VAN A"></div>
+      </div><button class="btn" type="submit">💾 Lưu thông tin chuyển khoản</button></form>
+      <div class="qr-editor">
+        <div id="qrPreview" class="qr-preview" aria-live="polite">Chưa có ảnh QR</div>
+        <div class="qr-editor-help">
+          <b>Ảnh mã QR chuyển khoản</b>
+          <p class="small muted">Chọn ảnh QR THẬT từ ngân hàng (PNG, JPG hoặc WebP, tối đa 900 KB). Ảnh sẽ hiện bên phải hóa đơn, lưu cùng dữ liệu và được xuất trong file sao lưu JSON.</p>
+          <div class="actions">
+            <button type="button" class="btn secondary" id="chooseQr">📷 Chọn / thay ảnh QR</button>
+            <button type="button" class="btn danger" id="removeQr">Xóa ảnh QR</button>
+          </div>
+          <input type="file" id="qrFile" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" hidden>
+        </div>
+      </div>
+    </div>
+    <div class="panel"><h3>💾 Sao lưu / Khôi phục dữ liệu</h3>
+      <p class="muted">Dữ liệu chỉ nằm trong trình duyệt trên thiết bị hiện tại, không tự đồng bộ giữa máy tính và điện thoại.</p>
+      <div class="actions"><button class="btn" id="exportBackup">⬇ Xuất dữ liệu (.json)</button><button class="btn secondary" id="importBackup">⬆ Nhập dữ liệu (.json)</button></div>
+      <input type="file" id="backupFile" accept=".json,application/json" hidden>
+      <p class="small muted">Nên xuất bản sao lưu sau mỗi lần thu tiền. Nhập file sao lưu sẽ <b>thay thế toàn bộ dữ liệu hiện có</b>.</p>
+    </div>
+  </section>
+</main>
+<footer class="foot" id="currentDate" aria-label="Ngày hiện tại" hidden></footer>
+<!-- Hộp thêm / sửa phòng: giá điện, nước, rác và Internet được lưu THEO TỪNG PHÒNG -->
+<dialog id="roomDialog"><form id="roomForm"><div class="modal-body">
+  <div class="modal-title"><h2 id="roomDialogTitle">Thêm phòng</h2><button type="button" class="icon-close" data-close="roomDialog" aria-label="Đóng">×</button></div>
+  <input type="hidden" id="roomId">
+  <div class="subheading">1. Thông tin phòng và người thuê</div>
+  <div class="grid2">
+    <div class="field"><label for="roomName">Tên / số phòng *</label><input id="roomName" required maxlength="50" placeholder="Ví dụ: 201"></div>
+    <div class="field"><label for="tenantName">Họ tên người thuê</label><input id="tenantName" maxlength="100"></div>
+    <div class="field"><label for="tenantPhone">Số điện thoại</label><input id="tenantPhone" type="tel" maxlength="30" placeholder="09xxxxxxxx"></div>
+    <div class="field"><label for="tenantCCCD">Số CCCD / CMND</label><input id="tenantCCCD" type="text" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="9 hoặc 12 chữ số" pattern="[0-9]{9}([0-9]{3})?"></div>
+    <div class="field"><label for="roomLeaseStart">Thuê từ ngày</label><input id="roomLeaseStart" type="date"></div>
+    <div class="field"><label for="roomLeaseEnd">Thuê đến ngày</label><input id="roomLeaseEnd" type="date"></div>
+    <div class="field wide"><label for="roomDeposit">Tiền đặt cọc (đ)</label><input id="roomDeposit" type="number" min="0" step="1" value="0" required placeholder="VD: 3000000"></div>
+  </div>
+  <div class="subheading">2. Phương tiện đăng ký</div>
+  <p class="small muted">Thêm từng xe, chọn loại phương tiện và nhập biển số. Không nhập số lượng tổng; ứng dụng tự đếm.</p>
+  <div id="vehicleRows"></div>
+  <button type="button" class="btn secondary" id="addVehicle">+ Thêm phương tiện</button>
+  <div class="subheading">3. Chi phí cố định của phòng</div>
+  <div class="grid2">
+    <div class="field"><label for="roomRent">Tiền phòng / tháng (đ) *</label><input id="roomRent" type="number" min="0" step="1" required placeholder="3000000"></div>
+    <div class="field"><label for="roomTrashFee">Tiền rác / tháng (đ)</label><input id="roomTrashFee" type="number" min="0" step="1" required value="0" placeholder="30000"></div>
+    <div class="field"><label for="roomInternetFee">Tiền mạng / tháng (đ)</label><input id="roomInternetFee" type="number" min="0" step="1" required value="0" placeholder="100000"></div>
+    <div class="field"><label for="roomElectricRate">Giá điện (đ/kWh) *</label><input id="roomElectricRate" type="number" min="0" step="1" required value="4000"></div>
+    <div class="field wide"><label for="roomWaterPlan">Cách tính tiền nước *</label>
+      <select id="roomWaterPlan" required>
+        <option value="meter-35000">Theo khối nước – 35.000 đ/m³</option>
+        <option value="meter-40000">Theo khối nước – 40.000 đ/m³</option>
+        <option value="person-150000">Theo đầu người – 150.000 đ/người/tháng</option>
+      </select>
+      <div id="roomWaterExplanation" class="inline-info">Tính theo số m³ sử dụng.</div>
+      <div class="field"><label for="roomWaterCustom">Hoặc nhập giá nước khác (đ)</label><input id="roomWaterCustom" type="number" min="0" step="1" placeholder="Để trống nếu dùng lựa chọn ở trên"></div>
+    </div>
+    <div class="wide" id="roomPeopleFields" hidden>
+      <div class="inline-info">Chỉ nhập người lớn / trẻ em khi chọn nước tính theo đầu người. Thông tin này không hiện trên hóa đơn.</div>
+      <div class="grid2">
+        <div class="field"><label for="roomAdults">Người lớn</label><input id="roomAdults" type="number" min="0" step="1" value="1" required></div>
+        <div class="field"><label for="roomChildren">Trẻ em</label><input id="roomChildren" type="number" min="0" step="1" value="0" required></div>
+      </div>
+    </div>
+    <input type="hidden" id="roomOccupants" value="1">
+  </div>
+  <div class="subheading">4. Chỉ số đồng hồ ban đầu</div>
+  <p class="small muted">Không bắt buộc. Để trống nếu chưa biết; tháng đầu tiên có thể nhập số cũ khi lập hóa đơn.</p>
+  <div class="grid2">
+    <div class="field"><label for="roomBaseE">Điện ban đầu (kWh)</label><input id="roomBaseE" type="number" min="0" step="any" placeholder="Ví dụ: 1435"></div>
+    <div class="field"><label for="roomBaseW">Nước ban đầu (m³)</label><input id="roomBaseW" type="number" min="0" step="any" placeholder="Ví dụ: 91"></div>
+  </div>
+  <div class="subheading">5. Các khoản phí khác (nếu có)</div>
+  <div id="roomFeeChoices" class="check-grid"></div>
+  <p class="small muted">Không cần chọn tiền rác / tiền mạng ở đây vì đã nhập trực tiếp ở mục 3. Tiền cọc chỉ lưu để theo dõi, không cộng vào hóa đơn mỗi tháng.</p>
+  <p class="small muted">🔒 CCCD chỉ lưu trên trình duyệt này, không in trên hóa đơn. Hãy đặt mật khẩu máy và sao lưu ở nơi an toàn.</p>
+</div><div class="modal-footer"><button type="button" class="btn secondary" data-close="roomDialog">Hủy</button><button type="submit" class="btn">💾 Lưu phòng</button></div></form></dialog>
+<!-- Hộp lập hóa đơn -->
+<dialog id="billDialog"><form id="billForm"><div class="modal-body">
+  <div class="modal-title"><h2 id="billDialogTitle">Ghi chỉ số</h2><button type="button" class="icon-close" data-close="billDialog" aria-label="Đóng">×</button></div>
+  <input type="hidden" id="billRoomId"><div id="previousNote" class="note small"></div>
+  <div class="grid2">
+    <div class="field"><label for="oldE">Số điện cũ (kWh) *</label><input id="oldE" type="number" min="0" step="any" required></div>
+    <div class="field"><label for="newE">Số điện mới (kWh) *</label><input id="newE" type="number" min="0" step="any" required></div>
+  </div>
+  <div id="waterMeterFields" class="grid2">
+    <div class="field"><label for="oldW">Số nước cũ (m³) *</label><input id="oldW" type="number" min="0" step="any"></div>
+    <div class="field"><label for="newW">Số nước mới (m³) *</label><input id="newW" type="number" min="0" step="any"></div>
+  </div>
+  <div class="grid2">
+    <div class="field"><label for="billRent">Tiền phòng (đ) *</label><input id="billRent" type="number" min="0" step="1" required></div>
+    <div class="wide" id="billPeopleFields" hidden><div class="grid2">
+      <div class="field"><label for="billAdults">Người lớn tính nước</label><input id="billAdults" type="number" min="0" step="1" required></div>
+      <div class="field"><label for="billChildren">Trẻ em tính nước</label><input id="billChildren" type="number" min="0" step="1" required></div>
+    </div></div><input type="hidden" id="billOccupants">
+  </div>
+  <div class="subheading">Phí phát sinh tháng này (giặt sấy, sửa chữa...)</div>
+  <div id="extraRows"></div><button type="button" class="btn secondary" id="addExtra">+ Thêm khoản phí</button>
+  <div id="billPriceNote" class="muted small"></div><div id="billPreview" class="total-box">Tổng cộng: —</div>
+  <p class="small muted">Chỉ số mới phải lớn hơn hoặc bằng chỉ số cũ. Hóa đơn được lưu theo tháng đang chọn.</p>
+</div><div class="modal-footer"><button type="button" class="btn secondary" data-close="billDialog">Hủy</button><button type="submit" class="btn">💾 Lưu hóa đơn</button></div></form></dialog>
+<!-- Phòng thu linh hoạt: tách biệt hoàn toàn với doanh thu / chi phí chính -->
+<dialog id="flexRoomDialog"><form id="flexRoomForm"><div class="modal-body">
+  <div class="modal-title"><h2 id="flexRoomTitle">Thêm phòng thu riêng</h2><button type="button" class="icon-close" data-close="flexRoomDialog">×</button></div>
+  <input id="flexRoomId" type="hidden">
+  <div class="field"><label for="flexRoomName">Tên / số phòng *</label><input id="flexRoomName" maxlength="60" required placeholder="Ví dụ: Phòng 1"></div>
+  <div class="field"><label for="flexTenant">Người thuê / người nộp (không bắt buộc)</label><input id="flexTenant" maxlength="100"></div>
+  <div class="field"><label for="flexPhone">Điện thoại (không bắt buộc)</label><input id="flexPhone" maxlength="30" type="tel"></div>
+  <div class="section-intro">Phòng này chỉ nằm trong <b>Thu riêng</b>, không ảnh hưởng doanh thu, công nợ, thu chi của các phòng thường.</div>
+</div><div class="modal-footer"><button class="btn secondary" type="button" data-close="flexRoomDialog">Hủy</button><button class="btn" type="submit">Lưu phòng</button></div></form></dialog>
+<dialog id="flexEntryDialog"><form id="flexEntryForm"><div class="modal-body">
+  <div class="modal-title"><h2 id="flexEntryTitle">Nhập tiền thu riêng</h2><button type="button" class="icon-close" data-close="flexEntryDialog">×</button></div>
+  <input id="flexEntryRoomId" type="hidden">
+  <div class="note">Có thể sửa số tiền tháng sau độc lập với tháng trước. Chỉ lưu trong sổ Thu riêng.</div>
+  <div id="flexItemRows"></div>
+  <button type="button" class="btn secondary" id="addFlexItem">+ Thêm khoản thu khác</button>
+  <label style="display:flex;gap:9px;align-items:center;margin-top:17px"><input type="checkbox" id="flexEntryPaid"> Đã nhận đủ tiền tháng này</label>
+  <div id="flexEntryTotal" class="total-box">Tổng: 0 đ</div>
+</div><div class="modal-footer"><button class="btn secondary" type="button" data-close="flexEntryDialog">Hủy</button><button class="btn" type="submit">💾 Lưu tiền tháng</button></div></form></dialog>
+<!-- Hộp xem / in hóa đơn -->
+<dialog id="invoiceDialog"><div class="modal-body"><div class="modal-title"><h2>Chi tiết hóa đơn</h2><button type="button" class="icon-close" data-close="invoiceDialog" aria-label="Đóng">×</button></div><div id="invoiceContent"></div></div>
+  <div class="modal-footer"><button class="btn secondary" type="button" data-close="invoiceDialog">Đóng</button><button class="btn secondary" type="button" id="invoicePaidBtn">Đánh dấu đã thu</button><button class="btn" type="button" id="printInvoice">🖨 In / Lưu PDF</button></div>
+</dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<!-- Cấu hình của riêng bạn và thư viện Supabase (client-side, không có khóa bí mật). -->
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="cloud.js"></script>
+<script>
+'use strict';
+// Mọi dữ liệu của ứng dụng được lưu ở một khóa localStorage duy nhất.
+const STORE_KEY = 'quan_ly_phong_tro_v1';
+// Mặc định 3 công tơ; số lượng thực tế được quản lý trong Cài đặt.
+const DEFAULT_METERS = Array.from({length:3},(_,i)=>({id:`meter-${i+1}`,name:`Công tơ điện ${i+1}`}));
+const DEFAULT_SETTINGS = {electricRate:4000, waterRate:35000, waterPerPerson:150000, waterMode:'meter', fees:[], meterCount:3, payDay:5, bankName:'', bankAccount:'', bankHolder:'', qrImage:''};
+const $ = id => document.getElementById(id);
+const money = n => new Intl.NumberFormat('vi-VN').format(Math.round(Number(n)||0)) + ' đ';
+const num = v => v === '' || v === null || v === undefined ? NaN : Number(v);
+const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const monthText = m => {const [y,mo]=m.split('-');return `${mo}/${y}`;};
+const id = () => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+const copy = obj => JSON.parse(JSON.stringify(obj));
+const todayMonth = () => {const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;};
+const dateText = raw => {if(!raw)return '—';const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(raw));return m?`${m[3]}/${m[2]}/${m[1]}`:'—';};
+const nowText = () => new Date().toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
+const nowLong = () => {const d=new Date(),w=['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'][d.getDay()];
+  return `Hôm nay: ${w}, Ngày ${String(d.getDate()).padStart(2,'0')} Tháng ${String(d.getMonth()+1).padStart(2,'0')} Năm ${d.getFullYear()}`;};
+const validDate = d => !d || (/^\d{4}-\d{2}-\d{2}$/.test(d) && !Number.isNaN(new Date(d+'T12:00:00').getTime()) && new Date(d+'T12:00:00').toISOString().slice(0,10)===d);
+// Dữ liệu V2 chỉ có tổng số xe. Tạo dòng "Chưa cập nhật" để KHÔNG làm mất số xe khi nâng cấp.
+function migrateVehicles(r){
+  if(Array.isArray(r.vehicles))return r.vehicles;
+  const n=Math.min(30,Number(r.vehicleCount)||0);
+  return Array.from({length:n},()=>({type:'Chưa cập nhật',plate:''}));
+}
+function cleanVehicles(list){
+  if(!Array.isArray(list)||list.length>30)throw Error('Danh sách phương tiện vượt quá 30 xe.');
+  return list.map(x=>{const type=String(x?.type??'Chưa cập nhật').trim().slice(0,50),plate=String(x?.plate??'').trim().toUpperCase().slice(0,30);
+    if(!type)throw Error('Loại xe chưa hợp lệ.');return {type,plate};});
+}
+function vehiclesText(list){return (list||[]).map(v=>`${v.type}${v.plate?' – '+v.plate:' – chưa nhập biển số'}`).join('; ');}
+function getBank(){return {bankName:state.settings.bankName||'',bankAccount:state.settings.bankAccount||'',bankHolder:state.settings.bankHolder||'',qrImage:state.settings.qrImage||''};}
+
+let state = {settings:copy(DEFAULT_SETTINGS),rooms:[],bills:[],flexRooms:[],flexEntries:[],meterAccounts:copy(DEFAULT_METERS),meterPayments:[],expenses:[],flexWaterPayments:[]};
+let selectedMonth = todayMonth();
+let shownInvoiceId = null;
+let pendingBill = null;
+
+function toast(message){$('toast').textContent=message;$('toast').style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').style.display='none',3500);}
+// save() vẫn trả về true/false để tương thích với tất cả form v7.
+// Dữ liệu được lưu tạm trước, sau đó cloud.js xác nhận lên Supabase.
+// Tuyệt đối không ghi đè khóa localStorage v7 cũ trong quá trình chuyển đổi.
+function save(){return cloudSaveLocal();}
+// Kiểm tra cấu trúc file nhập; chỉ nhận file sao lưu hợp lệ của ứng dụng.
+function validateData(input){
+  const d=input && input.data ? input.data : input;
+  if(!d || !Array.isArray(d.rooms) || !Array.isArray(d.bills) || !d.settings || typeof d.settings!=='object') throw Error('Thiếu cấu trúc phòng / hóa đơn / cài đặt.');
+  const rawSettings=d.settings;
+  const rateKeys=['electricRate','waterRate','waterPerPerson'];
+  for(const key of rateKeys) if(!Number.isInteger(Number(rawSettings[key])) || Number(rawSettings[key])<0) throw Error('Đơn giá mặc định không hợp lệ.');
+  if(!['meter','person'].includes(rawSettings.waterMode)) throw Error('Cách tính nước mặc định không hợp lệ.');
+  if(!Array.isArray(rawSettings.fees)) throw Error('Danh sách phí không hợp lệ.');
+  const bankName=String(rawSettings.bankName??'').trim().slice(0,80);
+  const bankAccount=String(rawSettings.bankAccount??'').trim().slice(0,25);
+  const bankHolder=String(rawSettings.bankHolder??'').trim().slice(0,100);
+  // Chỉ nhận ảnh bitmap được nhúng dưới dạng data URL (không nhận SVG, javascript, URL lạ).
+  const qrImage=String(rawSettings.qrImage??'');
+  if(qrImage && (qrImage.length>1250000 || !/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(qrImage)))
+    throw Error('Dữ liệu ảnh QR không đúng định dạng hoặc vượt giới hạn.');
+  if(bankAccount && !/^[0-9]{5,25}$/.test(bankAccount)) throw Error('Số tài khoản cần 5 đến 25 chữ số.');
+  const moneyInt=(value,label)=>{
+    const n=Number(value);
+    if(value===null || value==='' || !Number.isSafeInteger(n) || n<0) throw Error(label+' không hợp lệ.');
+    return n;
+  };
+  const countInt=(value,label)=>moneyInt(value,label);
+  const fees=rawSettings.fees.map(f=>{
+    if(!f || typeof f.id!=='string' || typeof f.name!=='string') throw Error('Khoản phí không hợp lệ.');
+    return {id:f.id,name:f.name.slice(0,60),amount:moneyInt(f.amount,'Tiền phí')};
+  });
+  // Tương thích dữ liệu V1: tự chuyển số người cũ thành người lớn, 0 trẻ em;
+  // lấy giá điện/nước cũ từ Cài đặt mà KHÔNG tự đổi tiền của phòng đã nhập.
+  const rooms=d.rooms.map(r=>{
+    if(!r || typeof r.id!=='string' || typeof r.name!=='string') throw Error('Dữ liệu phòng không hợp lệ.');
+    const adults=countInt(r.adults??r.occupants,'Số người lớn');
+    const children=countInt(r.children??0,'Số trẻ em');
+    const occupants=adults+children;
+    if(occupants<1) throw Error('Phòng phải có ít nhất 1 người.');
+    const baseE=r.baseE===null||r.baseE===''||r.baseE===undefined?null:Number(r.baseE);
+    const baseW=r.baseW===null||r.baseW===''||r.baseW===undefined?null:Number(r.baseW);
+    if((baseE!==null && (!Number.isFinite(baseE)||baseE<0)) || (baseW!==null && (!Number.isFinite(baseW)||baseW<0))) throw Error('Chỉ số ban đầu không hợp lệ.');
+    const waterMode=r.waterMode??rawSettings.waterMode;
+    if(!['meter','person'].includes(waterMode)) throw Error('Cách tính nước của phòng không hợp lệ.');
+    const cccd=String(r.cccd??'').trim();
+    if(cccd && !/^(?:\d{9}|\d{12})$/.test(cccd)) throw Error('CCCD/CMND phòng '+r.name+' phải có 9 hoặc 12 chữ số.');
+    const leaseStart=String(r.leaseStart??''),leaseEnd=String(r.leaseEnd??'');
+    if(!validDate(leaseStart)||!validDate(leaseEnd)||(leaseStart&&leaseEnd&&leaseStart>leaseEnd)) throw Error('Thời hạn thuê phòng '+r.name+' không hợp lệ.');
+    const vehicles=cleanVehicles(migrateVehicles(r));
+    return {
+      id:r.id,name:r.name.slice(0,50),tenant:String(r.tenant??'').slice(0,100),phone:String(r.phone??'').slice(0,30),cccd,
+      rent:moneyInt(r.rent,'Tiền phòng'),adults,children,occupants,vehicles,vehicleCount:vehicles.length,
+      leaseStart,leaseEnd,deposit:moneyInt(r.deposit??0,'Tiền đặt cọc'),
+      electricRate:moneyInt(r.electricRate??rawSettings.electricRate,'Giá điện phòng'),
+      waterMode,waterRate:moneyInt(r.waterRate??rawSettings.waterRate,'Giá nước khối'),
+      waterPerPerson:moneyInt(r.waterPerPerson??rawSettings.waterPerPerson,'Giá nước người'),
+      trashFee:moneyInt(r.trashFee??0,'Tiền rác'),internetFee:moneyInt(r.internetFee??0,'Tiền mạng'),
+      baseE,baseW,feeIds:Array.isArray(r.feeIds)?r.feeIds.filter(x=>typeof x==='string'):[]
+    };
+  });
+  const bills=d.bills.map(b=>{
+    if(!b || typeof b.id!=='string'||typeof b.roomId!=='string'||!/^[0-9]{4}-(0[1-9]|1[0-2])$/.test(b.month)) throw Error('Tháng hoặc mã hóa đơn không hợp lệ.');
+    for(const key of ['oldE','newE']) if(!Number.isFinite(Number(b[key])) || Number(b[key])<0) throw Error('Chỉ số điện không hợp lệ.');
+    if(Number(b.newE)<Number(b.oldE)) throw Error('Chỉ số điện mới nhỏ hơn chỉ số cũ.');
+    const waterMode=b.waterMode;
+    if(!['meter','person'].includes(waterMode)) throw Error('Cách tính nước hóa đơn không hợp lệ.');
+    const adults=countInt(b.adults??b.occupants,'Người lớn hóa đơn');
+    const children=countInt(b.children??0,'Trẻ em hóa đơn');
+    const occupants=adults+children;
+    if(occupants<1) throw Error('Số người hóa đơn không hợp lệ.');
+    const oldW=b.oldW===null?null:Number(b.oldW),newW=b.newW===null?null:Number(b.newW);
+    if(waterMode==='meter' && (!Number.isFinite(oldW)||!Number.isFinite(newW)||newW<oldW||oldW<0)) throw Error('Chỉ số nước không hợp lệ.');
+    if(!Array.isArray(b.fees)) throw Error('Các khoản phí hóa đơn không hợp lệ.');
+    const billFees=b.fees.map(f=>({name:String(f?.name??'Phí khác').slice(0,60),amount:moneyInt(f?.amount,'Tiền phí hóa đơn')}));
+    const billExtras=(Array.isArray(b.extras)?b.extras:[]).map(f=>({name:String(f?.name??'Phí phát sinh').slice(0,60),amount:moneyInt(f?.amount,'Tiền phí phát sinh')}));
+    return {
+      id:b.id,roomId:b.roomId,month:b.month,roomName:String(b.roomName??'').slice(0,50),
+      tenant:String(b.tenant??'').slice(0,100),phone:String(b.phone??'').slice(0,30),
+      leaseStart:String(b.leaseStart??''),leaseEnd:String(b.leaseEnd??''),deposit:b.deposit==null?null:moneyInt(b.deposit,'Tiền cọc hóa đơn'),
+      vehicles:cleanVehicles(Array.isArray(b.vehicles)?b.vehicles:[]),
+      oldE:Number(b.oldE),newE:Number(b.newE),oldW:waterMode==='meter'?oldW:null,newW:waterMode==='meter'?newW:null,
+      rent:moneyInt(b.rent,'Tiền phòng hóa đơn'),adults,children,occupants,
+      electricRate:moneyInt(b.electricRate,'Giá điện hóa đơn'),waterRate:moneyInt(b.waterRate,'Giá nước hóa đơn'),
+      waterPerPerson:moneyInt(b.waterPerPerson,'Giá nước người hóa đơn'),waterMode,fees:billFees,extras:billExtras,
+      paid:!!b.paid,paidAt:b.paidAt?String(b.paidAt):null,createdAt:String(b.createdAt??''),updatedAt:String(b.updatedAt??'')
+    };
+  });
+  if(new Set(rooms.map(r=>r.id)).size!==rooms.length || new Set(bills.map(b=>b.id)).size!==bills.length || new Set(bills.map(b=>`${b.roomId}/${b.month}`)).size!==bills.length) throw Error('Có phòng hoặc hóa đơn bị trùng mã.');
+  // Bổ sung sổ thu riêng và sổ chi phí. Các bản sao lưu V1–V3 chưa có phần này
+  // sẽ được khởi tạo rỗng mà không làm thay đổi hóa đơn đã lưu.
+  const validMonth=m=>/^\d{4}-(0[1-9]|1[0-2])$/.test(m);
+  const boundedArray=(v,label)=>{
+    if(v===undefined||v===null)return [];
+    if(!Array.isArray(v)||v.length>5000)throw Error(label+' không hợp lệ.');
+    return v;
+  };
+  const flexRooms=boundedArray(d.flexRooms,'Danh sách phòng thu riêng').map(r=>{
+    if(!r||typeof r.id!=='string'||typeof r.name!=='string'||!r.name.trim())throw Error('Thông tin phòng thu riêng không hợp lệ.');
+    return {id:r.id,name:r.name.trim().slice(0,60),tenant:String(r.tenant??'').slice(0,100),phone:String(r.phone??'').slice(0,30)};
+  });
+  const flexEntries=boundedArray(d.flexEntries,'Phiếu thu riêng').map(e=>{
+    if(!e||typeof e.id!=='string'||typeof e.roomId!=='string'||!validMonth(e.month)||!Array.isArray(e.items)||!e.items.length||e.items.length>80)throw Error('Phiếu thu riêng không hợp lệ.');
+    const items=e.items.map(x=>{
+      if(!x||typeof x.name!=='string'||!x.name.trim())throw Error('Hạng mục thu riêng thiếu tên.');
+      return {name:x.name.trim().slice(0,100),amount:moneyInt(x.amount,'Tiền thu riêng')};
+    });
+    return {id:e.id,roomId:e.roomId,month:e.month,items,paid:!!e.paid};
+  });
+  // Giữ toàn bộ ID công tơ để không mất lịch sử khi giảm số lượng trong Cài đặt.
+  // Những bản V4/V5 chưa có meterCount: lấy từ số công tơ đã khai báo.
+  const rawMeters=d.meterAccounts===undefined?copy(DEFAULT_METERS):boundedArray(d.meterAccounts,'Danh sách công tơ');
+  if(!rawMeters.length || rawMeters.length>50)throw Error('Danh sách công tơ phải từ 1 đến 50.');
+  const meterAccounts=rawMeters.map((x,i)=>{
+    if(!x||typeof x.id!=='string'||!x.id.trim())throw Error('Mã công tơ không hợp lệ.');
+    // Giữ tên do chủ trọ đặt khi tải lại / nhập file sao lưu; dữ liệu V6 dùng tên mặc định.
+    const meterName=typeof x.name==='string'&&x.name.trim()?x.name.trim():`Công tơ điện ${i+1}`;
+    if(meterName.length>80)throw Error('Tên công tơ không được quá 80 ký tự.');
+    return {id:x.id,name:meterName};
+  });
+  if(new Set(meterAccounts.map(x=>x.id)).size!==meterAccounts.length)throw Error('Mã công tơ bị trùng.');
+  const meterCount=rawSettings.meterCount===undefined?meterAccounts.length:Number(rawSettings.meterCount);
+  if(!Number.isInteger(meterCount)||meterCount<1||meterCount>50||meterCount>meterAccounts.length)
+    throw Error('Số công tơ trong Cài đặt không hợp lệ.');
+  const meterPayments=boundedArray(d.meterPayments,'Tiền điện tổng').map(x=>{
+    if(!x||typeof x.meterId!=='string'||!validMonth(x.month)||!meterAccounts.some(m=>m.id===x.meterId))throw Error('Phiếu đóng tiền công tơ không hợp lệ.');
+    return {meterId:x.meterId,month:x.month,amount:moneyInt(x.amount,'Tiền công tơ'),paid:!!x.paid};
+  });
+  const expenses=boundedArray(d.expenses,'Các khoản chi').map(x=>{
+    if(!x||typeof x.id!=='string'||!validMonth(x.month)||typeof x.name!=='string'||!x.name.trim())throw Error('Khoản chi không hợp lệ.');
+    return {id:x.id,month:x.month,name:x.name.trim().slice(0,100),amount:moneyInt(x.amount,'Tiền chi'),paid:!!x.paid};
+  });
+  // Mỗi tháng chỉ có một hóa đơn nước phải trả; thuộc sổ Thu riêng, KHÔNG thuộc expenses.
+  const flexWaterPayments=boundedArray(d.flexWaterPayments,'Tiền nước của Thu riêng').map(x=>{
+    if(!x||!validMonth(x.month))throw Error('Tháng tiền nước Thu riêng không hợp lệ.');
+    return {month:x.month,amount:moneyInt(x.amount,'Tiền nước Thu riêng'),paid:!!x.paid};
+  });
+  const unique=a=>new Set(a).size===a.length;
+  if(!unique(flexRooms.map(x=>x.id))||!unique(flexRooms.map(x=>x.name.toLowerCase()))||
+    !unique(flexEntries.map(x=>x.id))||!unique(flexEntries.map(x=>x.roomId+'/'+x.month))||
+    !unique(meterPayments.map(x=>x.meterId+'/'+x.month))||!unique(expenses.map(x=>x.id))||
+    !unique(flexWaterPayments.map(x=>x.month))||
+    flexEntries.some(x=>!flexRooms.some(r=>r.id===x.roomId)))throw Error('Sổ thu chi có dữ liệu trùng hoặc thiếu phòng.');
+  return {settings:{electricRate:Number(rawSettings.electricRate),waterRate:Number(rawSettings.waterRate),waterPerPerson:Number(rawSettings.waterPerPerson),waterMode:rawSettings.waterMode,fees,meterCount,payDay:(Number.isInteger(Number(rawSettings.payDay))&&Number(rawSettings.payDay)>=1&&Number(rawSettings.payDay)<=31?Number(rawSettings.payDay):5),bankName,bankAccount,bankHolder,qrImage},rooms,bills,flexRooms,flexEntries,meterAccounts,meterPayments,expenses,flexWaterPayments};
+}
+function calc(b){
+  const electric=Math.round((b.newE-b.oldE)*b.electricRate);
+  const water=b.waterMode==='meter'?Math.round((b.newW-b.oldW)*b.waterRate):Math.round(b.occupants*b.waterPerPerson);
+  const other=[...b.fees,...(b.extras||[])].reduce((a,f)=>a+Number(f.amount),0);
+  return {electric,water,other,total:Math.round(b.rent+electric+water+other)};
+}
+const getRoom=roomId=>state.rooms.find(r=>r.id===roomId);
+const getBill=(roomId,month=selectedMonth)=>state.bills.find(b=>b.roomId===roomId&&b.month===month);
+const latestBefore=(roomId,month)=>state.bills.filter(b=>b.roomId===roomId&&b.month<month).sort((a,b)=>b.month.localeCompare(a.month))[0];
+const earliestAfter=(roomId,month)=>state.bills.filter(b=>b.roomId===roomId&&b.month>month).sort((a,b)=>a.month.localeCompare(b.month))[0];
+const roomFees=r=>[
+  ...(r.trashFee>0?[{name:'Tiền rác',amount:r.trashFee}]:[]),
+  ...(r.internetFee>0?[{name:'Tiền mạng',amount:r.internetFee}]:[]),
+  ...state.settings.fees.filter(f=>r.feeIds.includes(f.id)).map(f=>({name:f.name,amount:f.amount}))
+];
+function switchTab(tab){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===tab));}
+function render(){
+  buildMonthPicker();
+  $('currentDate').textContent=nowLong();
+  document.querySelectorAll('.month-title').forEach(n=>n.textContent=monthText(selectedMonth));
+  renderDashboard();renderReadings();renderRooms();renderSettings();renderFlex();renderFinance();
+}
+function empty(message){return `<div class="empty">${safe(message)}</div>`;}
+function billCard(b){const v=calc(b);return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(b.roomName)}</div><div class="detail">${safe(b.tenant||'Chưa có tên người thuê')} · Tháng ${monthText(b.month)}</div></div><span class="badge ${b.paid?'paid':'unpaid'}">${b.paid?'✓ Đã thanh toán':'● Chưa thanh toán'}</span></div><div class="price">${money(v.total)}</div><div class="detail small">Điện: ${money(v.electric)} · Nước: ${money(v.water)} · Phí khác: ${money(v.other)}</div><div class="actions"><button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem hóa đơn</button><button class="btn soft" data-action="paid" data-id="${safe(b.id)}">${b.paid?'↩ Chưa thu':'✓ Đã thu tiền'}</button></div></article>`;}
+function renderDashboard(){
+  const bills=state.bills.filter(b=>b.month===selectedMonth).sort((a,b)=>a.roomName.localeCompare(b.roomName,'vi',{numeric:true}));
+  const expected=bills.reduce((s,b)=>s+calc(b).total,0),collected=bills.filter(b=>b.paid).reduce((s,b)=>s+calc(b).total,0);
+  const unbilled=state.rooms.filter(r=>!getBill(r.id)).length;
+  const items=[['Số phòng đang quản lý',state.rooms.length],['Tổng tiền đã lập',money(expected)],['Đã thu',money(collected)],['Chưa thu',money(expected-collected)]];
+  $('stats').innerHTML=items.map(([label,value])=>`<div class="stat"><div class="stat-label">${label}</div><strong>${value}</strong></div>`).join('');
+  $('financeSnapshot').innerHTML=financeCards(financeTotals());
+  $('dashboardBills').innerHTML=(unbilled?`<div class="note warn">Còn <b>${unbilled} phòng</b> chưa lập hóa đơn cho tháng ${monthText(selectedMonth)}.</div>`:'')+(bills.length?bills.map(billCard).join(''):empty('Chưa có hóa đơn tháng này. Vào “Ghi số & hóa đơn” để bắt đầu.'));
+}
+function renderReadings(){
+  const rooms=[...state.rooms].sort((a,b)=>a.name.localeCompare(b.name,'vi',{numeric:true}));
+  $('readingList').innerHTML=rooms.length?rooms.map(r=>{
+    const b=getBill(r.id),v=b?calc(b):null;
+    return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(r.name)}</div><div class="detail">${safe(r.tenant||'Chưa có tên người thuê')} · Tiền thuê: ${money(r.rent)}</div></div>${b?`<span class="badge ${b.paid?'paid':'unpaid'}">${b.paid?'Đã thanh toán':'Chưa thanh toán'}</span>`:'<span class="badge unpaid">Chưa lập hóa đơn</span>'}</div>
+    ${b?`<div class="detail">Điện: ${b.oldE} → ${b.newE} kWh ${b.waterMode==='meter'?`· Nước: ${b.oldW} → ${b.newW} m³`:`· Nước: tính theo đầu người`}</div><div class="price">${money(v.total)}</div>`:''}
+    <div class="actions"><button class="btn" data-action="bill" data-id="${safe(r.id)}">${b?'Sửa hóa đơn':'✏ Nhập chỉ số'}</button>${b?`<button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem / In</button><button class="btn soft" data-action="paid" data-id="${safe(b.id)}">${b.paid?'↩ Chưa thu':'✓ Đã thu'}</button><button class="btn danger" data-action="delete-bill" data-id="${safe(b.id)}">Xóa hóa đơn</button>`:''}</div></article>`;
+  }).join(''):empty('Chưa có phòng. Hãy vào mục “Phòng trọ” để thêm phòng đầu tiên.');
+}
+function renderRooms(){
+  const rooms=[...state.rooms].sort((a,b)=>a.name.localeCompare(b.name,'vi',{numeric:true}));
+  $('roomList').innerHTML=rooms.length?rooms.map(r=>{
+    const water=r.waterMode==='meter'?`${money(r.waterRate)}/m³`:`${money(r.waterPerPerson)}/người/tháng`;
+    const fees=roomFees(r);
+    const maskedCCCD=r.cccd?`<br>CCCD/CMND: ****${safe(r.cccd.slice(-4))}`:'';
+    return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(r.name)}</div>
+      <div class="detail">Người thuê: ${safe(r.tenant||'Chưa cập nhật')}<br>Điện thoại: ${safe(r.phone||'Chưa cập nhật')}${maskedCCCD}
+      <br>Thời gian thuê: ${dateText(r.leaseStart)} đến ${dateText(r.leaseEnd)}
+      <br>Tiền cọc: ${money(r.deposit||0)}
+      <br>Phương tiện (${r.vehicles.length}): ${r.vehicles.length?safe(vehiclesText(r.vehicles)):'Không có'}</div>
+      <div class="detail small">Tiền điện: ${money(r.electricRate)}/kWh · Tiền nước: ${water}<br>Phí cố định: ${fees.length?fees.map(f=>`${safe(f.name)} (${money(f.amount)})`).join(' · '):'Không có'}</div></div>
+      <span class="price">${money(r.rent)}/tháng</span></div>
+      <div class="actions"><button class="btn secondary" data-action="edit-room" data-id="${safe(r.id)}">✏ Sửa phòng</button><button class="btn danger" data-action="delete-room" data-id="${safe(r.id)}">Xóa phòng</button></div></article>`;
+  }).join(''):empty('Chưa có phòng. Nhấn “+ Thêm phòng” để tạo phòng.');
+}
+function renderSettings(){
+  $('bankName').value=state.settings.bankName||'';$('bankAccount').value=state.settings.bankAccount||'';$('bankHolder').value=state.settings.bankHolder||'';
+  renderQrPreview();
+  $('electricRate').value=state.settings.electricRate;$('waterRate').value=state.settings.waterRate;
+  $('waterPerPerson').value=state.settings.waterPerPerson;$('payDay').value=state.settings.payDay??5;$('waterMode').value=state.settings.waterMode;
+  $('meterNamesInput').value=state.meterAccounts.slice(0,state.settings.meterCount).map(m=>m.name).join('; ');
+  updateMeterNamesPreview();
+  $('meterConfigNote').textContent=`Đang sử dụng ${state.settings.meterCount} công tơ. Có ${state.meterAccounts.length} mã công tơ được giữ trong lịch sử.`;
+  $('feeList').innerHTML=state.settings.fees.length?state.settings.fees.map(f=>`<div class="setting-fee"><input aria-label="Tên phí" id="fee-name-${safe(f.id)}" value="${safe(f.name)}" maxlength="60"><input aria-label="Số tiền phí" id="fee-amount-${safe(f.id)}" type="number" min="0" step="1" value="${f.amount}"><button class="btn secondary" data-action="save-fee" data-id="${safe(f.id)}">Lưu</button><button class="btn danger" data-action="delete-fee" data-id="${safe(f.id)}">Xóa</button></div>`).join(''):'<p class="muted small">Hiện chưa có khoản phí cố định nào.</p>';
+}
+// Cập nhật tổng số người; theo đầu người mặc định tính cả người lớn và trẻ em.
+function updateRoomOccupants(){
+  const adults=num($('roomAdults').value),children=num($('roomChildren').value);
+  $('roomOccupants').value=Number.isInteger(adults)&&Number.isInteger(children)&&adults>=0&&children>=0?adults+children:'';
+  updateRoomWaterExplanation();
+}
+function updateRoomWaterExplanation(){
+  const plan=$('roomWaterPlan').value;
+  $('roomPeopleFields').hidden=!plan.startsWith('person-');
+  if(plan.startsWith('person-')){
+    const n=num($('roomOccupants').value),price=Number(plan.slice(7));
+    $('roomWaterExplanation').textContent=`Theo đầu người: tính cả người lớn và trẻ em. ${Number.isFinite(n)?n:0} người × ${money(price)} = ${money((Number.isFinite(n)?n:0)*price)}/tháng.`;
+  }else{
+    $('roomWaterExplanation').textContent=`Theo đồng hồ: (số nước mới − số nước cũ) × ${money(Number(plan.slice(6)))}/m³.`;
+  }
+}
+['roomAdults','roomChildren'].forEach(k=>$(k).addEventListener('input',updateRoomOccupants));
+$('roomWaterPlan').addEventListener('change',updateRoomWaterExplanation);
+// Mỗi phương tiện là một dòng riêng, thêm/xóa trong form không lưu ngay cho đến khi nhấn Lưu phòng.
+function addVehicleRow(vehicle={type:'Xe máy',plate:''}){
+  const box=document.createElement('div');box.className='vehicle-editor';
+  const types=['Xe máy','Xe điện','Ô tô','Xe đạp','Khác','Chưa cập nhật'];
+  const chosen=types.includes(vehicle.type)?vehicle.type:'Khác';
+  box.innerHTML=`<div class="vehicle-header"><strong>Phương tiện <span class="vehicle-index"></span></strong><button class="btn danger remove-vehicle" type="button">Xóa xe</button></div>
+    <div class="grid2"><div class="field"><label>Loại xe</label><select class="vehicle-type">${types.map(t=>`<option value="${safe(t)}" ${t===chosen?'selected':''}>${safe(t)}</option>`).join('')}</select></div>
+    <div class="field"><label>Biển số xe</label><input class="vehicle-plate" maxlength="30" placeholder="VD: 29-B1 123.45" value="${safe(vehicle.plate||'')}"></div></div>`;
+  $('vehicleRows').appendChild(box);renumberVehicles();
+}
+function renumberVehicles(){[...$('vehicleRows').children].forEach((node,i)=>node.querySelector('.vehicle-index').textContent=i+1);}
+function formVehicles(){return [...$('vehicleRows').querySelectorAll('.vehicle-editor')].map(node=>({type:node.querySelector('.vehicle-type').value,plate:node.querySelector('.vehicle-plate').value.trim().toUpperCase()}));}
+$('addVehicle').addEventListener('click',()=>{if($('vehicleRows').children.length>=30){alert('Tối đa 30 phương tiện mỗi phòng.');return;}addVehicleRow();});
+$('vehicleRows').addEventListener('click',e=>{if(e.target.closest('.remove-vehicle')){e.target.closest('.vehicle-editor').remove();renumberVehicles();}});
+function openRoom(roomId){
+  const r=roomId?getRoom(roomId):null;
+  $('roomDialogTitle').textContent=r?'Sửa thông tin phòng':'Thêm phòng mới';$('roomForm').reset();
+  $('roomId').value=r?.id||'';$('roomName').value=r?.name||'';$('tenantName').value=r?.tenant||'';$('tenantPhone').value=r?.phone||'';$('tenantCCCD').value=r?.cccd||'';
+  $('roomLeaseStart').value=r?.leaseStart||'';$('roomLeaseEnd').value=r?.leaseEnd||'';$('roomDeposit').value=r?.deposit??0;
+  $('vehicleRows').innerHTML='';(r?.vehicles||[]).forEach(addVehicleRow);
+  $('roomRent').value=r?.rent??'';$('roomTrashFee').value=r?.trashFee??0;$('roomInternetFee').value=r?.internetFee??0;
+  $('roomAdults').value=r?.adults??1;$('roomChildren').value=r?.children??0;
+  $('roomElectricRate').value=r?.electricRate??state.settings.electricRate;
+  $('roomBaseE').value=r?.baseE??'';$('roomBaseW').value=r?.baseW??'';
+  // Giữ được mức giá cũ (ví dụ 20.000 đ/m³) khi mở phòng từ V1.
+  const waterMode=r?.waterMode??state.settings.waterMode;
+  const rate=waterMode==='person'?(r?.waterPerPerson??state.settings.waterPerPerson):(r?.waterRate??state.settings.waterRate);
+  const plan=`${waterMode}-${rate}`;
+  const menu=$('roomWaterPlan');
+  menu.querySelectorAll('option[data-legacy]').forEach(option=>option.remove());
+  if(![...menu.options].some(option=>option.value===plan)){
+    const option=document.createElement('option');option.value=plan;option.dataset.legacy='true';
+    option.textContent=waterMode==='meter'?`Theo khối – giá hiện tại ${money(rate)}/m³`:`Theo người – giá hiện tại ${money(rate)}/người/tháng`;
+    menu.appendChild(option);
+  }
+  menu.value=plan;updateRoomOccupants();
+  $('roomFeeChoices').innerHTML=state.settings.fees.length?state.settings.fees.map(f=>`<label><input type="checkbox" name="roomFee" value="${safe(f.id)}" ${r?.feeIds.includes(f.id)?'checked':''}> ${safe(f.name)} (${money(f.amount)})</label>`).join(''):'<div class="muted small">Chưa có phí khác. Có thể để trống.</div>';
+  $('roomDialog').showModal();
+}
+$('roomForm').addEventListener('submit',e=>{
+  e.preventDefault();const roomId=$('roomId').value;const name=$('roomName').value.trim();
+  const rent=num($('roomRent').value),trashFee=num($('roomTrashFee').value),internetFee=num($('roomInternetFee').value),electricRate=num($('roomElectricRate').value);
+  const adults=num($('roomAdults').value),children=num($('roomChildren').value),occupants=adults+children;
+  const vehicles=formVehicles(),vehicleCount=vehicles.length;
+  const leaseStart=$('roomLeaseStart').value,leaseEnd=$('roomLeaseEnd').value,deposit=num($('roomDeposit').value);
+  const cccd=$('tenantCCCD').value.trim();
+  const baseE=$('roomBaseE').value===''?null:num($('roomBaseE').value),baseW=$('roomBaseW').value===''?null:num($('roomBaseW').value);
+  const [waterMode,waterPriceText]=$('roomWaterPlan').value.split('-'),waterPrice=$('roomWaterCustom').value!==''?num($('roomWaterCustom').value):Number(waterPriceText);
+  if(!name || ![rent,trashFee,internetFee,electricRate,deposit].every(v=>Number.isSafeInteger(v)&&v>=0)
+    || ![adults,children,vehicleCount].every(v=>Number.isSafeInteger(v)&&v>=0) || occupants<1
+    || !['meter','person'].includes(waterMode) || !Number.isSafeInteger(waterPrice) || waterPrice<0
+    || [baseE,baseW].some(v=>v!==null&&(!Number.isFinite(v)||v<0))){alert('Vui lòng kiểm tra số người, phương tiện, chỉ số và số tiền.');return;}
+  if(cccd && !/^(?:\d{9}|\d{12})$/.test(cccd)){alert('CCCD/CMND phải gồm 9 hoặc 12 chữ số.');return;}
+  if(!validDate(leaseStart)||!validDate(leaseEnd)||(leaseStart&&leaseEnd&&leaseStart>leaseEnd)){alert('Ngày kết thúc thuê phải bằng hoặc sau ngày bắt đầu thuê.');return;}
+  if(state.rooms.some(r=>r.id!==roomId&&r.name.toLowerCase()===name.toLowerCase())){alert('Tên phòng đã tồn tại.');return;}
+  const previousRoom=roomId?getRoom(roomId):null;
+  const room={id:roomId||id(),name,tenant:$('tenantName').value.trim(),phone:$('tenantPhone').value.trim(),cccd,
+    rent,trashFee,internetFee,electricRate,adults,children,occupants,vehicleCount,vehicles,leaseStart,leaseEnd,deposit,
+    waterMode,waterRate:waterMode==='meter'?waterPrice:(previousRoom?.waterRate??state.settings.waterRate),
+    waterPerPerson:waterMode==='person'?waterPrice:(previousRoom?.waterPerPerson??state.settings.waterPerPerson),
+    baseE,baseW,feeIds:[...document.querySelectorAll('input[name="roomFee"]:checked')].map(x=>x.value)};
+  const previous=copy(state);if(roomId){state.rooms=state.rooms.map(r=>r.id===roomId?room:r);}else state.rooms.push(room);
+  if(!save()){state=previous;return;}$('roomDialog').close();render();toast('Đã lưu phòng và toàn bộ đơn giá riêng của phòng.');
+});
+function deleteRoom(roomId){
+  const r=getRoom(roomId);if(!r)return;
+  if(!confirm(`Xóa phòng “${r.name}” khỏi danh sách? Các hóa đơn cũ của phòng vẫn được giữ trong lịch sử, nhưng không thể lập hóa đơn mới cho phòng đã xóa.`))return;
+  const old=copy(state);state.rooms=state.rooms.filter(x=>x.id!==roomId);
+  if(!save()){state=old;return;}render();toast('Đã xóa phòng. Hóa đơn cũ vẫn được giữ.');
+}
+const latestMeterBefore=(roomId,month)=>state.bills.filter(b=>b.roomId===roomId&&b.month<month&&b.waterMode==='meter').sort((a,b)=>b.month.localeCompare(a.month))[0];
+function billDraft(room,existing,previous,meterPrevious){
+  if(existing)return copy(existing); // Hóa đơn cũ luôn giữ đúng đơn giá, phí đã áp dụng.
+  return {id:id(),roomId:room.id,roomName:room.name,tenant:room.tenant,phone:room.phone,month:selectedMonth,
+    oldE:previous?previous.newE:room.baseE,newE:null,oldW:meterPrevious?meterPrevious.newW:room.baseW,newW:null,
+    rent:room.rent,adults:room.adults,children:room.children,occupants:room.occupants,
+    leaseStart:room.leaseStart,leaseEnd:room.leaseEnd,deposit:room.deposit,vehicles:copy(room.vehicles),
+    electricRate:room.electricRate,waterRate:room.waterRate,waterPerPerson:room.waterPerPerson,
+    waterMode:room.waterMode,fees:roomFees(room),extras:[],paid:false,paidAt:null,createdAt:new Date().toISOString(),updatedAt:''};
+}
+function openBill(roomId){
+  const r=getRoom(roomId);if(!r)return;
+  if(earliestAfter(roomId,selectedMonth)){alert('Phòng này có hóa đơn tháng sau. Để tránh sai lệch chỉ số, hãy sửa/xóa hóa đơn từ tháng mới nhất trở về trước.');return;}
+  const existing=getBill(roomId),previous=latestBefore(roomId,selectedMonth),meterPrevious=latestMeterBefore(roomId,selectedMonth);
+  pendingBill=billDraft(r,existing,previous,meterPrevious);
+  $('billForm').reset();$('billRoomId').value=roomId;
+  $('billDialogTitle').textContent=`${existing?'Sửa hóa đơn':'Ghi chỉ số'} – ${r.name} (${monthText(selectedMonth)})`;
+  const electricityNote=previous?`Số điện cũ lấy từ tháng ${monthText(previous.month)}.`:'Chưa có hóa đơn trước: dùng chỉ số điện ban đầu (nếu đã nhập).';
+  const waterNote=pendingBill.waterMode==='meter'?(meterPrevious?`Số nước cũ lấy từ hóa đơn đồng hồ tháng ${monthText(meterPrevious.month)}.`:'Chưa có hóa đơn nước theo đồng hồ trước: dùng chỉ số nước ban đầu hoặc tự nhập.'):'Nước tính theo số người, không cần nhập chỉ số nước.';
+  $('previousNote').textContent=`${electricityNote} ${waterNote}`;
+  $('oldE').value=pendingBill.oldE??'';$('newE').value=pendingBill.newE??'';
+  $('oldW').value=pendingBill.oldW??'';$('newW').value=pendingBill.newW??'';
+  $('oldE').readOnly=!!previous;$('oldW').readOnly=!!meterPrevious;
+  $('waterMeterFields').style.display=pendingBill.waterMode==='meter'?'grid':'none';
+  $('billPeopleFields').hidden=pendingBill.waterMode!=='person';
+  $('oldW').required=pendingBill.waterMode==='meter';$('newW').required=pendingBill.waterMode==='meter';
+  $('billRent').value=pendingBill.rent;$('billAdults').value=pendingBill.adults;$('billChildren').value=pendingBill.children;$('billOccupants').value=pendingBill.occupants;
+  $('billPriceNote').textContent=`Điện: ${money(pendingBill.electricRate)}/kWh · Nước: ${pendingBill.waterMode==='meter'?money(pendingBill.waterRate)+'/m³':money(pendingBill.waterPerPerson)+'/người'} · Phí khác: ${money(pendingBill.fees.reduce((s,f)=>s+f.amount,0))}`;
+  $('extraRows').innerHTML='';(pendingBill.extras||[]).forEach(addExtraRow);
+  updateBillPreview();$('billDialog').showModal();
+}
+function getFormBill(){
+  if(!pendingBill)return null;
+  const adults=num($('billAdults').value),children=num($('billChildren').value);
+  const occupants=adults+children;
+  $('billOccupants').value=Number.isInteger(occupants)&&occupants>=0?occupants:'';
+  return {...pendingBill,oldE:num($('oldE').value),newE:num($('newE').value),
+    oldW:pendingBill.waterMode==='meter'?num($('oldW').value):null,
+    newW:pendingBill.waterMode==='meter'?num($('newW').value):null,
+    rent:num($('billRent').value),adults,children,occupants,extras:formExtras()};
+}
+function billError(b){
+  if(b&&(b.extras||[]).some(x=>!x.name||!Number.isSafeInteger(x.amount)||x.amount<0))return 'Mỗi khoản phí phát sinh cần có tên và số tiền hợp lệ (không âm).';
+  if(!b || ![b.oldE,b.newE,b.rent,b.adults,b.children].every(Number.isFinite)
+    || b.oldE<0 || b.newE<0 || b.rent<0 || !Number.isSafeInteger(b.rent)
+    || !Number.isInteger(b.adults)||!Number.isInteger(b.children)||b.adults<0||b.children<0||b.occupants<1)
+    return 'Vui lòng nhập đầy đủ số điện, tiền phòng, người lớn và trẻ em hợp lệ.';
+  if(b.newE<b.oldE)return '⚠️ Số điện MỚI không được nhỏ hơn số điện CŨ.';
+  if(b.waterMode==='meter'){
+    if(![b.oldW,b.newW].every(Number.isFinite)||b.oldW<0||b.newW<0)return 'Vui lòng nhập đầy đủ chỉ số nước hợp lệ.';
+    if(b.newW<b.oldW)return '⚠️ Số nước MỚI không được nhỏ hơn số nước CŨ.';
+  }
+  return '';
+}
+function updateBillPreview(){
+  const b=getFormBill(),error=billError(b);
+  $('billPreview').textContent=error?error:`Tổng tiền: ${money(calc(b).total)}`;
+  $('billPreview').style.background=error?'#fff1e5':'#e8f5ef';
+}
+['oldE','newE','oldW','newW','billRent','billAdults','billChildren'].forEach(k=>$(k).addEventListener('input',updateBillPreview));
+function addExtraRow(x={name:'',amount:''}){
+  const box=document.createElement('div');box.className='setting-fee';
+  box.innerHTML=`<input class="extra-name" maxlength="60" placeholder="VD: Giặt sấy" aria-label="Tên khoản phí" value="${safe(x.name||'')}"><input class="extra-amount" type="number" min="0" step="1" placeholder="Số tiền (đ)" aria-label="Số tiền" value="${x.amount??''}"><button class="btn danger remove-extra" type="button">Xóa</button>`;
+  $('extraRows').appendChild(box);
+}
+function formExtras(){return [...$('extraRows').querySelectorAll('.setting-fee')].map(r=>({name:r.querySelector('.extra-name').value.trim(),raw:r.querySelector('.extra-amount').value})).filter(r=>r.name||r.raw!=='').map(r=>({name:r.name,amount:num(r.raw)}));}
+$('addExtra').addEventListener('click',()=>{if($('extraRows').children.length>=20){alert('Tối đa 20 khoản phí phát sinh.');return;}addExtraRow();});
+$('extraRows').addEventListener('click',e=>{if(e.target.closest('.remove-extra')){e.target.closest('.setting-fee').remove();updateBillPreview();}});
+$('extraRows').addEventListener('input',updateBillPreview);
+$('billForm').addEventListener('submit',e=>{
+  e.preventDefault();const b=getFormBill(),error=billError(b);if(error){alert(error);return;}
+  const previous=latestBefore(b.roomId,b.month),meterPrevious=latestMeterBefore(b.roomId,b.month);
+  if((previous && b.oldE!==previous.newE) || (b.waterMode==='meter'&&meterPrevious&&b.oldW!==meterPrevious.newW)){alert('Chỉ số cũ không khớp với hóa đơn trước. Vui lòng mở lại màn hình nhập.');return;}
+  if(earliestAfter(b.roomId,b.month)){alert('Có hóa đơn tháng sau, không thể sửa tháng này trước.');return;}
+  b.updatedAt=new Date().toISOString();const old=copy(state);
+  const i=state.bills.findIndex(x=>x.id===b.id);if(i>=0)state.bills[i]=b;else state.bills.push(b);
+  if(!save()){state=old;return;}$('billDialog').close();pendingBill=null;render();toast('Đã lưu hóa đơn thành công.');
+});
+function deleteBill(billId){
+  const b=state.bills.find(x=>x.id===billId);if(!b)return;
+  if(earliestAfter(b.roomId,b.month)){alert('Hãy xóa hóa đơn các tháng mới hơn trước để tránh sai chỉ số.');return;}
+  if(!confirm(`Xóa hóa đơn phòng ${b.roomName}, tháng ${monthText(b.month)}? Thao tác này không thể hoàn tác nếu không có bản sao lưu.`))return;
+  const old=copy(state);state.bills=state.bills.filter(x=>x.id!==billId);
+  if(!save()){state=old;return;}$('invoiceDialog').close();render();toast('Đã xóa hóa đơn.');
+}
+function togglePaid(billId){
+  const b=state.bills.find(x=>x.id===billId);if(!b)return;
+  const old=copy(state);b.paid=!b.paid;b.paidAt=b.paid?new Date().toISOString():null;
+  if(!save()){state=old;return;}render();
+  if($('invoiceDialog').open&&shownInvoiceId===billId)showInvoice(billId);
+  toast(b.paid?'Đã đánh dấu thanh toán.':'Đã chuyển về chưa thanh toán.');
+}
+function showInvoice(billId){
+  const b=state.bills.find(x=>x.id===billId);if(!b)return;
+  const v=calc(b);shownInvoiceId=b.id;
+  const bank=getBank();
+  // Tiền thuê, điện, nước và các khoản phí vẫn lấy từ hóa đơn đã lưu.
+  const fmtN=x=>new Intl.NumberFormat('vi-VN').format(Math.round(Number(x)||0));
+  const full=(label,amt)=>`<tr><td colspan="5">${label}</td><td class="n">${money(amt)}</td></tr>`;
+  let detail=`<tr><td>Tiền điện</td><td class="n">${b.oldE}</td><td class="n">${b.newE}</td><td class="n">${+(b.newE-b.oldE).toFixed(2)} kWh</td><td class="n">${fmtN(b.electricRate)}</td><td class="n">${money(v.electric)}</td></tr>`;
+  detail+=b.waterMode==='meter'?`<tr><td>Tiền nước</td><td class="n">${b.oldW}</td><td class="n">${b.newW}</td><td class="n">${+(b.newW-b.oldW).toFixed(2)} m³</td><td class="n">${fmtN(b.waterRate)}</td><td class="n">${money(v.water)}</td></tr>`:`<tr><td>Tiền nước</td><td class="n">–</td><td class="n">–</td><td class="n">${b.occupants} người</td><td class="n">${fmtN(b.waterPerPerson)}</td><td class="n">${money(v.water)}</td></tr>`;
+  detail+=[...b.fees,...(b.extras||[])].map(f=>full(safe(f.name),f.amount)).join('');
+  detail+=full('Tiền phòng',b.rent);
+  let transfer='';
+  if(bank.bankAccount){
+    const note=`TIEN PHONG ${b.roomName} THANG ${b.month.slice(5)}/${b.month.slice(0,4)}`;
+    transfer = `
+  <div class="transfer-box ${bank.qrImage?'':'no-qr'}">
+    <div class="transfer-left">
+      <div class="transfer-label">🏦 Thông tin chuyển khoản</div>
+      ${bank.bankName ? `<div>Ngân hàng: <b>${safe(bank.bankName)}</b></div>` : ''}
+      <div>Số tài khoản:</div>
+      <div class="transfer-account">${safe(bank.bankAccount)}</div>
+      ${bank.bankHolder ? `<div>Chủ tài khoản: <b>${safe(bank.bankHolder)}</b></div>` : ''}
+      <div>Nội dung chuyển khoản: <b>${safe(note)}</b></div>
+    </div>
+
+    ${bank.qrImage?`<div class="transfer-right">
+      <img src="${safe(bank.qrImage)}" alt="Mã QR ngân hàng" loading="eager">
+      <div class="qr-caption">Quét mã để chuyển khoản</div>
+    </div>`:''}
+  </div>
+`;
+  }
+  $('invoiceContent').innerHTML=`<div class="invoice">
+    <div class="invoice-date">Ngày xem / in: ${nowText()}</div>
+    <div class="invoice-top"><h2>HÓA ĐƠN TIỀN PHÒNG</h2><div>Tháng ${monthText(b.month)}</div></div>
+    <div class="invoice-meta"><div><b>Phòng:</b> ${safe(b.roomName)}</div><div><b>Người thuê:</b> ${safe(b.tenant||'—')}</div>
+      <div><b>Điện thoại:</b> ${safe(b.phone||'—')}</div>
+      <div><b>Trạng thái:</b> <span class="badge ${b.paid?'paid':'unpaid'}">${b.paid?'ĐÃ THANH TOÁN':'CHƯA THANH TOÁN'}</span></div></div>
+    
+    <div class="tw"><table><thead><tr><th>Hạng mục</th><th class="n">Số cũ</th><th class="n">Số mới</th><th class="n">Tiêu thụ</th><th class="n">Đơn giá</th><th class="n">Thành tiền</th></tr></thead><tbody>${detail}</tbody>
+      <tfoot><tr><td colspan="5">TỔNG CỘNG</td><td class="n">${money(v.total)}</td></tr></tfoot></table></div>
+    ${b.paid&&b.paidAt?`<div class="detail small">Ngày ghi nhận thanh toán: ${safe(new Date(b.paidAt).toLocaleDateString('vi-VN'))}</div>`:''}
+    ${transfer}
+    <div class="invoice-foot">${b.paid?'Cảm ơn bạn đã thanh toán!':'Vui lòng kiểm tra thông tin và thanh toán trước ngày '+(state.settings.payDay||5)+' hàng tháng.'}</div></div>`;
+  $('invoicePaidBtn').textContent=b.paid?'↩ Chuyển về chưa thu':'✓ Đánh dấu đã thu';
+  if(!$('invoiceDialog').open)$('invoiceDialog').showModal();
+}
+$('invoicePaidBtn').addEventListener('click',()=>{if(shownInvoiceId)togglePaid(shownInvoiceId);});
+$('printInvoice').addEventListener('click',()=>window.print());
+
+// ---------------- THU RIÊNG / SỔ THU CHI V4 ----------------
+// Thu riêng và khoản nước tổng dùng báo cáo riêng, không bao giờ cộng/trừ trong financeTotals().
+function flexTotal(e){return e.items.reduce((s,x)=>s+x.amount,0);}
+function getFlexEntry(roomId){return state.flexEntries.find(x=>x.roomId===roomId&&x.month===selectedMonth);}
+function getFlexWater(month=selectedMonth){return state.flexWaterPayments.find(x=>x.month===month);}
+function flexTotals(){
+  const rows=state.flexEntries.filter(x=>x.month===selectedMonth);
+  const total=rows.reduce((s,x)=>s+flexTotal(x),0);
+  const received=rows.filter(x=>x.paid).reduce((s,x)=>s+flexTotal(x),0);
+  const water=getFlexWater();const waterDue=water?.amount||0;const waterPaid=water?.paid?waterDue:0;
+  return {total,received,unreceived:total-received,waterDue,waterPaid,waterUnpaid:waterDue-waterPaid,
+    netExpected:total-waterDue,netActual:received-waterPaid};
+}
+function flexCards(t){
+  return `<div class="finance-kpi"><span>TỔNG THU RIÊNG PHẢI THU</span><strong>${money(t.total)}</strong></div>
+    <div class="finance-kpi negative"><span>TIỀN NƯỚC PHẢI TRẢ</span><strong>${money(t.waterDue)}</strong></div>
+    <div class="finance-kpi net ${t.netExpected<0?'negative':''}"><span>CÒN LẠI DỰ KIẾN (THU RIÊNG − NƯỚC PHẢI TRẢ)</span><strong>${money(t.netExpected)}</strong></div>
+    <div class="finance-kpi"><span>THU RIÊNG ĐÃ NHẬN</span><strong>${money(t.received)}</strong></div>
+    <div class="finance-kpi negative"><span>NƯỚC ĐÃ ĐÓNG THỰC TẾ</span><strong>${money(t.waterPaid)}</strong></div>
+    <div class="finance-kpi net ${t.netActual<0?'negative':''}"><span>THỰC CÒN LẠI (ĐÃ NHẬN − ĐÃ ĐÓNG)</span><strong>${money(t.netActual)}</strong></div>`;
+}
+function financeTotals(){
+  const bills=state.bills.filter(b=>b.month===selectedMonth);
+  const invoiced=bills.reduce((s,b)=>s+calc(b).total,0);
+  const received=bills.filter(b=>b.paid).reduce((s,b)=>s+calc(b).total,0);
+  const meterRows=state.meterPayments.filter(x=>x.month===selectedMonth);
+  const extraRows=state.expenses.filter(x=>x.month===selectedMonth);
+  const electricityPaid=meterRows.filter(x=>x.paid).reduce((s,x)=>s+x.amount,0);
+  const otherPaid=extraRows.filter(x=>x.paid).reduce((s,x)=>s+x.amount,0);
+  const due=meterRows.filter(x=>!x.paid).reduce((s,x)=>s+x.amount,0)+extraRows.filter(x=>!x.paid).reduce((s,x)=>s+x.amount,0);
+  return {invoiced,received,uncollected:invoiced-received,electricityPaid,otherPaid,paidOut:electricityPaid+otherPaid,unpaidExpenses:due,net:received-electricityPaid-otherPaid};
+}
+function financeCards(t){
+  return `<div class="finance-kpi"><span>ĐÃ THU từ phòng thường</span><strong>${money(t.received)}</strong></div>
+    <div class="finance-kpi negative"><span>ĐÃ CHI (điện + khoản khác)</span><strong>${money(t.paidOut)}</strong></div>
+    <div class="finance-kpi net ${t.net<0?'negative':''}"><span>CÒN LẠI THỰC TẾ</span><strong>${money(t.net)}</strong></div>`;
+}
+function renderFlex(){
+  const t=flexTotals();
+  $('flexSummary').innerHTML=flexCards(t);
+  $('flexRoomList').innerHTML=state.flexRooms.length?state.flexRooms.map(r=>{
+    const e=getFlexEntry(r.id),sum=e?flexTotal(e):0;
+    return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(r.name)}</div>
+      <div class="detail">${safe(r.tenant||'Chưa nhập người thuê')}${r.phone?' · '+safe(r.phone):''}</div></div>
+      <span class="report-tag">KHÔNG TÍNH THU CHI</span></div>
+      ${e?`<div class="line-list">${e.items.map(it=>`<div class="line"><span>${safe(it.name)}</span><span class="amount">${money(it.amount)}</span></div>`).join('')}</div>
+        <div class="price">Tổng tháng này: ${money(sum)}</div><span class="badge ${e.paid?'paid':'unpaid'}">${e.paid?'Đã nhận':'Chưa nhận'}</span>`:
+        `<p class="muted">Chưa nhập số tiền tháng ${monthText(selectedMonth)}.</p>`}
+      <div class="actions"><button class="btn" data-action="flex-entry" data-id="${safe(r.id)}">${e?'Sửa tiền tháng':'Nhập tiền tháng'}</button>
+      ${e?`<button class="btn soft" data-action="flex-paid" data-id="${safe(e.id)}">${e.paid?'↩ Chưa nhận':'✓ Đã nhận'}</button><button class="btn danger" data-action="flex-delete-entry" data-id="${safe(e.id)}">Xóa phiếu</button>`:''}
+      <button class="btn secondary" data-action="flex-edit-room" data-id="${safe(r.id)}">Sửa thông tin</button>
+      <button class="btn danger" data-action="flex-delete-room" data-id="${safe(r.id)}">Xóa phòng</button></div></article>`;
+  }).join(''):empty('Chưa có phòng thu riêng. Nhấn "+ Thêm phòng thu riêng" để bắt đầu.');
+}
+function openFlexRoom(roomId){
+  const r=state.flexRooms.find(x=>x.id===roomId);
+  $('flexRoomForm').reset();$('flexRoomId').value=r?.id||'';
+  $('flexRoomTitle').textContent=r?'Sửa thông tin phòng thu riêng':'Thêm phòng thu riêng';
+  $('flexRoomName').value=r?.name||'';$('flexTenant').value=r?.tenant||'';$('flexPhone').value=r?.phone||'';
+  $('flexRoomDialog').showModal();
+}
+$('addFlexRoom').addEventListener('click',()=>openFlexRoom());
+$('flexRoomForm').addEventListener('submit',e=>{
+  e.preventDefault();const rid=$('flexRoomId').value,name=$('flexRoomName').value.trim();
+  if(!name||state.flexRooms.some(r=>r.id!==rid&&r.name.toLowerCase()===name.toLowerCase())){alert('Tên phòng thu riêng bị trùng hoặc để trống.');return;}
+  const r={id:rid||id(),name,tenant:$('flexTenant').value.trim(),phone:$('flexPhone').value.trim()};
+  const old=copy(state);if(rid)state.flexRooms=state.flexRooms.map(x=>x.id===rid?r:x);else state.flexRooms.push(r);
+  if(!save()){state=old;return;}$('flexRoomDialog').close();render();toast('Đã lưu phòng thu riêng.');
+});
+function deleteFlexRoom(rid){
+  const r=state.flexRooms.find(x=>x.id===rid);if(!r)return;
+  if(state.flexEntries.some(x=>x.roomId===rid)){alert('Phòng này đã có phiếu thu các tháng. Hãy xóa các phiếu trước nếu thực sự muốn xóa phòng, để tránh mất lịch sử.');return;}
+  if(!confirm(`Xóa phòng thu riêng "${r.name}"?`))return;
+  const old=copy(state);state.flexRooms=state.flexRooms.filter(x=>x.id!==rid);
+  if(!save()){state=old;return;}render();toast('Đã xóa phòng thu riêng.');
+}
+function addFlexLine(x={name:'',amount:''}){
+  if($('flexItemRows').children.length>=80){alert('Tối đa 80 khoản thu trong một tháng.');return;}
+  const line=document.createElement('div');line.className='extra-line-editor';
+  line.innerHTML=`<div class="field"><label>Khoản thu</label><input class="flex-item-name" maxlength="100" placeholder="Tiền phòng, giặt sấy..." value="${safe(x.name)}" required></div>
+   <div class="field"><label>Số tiền (đ)</label><input class="flex-item-amount" type="number" min="0" step="1" placeholder="2000000" value="${x.amount??''}" required></div>
+   <button type="button" class="btn danger flex-remove-item">Xóa</button>`;
+  $('flexItemRows').appendChild(line);updateFlexEntryTotal();
+}
+$('addFlexItem').addEventListener('click',()=>addFlexLine());
+$('flexItemRows').addEventListener('click',e=>{if(e.target.closest('.flex-remove-item')){if($('flexItemRows').children.length<=1){alert('Giữ ít nhất một khoản thu.');return;}e.target.closest('.extra-line-editor').remove();updateFlexEntryTotal();}});
+$('flexItemRows').addEventListener('input',updateFlexEntryTotal);
+function formFlexItems(){return [...$('flexItemRows').querySelectorAll('.extra-line-editor')].map(x=>({name:x.querySelector('.flex-item-name').value.trim(),amount:num(x.querySelector('.flex-item-amount').value)}));}
+function updateFlexEntryTotal(){
+  const items=formFlexItems();const total=items.reduce((s,x)=>s+(Number.isFinite(x.amount)?x.amount:0),0);
+  $('flexEntryTotal').textContent=`Tổng riêng: ${money(total)}`;
+}
+function openFlexEntry(rid){
+  const r=state.flexRooms.find(x=>x.id===rid);if(!r)return;
+  const e=getFlexEntry(rid);$('flexEntryRoomId').value=rid;
+  $('flexEntryTitle').textContent=`Thu riêng – ${r.name} – ${monthText(selectedMonth)}`;
+  $('flexItemRows').innerHTML='';(e?.items||[{name:'Tiền phòng',amount:''}]).forEach(addFlexLine);
+  $('flexEntryPaid').checked=!!e?.paid;updateFlexEntryTotal();$('flexEntryDialog').showModal();
+}
+$('flexEntryForm').addEventListener('submit',e=>{
+  e.preventDefault();const rid=$('flexEntryRoomId').value,existing=getFlexEntry(rid),items=formFlexItems();
+  if(!items.length||items.some(x=>!x.name||!Number.isSafeInteger(x.amount)||x.amount<0)){alert('Vui lòng nhập đủ tên và số tiền nguyên không âm cho mỗi khoản thu.');return;}
+  const entry={id:existing?.id||id(),roomId:rid,month:selectedMonth,items,paid:$('flexEntryPaid').checked};
+  const old=copy(state);if(existing)state.flexEntries=state.flexEntries.map(x=>x.id===existing.id?entry:x);else state.flexEntries.push(entry);
+  if(!save()){state=old;return;}$('flexEntryDialog').close();render();toast('Đã lưu phiếu thu riêng; không cộng vào sổ thu chi.');
+});
+function toggleFlexPaid(fid){
+  const entry=state.flexEntries.find(x=>x.id===fid);if(!entry)return;
+  const old=copy(state);entry.paid=!entry.paid;
+  if(!save()){state=old;return;}render();toast('Đã cập nhật trạng thái phiếu thu riêng.');
+}
+function deleteFlexEntry(fid){
+  if(!confirm('Xóa phiếu thu riêng tháng này?'))return;
+  const old=copy(state);state.flexEntries=state.flexEntries.filter(x=>x.id!==fid);
+  if(!save()){state=old;return;}render();toast('Đã xóa phiếu thu riêng.');
+}
+function renderFinance(){
+  const t=financeTotals();$('financeSummary').innerHTML=financeCards(t)+
+    `<div class="finance-kpi"><span>Tổng hóa đơn phòng thường đã lập</span><strong>${money(t.invoiced)}</strong></div>
+     <div class="finance-kpi"><span>Tiền phòng thường chưa thu</span><strong>${money(t.uncollected)}</strong></div>
+     <div class="finance-kpi"><span>Chi đã ghi nhưng chưa trả</span><strong>${money(t.unpaidExpenses)}</strong></div>`;
+  $('visibleMeterCount').textContent=state.settings.meterCount;
+  // Công tơ đã ẩn chỉ hiện vào tháng có số tiền đã lưu: bảo toàn lịch sử.
+  $('meterList').innerHTML=state.meterAccounts.filter((m,i)=>i<state.settings.meterCount || state.meterPayments.some(p=>p.meterId===m.id&&p.month===selectedMonth)).map(m=>{
+    const x=state.meterPayments.find(p=>p.meterId===m.id&&p.month===selectedMonth);
+    const archived=state.meterAccounts.indexOf(m)>=state.settings.meterCount;
+    return `<div class="finance-card"><form class="meter-form" data-meter="${safe(m.id)}">
+      <div class="field"><label>Tên công tơ (cố định)</label><div class="readonly-meter-name">${safe(m.name)}${archived?'<span class="meter-archived">(đang ẩn)</span>':''}</div></div>
+      <div class="field"><label>Tiền phải đóng (đ)</label><input class="meter-amount" type="number" min="0" step="1" required value="${x?x.amount:''}" placeholder="Nhập số tiền"></div>
+      <label class="check-pay"><input type="checkbox" class="meter-paid" ${x?.paid?'checked':''}> Đã đóng</label>
+      <button type="submit" class="btn">Lưu</button>
+      <div class="status-line" style="grid-column:1/-1">${x?`Đã ghi: ${money(x.amount)} · ${x.paid?'Đã đóng':'Chưa đóng'}`:'Chưa ghi tiền điện tháng này'}</div>
+    </form></div>`;
+  }).join('');
+  // Phần nước tổng thuộc Thu riêng, được tổng hợp riêng, không ghi thành Chi khác.
+  const water=getFlexWater();
+  $('flexWaterMonthAmount').value=water?water.amount:'';
+  $('flexWaterPaid').checked=!!water?.paid;
+  $('deleteFlexWater').disabled=!water;
+  $('flexWaterNote').textContent=water?`Tháng ${monthText(selectedMonth)}: ${money(water.amount)} · ${water.paid?'Đã đóng':'Chưa đóng'}`:'Tháng này chưa ghi tiền nước phải trả.';
+  const ft=flexTotals();
+  $('flexFinanceSnapshot').innerHTML=flexCards(ft);
+  const list=state.expenses.filter(x=>x.month===selectedMonth);
+  $('expenseList').innerHTML=list.length?list.map(x=>`<article class="item"><div class="item-head">
+    <div><div class="item-title">${safe(x.name)}</div><div class="detail">${money(x.amount)}</div></div>
+    <span class="badge ${x.paid?'paid':'unpaid'}">${x.paid?'Đã chi':'Chưa chi'}</span></div>
+    <div class="actions"><button class="btn secondary" data-action="expense-edit" data-id="${safe(x.id)}">Sửa</button>
+      <button class="btn soft" data-action="expense-paid" data-id="${safe(x.id)}">${x.paid?'↩ Chưa chi':'✓ Đã chi'}</button>
+      <button class="btn danger" data-action="expense-delete" data-id="${safe(x.id)}">Xóa</button></div></article>`).join(''):
+    empty('Tháng này chưa có khoản chi khác.');
+}
+$('flexWaterForm').addEventListener('submit',e=>{
+  e.preventDefault();const amount=num($('flexWaterMonthAmount').value),paid=$('flexWaterPaid').checked;
+  if(!Number.isSafeInteger(amount)||amount<0){alert('Tiền nước phải là số nguyên không âm.');return;}
+  const old=copy(state),current=getFlexWater();
+  if(current)Object.assign(current,{amount,paid});
+  else state.flexWaterPayments.push({month:selectedMonth,amount,paid});
+  if(!save()){state=old;return;}render();toast('Đã lưu tiền nước Thu riêng tháng '+monthText(selectedMonth)+'.');
+});
+$('deleteFlexWater').addEventListener('click',()=>{
+  if(!getFlexWater())return;
+  if(!confirm('Xóa khoản tiền nước phải trả của tháng '+monthText(selectedMonth)+'?'))return;
+  const old=copy(state);state.flexWaterPayments=state.flexWaterPayments.filter(x=>x.month!==selectedMonth);
+  if(!save()){state=old;return;}render();toast('Đã xóa tiền nước tháng này.');
+});
+$('meterList').addEventListener('submit',e=>{
+  const f=e.target.closest('form[data-meter]');if(!f)return;e.preventDefault();
+  const meterId=f.dataset.meter,amount=num(f.querySelector('.meter-amount').value),paid=f.querySelector('.meter-paid').checked;
+  if(!Number.isSafeInteger(amount)||amount<0){alert('Tiền điện phải là số nguyên không âm.');return;}
+  const meter=state.meterAccounts.find(x=>x.id===meterId);if(!meter)return;
+  const old=copy(state);
+  const existing=state.meterPayments.find(x=>x.meterId===meterId&&x.month===selectedMonth);
+  if(existing)Object.assign(existing,{amount,paid});else state.meterPayments.push({meterId,month:selectedMonth,amount,paid});
+  if(!save()){state=old;return;}render();toast('Đã lưu tiền điện '+meter.name+'.');
+});
+$('expenseForm').addEventListener('submit',e=>{
+  e.preventDefault();const eid=$('expenseId').value,name=$('expenseName').value.trim(),amount=num($('expenseAmount').value),paid=$('expensePaid').checked;
+  if(!name||!Number.isSafeInteger(amount)||amount<0){alert('Tên và số tiền chi chưa hợp lệ.');return;}
+  const existing=state.expenses.find(x=>x.id===eid),item={id:existing?.id||id(),month:existing?.month||selectedMonth,name,amount,paid};
+  const old=copy(state);if(existing)state.expenses=state.expenses.map(x=>x.id===eid?item:x);else state.expenses.push(item);
+  if(!save()){state=old;return;}resetExpenseForm();render();toast('Đã lưu khoản chi.');
+});
+function resetExpenseForm(){$('expenseForm').reset();$('expenseId').value='';$('expensePaid').checked=true;}
+$('cancelExpense').addEventListener('click',resetExpenseForm);
+function editExpense(eid){
+  const x=state.expenses.find(e=>e.id===eid);if(!x)return;
+  // Khi sửa một chi phí tháng cũ, tự chuyển về tháng đó.
+  if(selectedMonth!==x.month){selectedMonth=x.month;render();}
+  $('expenseId').value=x.id;$('expenseName').value=x.name;$('expenseAmount').value=x.amount;$('expensePaid').checked=x.paid;
+  $('expenseName').focus();
+}
+function toggleExpensePaid(eid){
+  const x=state.expenses.find(e=>e.id===eid);if(!x)return;
+  const old=copy(state);x.paid=!x.paid;
+  if(!save()){state=old;return;}render();toast('Đã cập nhật trạng thái khoản chi.');
+}
+function deleteExpense(eid){
+  if(!confirm('Xóa khoản chi này?'))return;
+  const old=copy(state);state.expenses=state.expenses.filter(x=>x.id!==eid);
+  if(!save()){state=old;return;}resetExpenseForm();render();toast('Đã xóa khoản chi.');
+}
+// ---------------- KẾT THÚC THU RIÊNG / THU CHI ----------------
+
+// Ảnh QR thực do chủ trọ tự chọn. Lưu thành data URL để không phụ thuộc file ngoài.
+function renderQrPreview(){
+  const preview=$('qrPreview');
+  const url=state.settings.qrImage||'';
+  preview.innerHTML=url?`<img src="${safe(url)}" alt="Xem trước mã QR đang lưu">`:'Chưa có ảnh QR';
+  $('removeQr').disabled=!url;
+}
+$('chooseQr').addEventListener('click',()=>$('qrFile').click());
+$('qrFile').addEventListener('change',async event=>{
+  const file=event.target.files?.[0];event.target.value='';if(!file)return;
+  const types=['image/png','image/jpeg','image/webp'];
+  if(!types.includes(file.type)){alert('Chỉ hỗ trợ ảnh PNG, JPG hoặc WebP.');return;}
+  if(file.size>900*1024){alert('Ảnh vượt quá 900 KB. Hãy giảm kích thước file rồi thử lại.');return;}
+  try{
+    const dataUrl=await new Promise((resolve,reject)=>{
+      const reader=new FileReader();reader.onload=()=>resolve(reader.result);
+      reader.onerror=()=>reject(Error('Không đọc được ảnh.'));reader.readAsDataURL(file);
+    });
+    if(typeof dataUrl!=='string'||dataUrl.length>1250000||
+       !/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(dataUrl))
+      throw Error('Tệp ảnh QR không hợp lệ.');
+    // Kiểm tra ảnh có thể hiển thị trước khi lưu.
+    await new Promise((resolve,reject)=>{
+      const img=new Image();img.onload=()=>resolve();img.onerror=()=>reject(Error('Ảnh không thể mở.'));
+      img.src=dataUrl;
+    });
+    const old=state.settings.qrImage||'';
+    state.settings.qrImage=dataUrl;
+    if(!save()){state.settings.qrImage=old;return;}
+    renderQrPreview();toast('Đã lưu ảnh QR. Mở hóa đơn để xem.');
+  }catch(err){alert('Không lưu được ảnh QR: '+err.message);}
+});
+$('removeQr').addEventListener('click',()=>{
+  if(!state.settings.qrImage||!confirm('Bạn muốn xóa ảnh QR đang dùng trên hóa đơn?'))return;
+  const old=state.settings.qrImage;state.settings.qrImage='';
+  if(!save()){state.settings.qrImage=old;return;}
+  renderQrPreview();toast('Đã xóa ảnh QR. Thông tin ngân hàng vẫn được giữ.');
+});
+$('bankForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const bankName=$('bankName').value.trim(),bankAccount=$('bankAccount').value.trim(),bankHolder=$('bankHolder').value.trim();
+  if(bankAccount && !/^[0-9]{5,25}$/.test(bankAccount)){alert('Số tài khoản phải gồm 5–25 chữ số (không nhập khoảng trắng).');return;}
+  const old=copy(state);Object.assign(state.settings,{bankName,bankAccount,bankHolder});
+  if(!save()){state=old;return;}render();toast('Đã lưu thông tin chuyển khoản trên hóa đơn.');
+});
+// Tách tên công tơ theo dấu phẩy, chấm phẩy hoặc xuống dòng.
+function parseMeterNames(input){
+  return String(input).split(/[,;\n\r]+/).map(name=>name.trim()).filter(Boolean);
+}
+function updateMeterNamesPreview(){
+  const names=parseMeterNames($('meterNamesInput').value);
+  const label=$('meterNamesPreview');
+  label.textContent=`Đếm tự động: ${names.length} công tơ${names.length?'. '+names.map((name,i)=>`${i+1}. ${name}`).join(' | '):'. Nhập ít nhất một tên.'}`;
+  label.style.color=names.length<1||names.length>50?'#a33d33':'#365f53';
+}
+$('meterNamesInput').addEventListener('input',updateMeterNamesPreview);
+// Lưu tên mới theo đúng thứ tự ID cũ, để các khoản đã đóng trong lịch sử không bị mất.
+$('meterConfigForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const names=parseMeterNames($('meterNamesInput').value),requested=names.length;
+  if(requested<1||requested>50){alert('Nhập từ 1 đến 50 tên công tơ, cách nhau bằng dấu phẩy hoặc chấm phẩy.');return;}
+  if(names.some(name=>name.length>80)){alert('Tên công tơ không được dài quá 80 ký tự.');return;}
+  if(new Set(names.map(name=>name.toLocaleLowerCase('vi-VN'))).size!==requested){alert('Tên các công tơ đang sử dụng không được trùng nhau.');return;}
+  const old=copy(state);
+  while(state.meterAccounts.length<requested){
+    const i=state.meterAccounts.length+1;
+    const preferred=`meter-${i}`;
+    const newId=state.meterAccounts.some(m=>m.id===preferred)?id():preferred;
+    state.meterAccounts.push({id:newId,name:names[i-1]});
+  }
+  // Chỉ đổi tên các công tơ đang sử dụng, để nguyên tên của công tơ đã ẩn.
+  names.forEach((name,i)=>{state.meterAccounts[i].name=name;});
+  state.settings.meterCount=requested;
+  if(!save()){state=old;return;}
+  render();toast(`Đã lưu ${requested} công tơ: ${names.join(', ')}. Lịch sử số tiền vẫn giữ nguyên.`);
+});
+$('settingsForm').addEventListener('submit',e=>{
+  e.preventDefault();const electricRate=num($('electricRate').value),waterRate=num($('waterRate').value),waterPerPerson=num($('waterPerPerson').value);
+  if(![electricRate,waterRate,waterPerPerson].every(n=>Number.isInteger(n)&&n>=0)){alert('Đơn giá phải là số nguyên không âm.');return;}
+  const payDay=num($('payDay').value);if(!Number.isInteger(payDay)||payDay<1||payDay>31){alert('Hạn thanh toán phải từ ngày 1 đến 31.');return;}
+  const old=copy(state);Object.assign(state.settings,{electricRate,waterRate,waterPerPerson,payDay,waterMode:$('waterMode').value});
+  if(!save()){state=old;return;}render();toast('Đã lưu đơn giá mới.');
+});
+$('addFeeForm').addEventListener('submit',e=>{
+  e.preventDefault();const name=$('newFeeName').value.trim(),amount=num($('newFeeAmount').value);
+  if(!name||!Number.isInteger(amount)||amount<0){alert('Tên phí và số tiền chưa hợp lệ.');return;}
+  const old=copy(state);state.settings.fees.push({id:id(),name,amount});
+  if(!save()){state=old;return;}$('addFeeForm').reset();render();toast('Đã thêm phí. Vào từng phòng để chọn áp dụng.');
+});
+function updateFee(feeId){
+  const f=state.settings.fees.find(x=>x.id===feeId);if(!f)return;
+  const name=$('fee-name-'+feeId).value.trim(),amount=num($('fee-amount-'+feeId).value);
+  if(!name||!Number.isInteger(amount)||amount<0){alert('Tên phí hoặc số tiền không hợp lệ.');return;}
+  const old=copy(state);f.name=name;f.amount=amount;
+  if(!save()){state=old;return;}render();toast('Đã cập nhật phí cho các hóa đơn tạo mới.');
+}
+function deleteFee(feeId){
+  if(!confirm('Xóa loại phí này? Các hóa đơn đã lập vẫn giữ khoản phí cũ.'))return;
+  const old=copy(state);state.settings.fees=state.settings.fees.filter(f=>f.id!==feeId);
+  state.rooms.forEach(r=>r.feeIds=r.feeIds.filter(x=>x!==feeId));
+  if(!save()){state=old;return;}render();toast('Đã xóa loại phí.');
+}
+function exportBackup(){
+  const payload={app:'QuanLyPhongTroOffline',version:6,exportedAt:new Date().toISOString(),data:state};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`sao-luu-phong-tro-${todayMonth()}-${Date.now()}.json`;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);toast('Đã tạo file sao lưu JSON.');
+}
+$('exportBackup').addEventListener('click',exportBackup);
+$('importBackup').addEventListener('click',()=>$('backupFile').click());
+$('backupFile').addEventListener('change',async e=>{
+  const file=e.target.files[0];e.target.value='';if(!file)return;
+  if(file.size>10*1024*1024){alert('File lớn hơn 10 MB, không thể nhập.');return;}
+  let imported;
+  try{const parsed=JSON.parse(await file.text());if(parsed.app!=='QuanLyPhongTroOffline'||![1,2,3,4,5,6].includes(parsed.version))throw Error('Chỉ hỗ trợ file sao lưu phiên bản 1 đến 6 của ứng dụng.');imported=validateData(parsed.data);}
+  catch(err){alert('Nhập dữ liệu thất bại: '+err.message);return;}
+  if(!confirm(`File có ${imported.rooms.length} phòng thường, ${imported.flexRooms.length} phòng thu riêng và ${imported.bills.length} hóa đơn. Khôi phục sẽ THAY THẾ TOÀN BỘ dữ liệu hiện tại. Bạn đã sao lưu dữ liệu hiện tại chưa?`))return;
+  const old=copy(state);state=imported;
+  if(!save()){state=old;return;}render();toast('Đã khôi phục dữ liệu từ file sao lưu.');
+});
+// Gắn xử lý chung cho các nút được tạo động trong danh sách.
+document.addEventListener('click',e=>{
+  const close=e.target.closest('[data-close]');if(close){$(close.dataset.close).close();return;}
+  const tab=e.target.closest('[data-tab]');if(tab){switchTab(tab.dataset.tab);return;}
+  const btn=e.target.closest('[data-action]');if(!btn)return;
+  const action=btn.dataset.action,key=btn.dataset.id;
+  if(action==='edit-room')openRoom(key);
+  if(action==='delete-room')deleteRoom(key);
+  if(action==='bill')openBill(key);
+  if(action==='invoice')showInvoice(key);
+  if(action==='paid')togglePaid(key);
+  if(action==='delete-bill')deleteBill(key);
+  if(action==='save-fee')updateFee(key);
+  if(action==='delete-fee')deleteFee(key);
+  if(action==='flex-edit-room')openFlexRoom(key);
+  if(action==='flex-delete-room')deleteFlexRoom(key);
+  if(action==='flex-entry')openFlexEntry(key);
+  if(action==='flex-paid')toggleFlexPaid(key);
+  if(action==='flex-delete-entry')deleteFlexEntry(key);
+  if(action==='expense-edit')editExpense(key);
+  if(action==='expense-paid')toggleExpensePaid(key);
+  if(action==='expense-delete')deleteExpense(key);
+});
+$('addRoom').addEventListener('click',()=>openRoom());
+// Chọn tháng (1-12) và năm bằng hai ô xổ xuống riêng.
+function buildMonthPicker(){
+  const cy=new Date().getFullYear(),ms=$('monthSel'),ys=$('yearSel');
+  let lo=cy-1,hi=cy+3;
+  [+selectedMonth.slice(0,4),...state.bills.map(b=>+b.month.slice(0,4)),...state.flexEntries.map(b=>+b.month.slice(0,4)),...state.meterPayments.map(b=>+b.month.slice(0,4)),...state.expenses.map(b=>+b.month.slice(0,4)),...state.flexWaterPayments.map(b=>+b.month.slice(0,4))].forEach(y=>{lo=Math.min(lo,y);hi=Math.max(hi,y);});
+  if(!ms.options.length)ms.innerHTML=Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
+  ys.innerHTML=Array.from({length:hi-lo+1},(_,i)=>`<option value="${lo+i}">${lo+i}</option>`).join('');
+  ms.value=String(+selectedMonth.slice(5));ys.value=selectedMonth.slice(0,4);
+}
+function pickMonth(){selectedMonth=$('yearSel').value+'-'+String($('monthSel').value).padStart(2,'0');resetExpenseForm();render();}
+$('monthSel').addEventListener('change',pickMonth);$('yearSel').addEventListener('change',pickMonth);
+setInterval(()=>{$('currentDate').textContent=nowLong();},60000);
+startCloudApp();
+</script>
+</body>
+</html>
