@@ -292,7 +292,7 @@ body.cloud-locked>.foot{display:none!important}
       <div id="depositFinanceList" class="finance-card"></div>
     </div>
     <div id="depositHistoryPanel" hidden>
-      <p class="soft-muted">Lịch sử <b>tất cả các tháng</b> để đối chiếu tiền đã nhận, đã hoàn, đã khấu trừ và tiền cọc khách cũ còn treo. Cọc không phải doanh thu, hoàn cọc không phải chi phí hoạt động.</p>
+      <p class="soft-muted">Chỉ hiện <b>giao dịch hoàn cọc và khấu trừ cọc</b> của mọi đợt thuê. Các giao dịch <b>nhận thêm / điều chỉnh số dư</b> chỉ xem trong <b>Sổ cọc</b> của từng phòng, tránh nhầm tiền cọc của khách đang ở với khoản đã hoàn. Hoàn cọc không phải chi phí hoạt động.</p>
       <div id="depositHistorySummary" class="finance-kpis"></div>
       <div id="depositHistoryList" class="finance-card"></div>
     </div>
@@ -394,6 +394,7 @@ body.cloud-locked>.foot{display:none!important}
 </main>
 <footer class="foot" id="currentDate" aria-label="Ngày hiện tại" hidden></footer>
 <!-- Hộp thêm / sửa phòng: giá điện, nước, rác và Internet được lưu THEO TỪNG PHÒNG -->
+<!-- v8.3.8: Không sửa cọc trực tiếp khi đang thuê; thay bằng giao dịch sổ cọc và điều chỉnh có lý do. -->
 <dialog id="roomDialog"><form id="roomForm"><div class="modal-body">
   <div class="modal-title"><h2 id="roomDialogTitle">Thêm phòng</h2><button type="button" class="icon-close" data-close="roomDialog" aria-label="Đóng">×</button></div>
   <input type="hidden" id="roomId">
@@ -405,7 +406,7 @@ body.cloud-locked>.foot{display:none!important}
     <input type="hidden" id="roomWaterMeterCode">
     <div class="field"><label for="roomLeaseStart">Thuê từ ngày</label><input id="roomLeaseStart" type="date"></div>
     <div class="field"><label for="roomLeaseEnd">Thuê đến ngày</label><input id="roomLeaseEnd" type="date"></div>
-    <div class="field wide"><label for="roomDeposit">Số dư cọc đang giữ (đ)</label><input id="roomDeposit" type="number" min="0" step="1" value="0" required placeholder="VD: 3000000"><span class="small muted">Khi thêm phòng: có thể nhập cọc đã giữ từ trước (số dư đầu kỳ). Khi sửa phòng: dùng nút <b>Nhận / Hoàn cọc</b> ở danh sách phòng để có lịch sử và dòng tiền, không chỉnh trực tiếp số dư.</span></div>
+    <div class="field wide"><label for="roomDeposit">Số dư cọc đang giữ (đ)</label><input id="roomDeposit" type="number" min="0" step="1" value="0" required placeholder="VD: 3000000"><button id="roomDepositManage" class="btn secondary" type="button" hidden style="margin-top:8px">✏ Điều chỉnh / nhận / hoàn cọc</button><span class="small muted">Khi thêm phòng / nhận khách mới: có thể nhập cọc ban đầu. Với đợt thuê đang sử dụng: nhấn <b>Điều chỉnh / nhận / hoàn cọc</b> để ghi nhận thay đổi an toàn. Trường hợp nhập sai dùng <b>Điều chỉnh số dư</b>, không ghi thành khoản nhận/chi tiền thật.</span></div>
   </div>
   <div class="subheading">2. Danh sách người ở</div>
   <div class="inline-info" id="tenancyFormNote" hidden></div>
@@ -465,11 +466,11 @@ body.cloud-locked>.foot{display:none!important}
   <div class="field"><label for="depositTenancyId">Đợt thuê được ghi nhận cọc</label><select id="depositTenancyId"></select></div>
   <div id="depositBalance" class="inline-info"></div>
   <div class="grid2">
-    <div class="field"><label for="depositType">Loại giao dịch</label><select id="depositType"><option value="receive">Nhận thêm tiền cọc</option><option value="refund">Hoàn trả tiền cọc</option><option value="offset">Khấu trừ cọc (không chi tiền mặt)</option></select></div>
-    <div class="field"><label for="depositAmount">Số tiền (đ)</label><input id="depositAmount" type="number" min="1" step="1" required></div>
+    <div class="field"><label for="depositType">Loại giao dịch</label><select id="depositType"><option value="receive">Nhận thêm tiền cọc (có thu tiền)</option><option value="refund">Hoàn trả tiền cọc (có chi tiền)</option><option value="offset">Khấu trừ cọc (bù công nợ)</option><option value="correct">✏ Điều chỉnh số dư do nhập sai (không thu/chi tiền)</option></select></div>
+    <div class="field"><label id="depositAmountLabel" for="depositAmount">Số tiền (đ)</label><input id="depositAmount" type="number" min="1" step="1" required><span class="small muted" id="depositAmountHelp">Nhập số tiền giao dịch thực tế.</span></div>
     <div class="field"><label for="depositDate">Ngày giao dịch thực tế</label><input id="depositDate" type="date" required></div>
     <div class="field"><label for="depositPerson">Người nộp / nhận cọc</label><input id="depositPerson" maxlength="100" placeholder="Tên người thuê"></div>
-    <div class="field wide"><label for="depositNote">Ghi chú</label><input id="depositNote" maxlength="180" placeholder="Ví dụ: Hoàn cọc khi trả phòng"></div>
+    <div class="field wide"><label for="depositNote">Ghi chú / lý do điều chỉnh</label><input id="depositNote" maxlength="180" placeholder="Ví dụ: Sửa số dư cọc nhập nhầm 2.799.996 thành 2.800.000"></div>
   </div>
   <h3>Lịch sử giao dịch tiền cọc</h3><div id="depositHistory" class="line-list"></div>
   <p class="small muted">Các khoản cọc nhập sẵn từ phiên bản cũ là số dư đầu kỳ, không tự tính thành doanh thu hoặc khoản thu tháng hiện tại. Nếu có giữ cọc để bù tiền thuê hoặc hư hỏng, cần đối chiếu và ghi nhận khoản bù trừ riêng; không tự gộp vào doanh thu.</p>
@@ -967,7 +968,7 @@ function validateData(input){
   });
   // Sổ tiền cọc tương thích bản v8.1 trở về trước: thiếu sổ thì khởi tạo rỗng.
   const depositTransactions=boundedArray(d.depositTransactions,'Sổ tiền cọc').map(x=>{
-    if(!x||typeof x.id!=='string'||typeof x.roomId!=='string'||!validDate(x.date)||!x.date||!['receive','refund','offset'].includes(x.type)) throw Error('Giao dịch cọc không hợp lệ.');
+    if(!x||typeof x.id!=='string'||typeof x.roomId!=='string'||!validDate(x.date)||!x.date||!['receive','refund','offset','adjust_in','adjust_out'].includes(x.type)) throw Error('Giao dịch cọc không hợp lệ.');
     const amount=moneyInt(x.amount,'Tiền giao dịch cọc');
     if(amount<=0)throw Error('Tiền giao dịch cọc phải lớn hơn 0.');
     return {id:x.id,roomId:x.roomId,tenancyId:String(x.tenancyId||legacyTenancyId(x.roomId)),date:x.date,type:x.type,amount,
@@ -1035,7 +1036,7 @@ function render(){
 }
 function empty(message){return `<div class="empty">${safe(message)}</div>`;}
 function billCard(b){const v=calc(b);return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(b.roomName)}</div><div class="detail">${safe(b.tenant||'Chưa có tên người thuê')} · Tháng ${monthText(b.month)}</div></div><span class="badge ${b.paid||b.settledBy?'paid':'unpaid'}">${b.settledBy?'Đã quyết toán':b.paid?'✓ Đã thanh toán':'● Chưa thanh toán'}</span></div><div class="price">${money(v.total)}</div><div class="detail small">Điện: ${money(v.electric)} · Nước: ${money(v.water)} · Phí khác: ${money(v.other)}</div><div class="actions"><button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem hóa đơn</button>${!b.settledBy&&!state.settlements.some(x=>x.tenancyId===b.tenancyId)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(b.id)}">✏ Sửa tiền/phí</button>`:''}<button class="btn soft" data-action="paid" data-id="${safe(b.id)}">${b.settledBy?'Đã quyết toán':b.paid?'↩ Chưa thu':'✓ Đã thu tiền'}</button></div></article>`;}
-// v8.3.7: Cọc nhận/hoàn luôn gắn với đợt thuê, không nhập chung khách cũ và mới.
+// v8.3.8: Cọc nhận/hoàn/điều chỉnh luôn gắn với đợt thuê, không nhập chung khách cũ và mới.
 // Màn hình chính là snapshot hiện tại; lịch sử giao dịch xem ở tab riêng.
 let depositView = 'current';
 function currentDepositRows(){
@@ -1080,16 +1081,26 @@ function renderDeposits(){
       <div>${t?safe(t.tenant||r.tenant||'Đang có khách'):'<span class="muted">Phòng trống</span>'}</div>
       <div class="deposit-room-money ${balance===0?'zero':''}">${money(balance)}</div>
     </div>`).join(''):'<p class="muted small">Chưa có phòng nào. Thêm phòng để bắt đầu theo dõi.</p>'}`;
+  const finished=v.tx.filter(x=>x.type==='refund'||x.type==='offset');
   $('depositHistorySummary').innerHTML=`
-    <div class="finance-kpi"><span>TỔNG ĐÃ NHẬN CỌC – MỌI ĐỢT THUÊ</span><strong>${money(v.received)}</strong></div>
-    <div class="finance-kpi negative"><span>TỔNG ĐÃ HOÀN CỌC</span><strong>${money(v.refunded)}</strong></div>
-    <div class="finance-kpi"><span>TỔNG ĐÃ KHẤU TRỪ CỌC</span><strong>${money(v.offset)}</strong></div>
-    <div class="finance-kpi ${v.oldHolding>0?'negative':''}"><span>CỌC KHÁCH CŨ / CHỜ CHỐT CÒN GIỮ (CẦN ĐỐI CHIẾU)</span><strong>${money(v.oldHolding)}</strong></div>`;
-  const label={receive:'Nhận cọc',refund:'Hoàn cọc',offset:'Khấu trừ cọc'};
-  $('depositHistoryList').innerHTML=`<h3>Giao dịch cọc – tất cả các tháng</h3>`+
-    (v.tx.length?v.tx.map(x=>`<div class="line"><span><b>${label[x.type]||'Cọc'} — Phòng ${safe(x.roomName||'cũ')}</b><br><span class="status-line">${dateText(x.date)} · ${safe(x.person||'')} ${x.note?'· '+safe(x.note):''} · Đợt ${safe((x.tenancyId||'').slice(-8))}</span></span><span class="amount">${x.type==='receive'?'+':'−'}${money(x.amount)}</span></div>`).join(''):'<p class="muted small">Chưa có giao dịch nhận, hoàn hoặc khấu trừ cọc nào.</p>');
+    <div class="finance-kpi negative"><span>TỔNG ĐÃ HOÀN CỌC (THỰC CHI)</span><strong>${money(v.refunded)}</strong></div>
+    <div class="finance-kpi"><span>TỔNG ĐÃ KHẤU TRỪ (KHÔNG CHI TIỀN)</span><strong>${money(v.offset)}</strong></div>
+    <div class="finance-kpi ${v.oldHolding>0?'negative':''}"><span>CỌC KHÁCH CŨ / CHỜ CHỐT CÒN GIỮ</span><strong>${money(v.oldHolding)}</strong></div>`;
+  const label={refund:'Hoàn cọc',offset:'Khấu trừ cọc'};
+  $('depositHistoryList').innerHTML=`<h3>Lịch sử hoàn / khấu trừ – tất cả các tháng (${finished.length} giao dịch)</h3>`+
+    (finished.length?finished.map(x=>`<div class="line"><span><b>${label[x.type]} — Phòng ${safe(x.roomName||'cũ')}</b><br><span class="status-line">${dateText(x.date)} · ${safe(x.person||'')} ${x.note?'· '+safe(x.note):''} · Đợt ${safe((x.tenancyId||'').slice(-8))}</span></span><span class="amount">−${money(x.amount)}</span></div>`).join(''):'<p class="muted small">Chưa có khoản hoàn hoặc khấu trừ cọc nào. Khoản nhận cọc của người đang ở không xuất hiện tại đây.</p>');
   setDepositView(depositView);
 }
+// 'Điều chỉnh số dư' chỉ sửa sai sổ sách, không phát sinh dòng tiền thật.
+function renderDepositAmountMode(){
+  const correcting=$('depositType').value==='correct';
+  $('depositAmountLabel').textContent=correcting?'Số dư cọc ĐÚNG sau điều chỉnh (đ)':'Số tiền giao dịch (đ)';
+  $('depositAmount').min=correcting?'0':'1';
+  $('depositAmountHelp').textContent=correcting?'Nhập TỔNG số dư đúng (ví dụ: 2800000). Ứng dụng tự ghi phần chênh lệch và không tính là tiền nhận/hoàn thực tế. Bắt buộc có lý do.':'Nhập đúng số tiền nhận thêm, hoàn trả hoặc khấu trừ.';
+  const r=getRoom($('depositRoomId').value),t=tenancyById(r,$('depositTenancyId').value);
+  $('depositAmount').value=correcting&&t?String(t.depositBalance):'';
+}
+$('depositType').addEventListener('change',renderDepositAmountMode);
 function renderDepositTarget(){
   const r=getRoom($('depositRoomId').value),tid=$('depositTenancyId').value;
   const t=tenancyById(r,tid);if(!t)return;
@@ -1097,37 +1108,51 @@ function renderDepositTarget(){
   $('depositPerson').value=t.tenant||'';
   $('depositType').querySelector('option[value="receive"]').disabled=t.status!=='active';
   if(t.status!=='active'&&$('depositType').value==='receive')$('depositType').value='refund';
+  renderDepositAmountMode();
   const tx=(state.depositTransactions||[]).filter(x=>x.roomId===r.id&&x.tenancyId===tid).sort((a,b)=>b.date.localeCompare(a.date));
-  const typeName={receive:'Nhận cọc',refund:'Hoàn trả',offset:'Khấu trừ'};
-  $('depositHistory').innerHTML=tx.length?tx.map(x=>`<div class="line"><span>${dateText(x.date)} — ${typeName[x.type]}<br><small>${safe(x.person||'')} ${safe(x.note||'')}</small></span><b>${x.type==='receive'?'+':'−'}${money(x.amount)}</b></div>`).join(''):'<p class="muted">Chưa có giao dịch cọc phát sinh của đợt này (có thể là cọc đầu kỳ).</p>';
+  const typeName={receive:'Nhận cọc',refund:'Hoàn trả',offset:'Khấu trừ',adjust_in:'Điều chỉnh tăng (sửa sai)',adjust_out:'Điều chỉnh giảm (sửa sai)'};
+  $('depositHistory').innerHTML=tx.length?tx.map(x=>`<div class="line"><span>${dateText(x.date)} — ${typeName[x.type]||'Điều chỉnh'}<br><small>${safe(x.person||'')} ${safe(x.note||'')}</small></span><b>${['receive','adjust_in'].includes(x.type)?'+':'−'}${money(x.amount)}</b></div>`).join(''):'<p class="muted">Chưa có giao dịch cọc phát sinh của đợt này (có thể là cọc đầu kỳ).</p>';
 }
 function openDeposit(roomId,desiredTenancyId){
   const r=getRoom(roomId);if(!r)return;
+  $('depositForm').reset();
   $('depositRoomId').value=roomId;$('depositTitle').textContent=`Sổ cọc – Phòng ${r.name}`;
   const select=$('depositTenancyId');
   select.innerHTML=r.tenancies.map((t,i)=>`<option value="${safe(t.id)}">Đợt ${i+1} · ${safe(t.tenant||'Chưa rõ')} · ${t.status==='active'?'Đang thuê':'Đã kết thúc'} · Cọc ${money(t.depositBalance)}</option>`).join('');
   if(!r.tenancies.length){alert('Chưa có đợt thuê để ghi nhận tiền cọc.');return;}
   select.value=desiredTenancyId&&tenancyById(r,desiredTenancyId)?desiredTenancyId:(r.activeTenancyId||r.tenancies.slice(-1)[0].id);
-  $('depositForm').reset();$('depositDate').value=localToday();
+  $('depositDate').value=localToday();
   renderDepositTarget();$('depositDialog').showModal();
 }
 $('depositTenancyId').addEventListener('change',renderDepositTarget);
 $('depositForm').addEventListener('submit',e=>{
   e.preventDefault();const roomId=$('depositRoomId').value,r=getRoom(roomId);
   const t=tenancyById(r,$('depositTenancyId').value);if(!t)return;
-  const type=$('depositType').value,amount=num($('depositAmount').value),date=$('depositDate').value,note=$('depositNote').value.trim();
-  if(!['receive','refund','offset'].includes(type)||!Number.isSafeInteger(amount)||amount<=0||!validDate(date)||!date){alert('Ngày và tiền giao dịch chưa hợp lệ.');return;}
-  if(state.settlements.some(x=>x.tenancyId===t.id)){alert('Đợt thuê đã quyết toán, không được thêm giao dịch cọc thủ công.');return;}
-  if(type==='receive'&&t.status!=='active'){alert('Không thể nhận cọc thêm cho đợt thuê đã kết thúc.');return;}
-  if(type!=='receive'&&amount>t.depositBalance){alert('Không được hoàn/khấu trừ quá số dư cọc của đợt thuê này.');return;}
-  if(type==='offset'&&!note){alert('Khấu trừ cọc bắt buộc ghi rõ lý do và chứng từ đối chiếu.');return;}
-  if(type==='offset'&&!confirm('Khấu trừ cọc là bù trừ công nợ, KHÔNG phải khoản thu tiền mặt. Bạn đã đối chiếu với khách và có căn cứ khấu trừ?'))return;
+  const selection=$('depositType').value,rawAmount=num($('depositAmount').value),date=$('depositDate').value,note=$('depositNote').value.trim();
+  if(!['receive','refund','offset','correct'].includes(selection)||!Number.isSafeInteger(rawAmount)||rawAmount<0||!validDate(date)||!date){alert('Ngày và tiền giao dịch chưa hợp lệ.');return;}
+  if(state.settlements.some(x=>x.tenancyId===t.id)){alert('Đợt thuê đã quyết toán. Không thể tự chỉnh số cọc; cần phiếu điều chỉnh quyết toán riêng.');return;}
+  if(selection==='receive'&&t.status!=='active'){alert('Không thể nhận cọc thêm cho đợt thuê đã kết thúc.');return;}
+  let type=selection,amount=rawAmount;
+  if(selection==='correct'){
+    const difference=rawAmount-t.depositBalance;
+    if(!difference){alert('Số dư mới không thay đổi so với số dư hiện tại.');return;}
+    if(!note){alert('Điều chỉnh do nhập sai bắt buộc phải ghi lý do để đối chiếu.');return;}
+    type=difference>0?'adjust_in':'adjust_out';amount=Math.abs(difference);
+    if(!confirm(`Xác nhận SỬA SAI SỐ DƯ: ${money(t.depositBalance)} → ${money(rawAmount)}?\nChênh lệch ${difference>0?'+':'−'}${money(amount)} được lưu trong lịch sử, KHÔNG ghi là giao dịch thu/chi tiền mặt.`))return;
+  }else{
+    if(amount<=0){alert('Số tiền giao dịch phải lớn hơn 0.');return;}
+    if(type!=='receive'&&amount>t.depositBalance){alert('Không được hoàn/khấu trừ quá số dư cọc của đợt thuê này.');return;}
+    if(type==='offset'&&!note){alert('Khấu trừ cọc bắt buộc ghi rõ lý do và chứng từ đối chiếu.');return;}
+    if(type==='offset'&&!confirm('Khấu trừ cọc là bù trừ công nợ, KHÔNG phải khoản thu tiền mặt. Bạn đã đối chiếu với khách và có căn cứ khấu trừ?'))return;
+  }
+  const updated=t.depositBalance+(['receive','adjust_in'].includes(type)?amount:-amount);
+  if(!Number.isSafeInteger(updated)||updated<0){alert('Số dư cọc sau điều chỉnh không hợp lệ.');return;}
   const old=copy(state);
   state.depositTransactions.push({id:id(),roomId,tenancyId:t.id,roomName:r.name,date,type,amount,person:$('depositPerson').value.trim(),note});
-  t.depositBalance+=(type==='receive'?amount:-amount);
+  t.depositBalance=updated;
   if(r.activeTenancyId===t.id)r.deposit=t.depositBalance;
   if(!save()){state=old;return;}
-  $('depositDialog').close();render();toast('Đã ghi sổ cọc theo đúng đợt thuê. Kiểm tra trạng thái Cloud.');
+  $('depositDialog').close();render();toast('Đã cập nhật sổ cọc theo đúng đợt thuê. Kiểm tra trạng thái đồng bộ Cloud.');
 });
 function renderDashboard(){
   const bills=state.bills.filter(b=>b.month===selectedMonth).sort((a,b)=>a.roomName.localeCompare(b.roomName,'vi',{numeric:true}));
@@ -1301,6 +1326,7 @@ function openRoom(roomId,mode='edit'){
   // Nếu dữ liệu cũ thiếu leaseStart, dùng ngày bắt đầu gốc từ chính đợt thuê.
   $('roomLeaseStart').value=isNew?localToday():(r?.leaseStart||currentTenancy?.startedAt||'');$('roomLeaseEnd').value=isNew?'':(r?.leaseEnd||'');$('roomDeposit').value=isNew?0:(r?.deposit??0);
   $('roomDeposit').readOnly=!!r&&!isNew;
+  $('roomDepositManage').hidden=!(r&&!isNew&&currentTenancy);
   // Khi tạo đợt thuê mới, không kế thừa mã công tơ của khách cũ.
   // Khi sửa đợt đang thuê, bảo toàn mã cũ (nếu có) dù đã ẩn khỏi giao diện.
   $('roomElectricMeterCode').value=isNew?'':(r?.electricMeterCode||'');
@@ -1332,6 +1358,12 @@ function openRoom(roomId,mode='edit'){
   $('roomFeeChoices').innerHTML=state.settings.fees.length?state.settings.fees.map(f=>`<label><input type="checkbox" name="roomFee" value="${safe(f.id)}" ${r?.feeIds.includes(f.id)?'checked':''}> ${safe(f.name)} (${money(f.amount)})</label>`).join(''):'<div class="muted small">Chưa có phí khác. Có thể để trống.</div>';
   $('roomDialog').showModal();
 }
+$('roomDepositManage').addEventListener('click',()=>{
+  const roomId=$('roomId').value;
+  if(!roomId)return;
+  if(!confirm('Mở Sổ cọc của phòng? Những chỉnh sửa CHƯA LƯU trong biểu mẫu này sẽ bị bỏ qua.'))return;
+  $('roomDialog').close();openDeposit(roomId);
+});
 $('roomForm').addEventListener('submit',e=>{
   e.preventDefault();const roomId=$('roomId').value;const name=$('roomName').value.trim();
   const rent=num($('roomRent').value),trashFee=num($('roomTrashFee').value),internetFee=num($('roomInternetFee').value),electricRate=num($('roomElectricRate').value);
