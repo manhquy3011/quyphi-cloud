@@ -221,6 +221,7 @@ body.cloud-locked>.foot{display:none!important}
   </section>
   <section id="readings" class="view"><div class="section-head"><h2>Ghi số tháng <span class="month-title"></span></h2></div>
     <div class="note">Chỉ số đầu kỳ của khách MỚI lấy từ lúc bàn giao; các tháng sau lấy trong cùng đợt thuê. Hóa đơn khách cũ vẫn giữ riêng, kể cả khi thay khách trong cùng tháng.</div>
+    <div class="note small">Đã có hóa đơn tháng sau? Chọn <b>Sửa tiền/phí</b> để điều chỉnh đơn giá và khoản thu mà không đổi chỉ số điện nước. Hóa đơn thuộc đợt thuê đã quyết toán chỉ được xem/in.</div>
     <div id="readingList" class="stack"></div>
   </section>
   <section id="rooms" class="view"><div class="section-head"><h2>Danh sách phòng trọ</h2><button class="btn" id="addRoom">+ Thêm phòng</button></div>
@@ -334,8 +335,9 @@ body.cloud-locked>.foot{display:none!important}
   <div class="subheading">1. Thông tin phòng và hợp đồng</div>
   <div class="grid2">
     <div class="field wide"><label for="roomName">Tên / số phòng *</label><input id="roomName" required maxlength="50" placeholder="Ví dụ: 201"></div>
-    <div class="field"><label for="roomElectricMeterCode">Mã / vị trí công tơ điện</label><input id="roomElectricMeterCode" maxlength="80" placeholder="Ví dụ: Điện phòng 404 - mã 01"></div>
-    <div class="field"><label for="roomWaterMeterCode">Mã / vị trí công tơ nước</label><input id="roomWaterMeterCode" maxlength="80" placeholder="Ví dụ: Đồng hồ nước số 05"></div>
+    <!-- Không cần nhập mã công tơ, nhưng giữ các input ẩn để JavaScript và dữ liệu cũ vẫn hoạt động. -->
+    <input type="hidden" id="roomElectricMeterCode">
+    <input type="hidden" id="roomWaterMeterCode">
     <div class="field"><label for="roomLeaseStart">Thuê từ ngày</label><input id="roomLeaseStart" type="date"></div>
     <div class="field"><label for="roomLeaseEnd">Thuê đến ngày</label><input id="roomLeaseEnd" type="date"></div>
     <div class="field wide"><label for="roomDeposit">Số dư cọc đang giữ (đ)</label><input id="roomDeposit" type="number" min="0" step="1" value="0" required placeholder="VD: 3000000"><span class="small muted">Khi thêm phòng: có thể nhập cọc đã giữ từ trước (số dư đầu kỳ). Khi sửa phòng: dùng nút <b>Nhận / Hoàn cọc</b> ở danh sách phòng để có lịch sử và dòng tiền, không chỉnh trực tiếp số dư.</span></div>
@@ -440,6 +442,7 @@ body.cloud-locked>.foot{display:none!important}
     <div class="field"><label for="newE">Số điện mới (kWh) *</label><input id="newE" type="number" min="0" step="any" required></div>
   </div>
   <div class="grid2" id="billWaterPrices">
+    <div class="field"><label for="billElectricRate">Đơn giá điện tháng này (đ/kWh)</label><input id="billElectricRate" type="number" min="0" step="1" required></div>
     <div class="field" id="billMeterRateField"><label for="billWaterRate">Đơn giá nước tháng này (đ/m³)</label><input id="billWaterRate" type="number" min="0" step="1" required></div>
     <div class="field" id="billPersonRateField" hidden><label for="billWaterPerPerson">Đơn giá nước tháng này (đ/người)</label><input id="billWaterPerPerson" type="number" min="0" step="1"></div>
     <div class="field" id="billExcessRateField" hidden><label for="billExcessWaterRate">Đơn giá nước vượt định mức tháng này (đ/m³)</label><input id="billExcessWaterRate" type="number" min="0" step="1"></div>
@@ -652,6 +655,8 @@ let state = {settings:copy(DEFAULT_SETTINGS),rooms:[],bills:[],flexRooms:[],flex
 let selectedMonth = todayMonth();
 let shownInvoiceId = null;
 let pendingBill = null;
+// Chế độ sửa hóa đơn lịch sử: chỉ điều chỉnh tiền/phí, không đổi số công tơ.
+let historicalMoneyEdit = false;
 
 function toast(message){$('toast').textContent=message;$('toast').style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').style.display='none',3500);}
 // save() vẫn trả về true/false để tương thích với tất cả form v7.
@@ -860,7 +865,7 @@ function render(){
   renderDashboard();renderReadings();renderRooms();renderSettings();renderFlex();renderFinance();renderDeposits();
 }
 function empty(message){return `<div class="empty">${safe(message)}</div>`;}
-function billCard(b){const v=calc(b);return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(b.roomName)}</div><div class="detail">${safe(b.tenant||'Chưa có tên người thuê')} · Tháng ${monthText(b.month)}</div></div><span class="badge ${b.paid||b.settledBy?'paid':'unpaid'}">${b.settledBy?'Đã quyết toán':b.paid?'✓ Đã thanh toán':'● Chưa thanh toán'}</span></div><div class="price">${money(v.total)}</div><div class="detail small">Điện: ${money(v.electric)} · Nước: ${money(v.water)} · Phí khác: ${money(v.other)}</div><div class="actions"><button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem hóa đơn</button><button class="btn soft" data-action="paid" data-id="${safe(b.id)}">${b.settledBy?'Đã quyết toán':b.paid?'↩ Chưa thu':'✓ Đã thu tiền'}</button></div></article>`;}
+function billCard(b){const v=calc(b);return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(b.roomName)}</div><div class="detail">${safe(b.tenant||'Chưa có tên người thuê')} · Tháng ${monthText(b.month)}</div></div><span class="badge ${b.paid||b.settledBy?'paid':'unpaid'}">${b.settledBy?'Đã quyết toán':b.paid?'✓ Đã thanh toán':'● Chưa thanh toán'}</span></div><div class="price">${money(v.total)}</div><div class="detail small">Điện: ${money(v.electric)} · Nước: ${money(v.water)} · Phí khác: ${money(v.other)}</div><div class="actions"><button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem hóa đơn</button>${!b.settledBy&&!state.settlements.some(x=>x.tenancyId===b.tenancyId)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(b.id)}">✏ Sửa tiền/phí</button>`:''}<button class="btn soft" data-action="paid" data-id="${safe(b.id)}">${b.settledBy?'Đã quyết toán':b.paid?'↩ Chưa thu':'✓ Đã thu tiền'}</button></div></article>`;}
 // Sổ cọc v8.3: gắn giao dịch theo ĐỢT THUÊ, không chuyển cọc cũ sang khách mới.
 function depositStats(month=selectedMonth){
   const monthTx=(state.depositTransactions||[]).filter(x=>x.date.slice(0,7)===month);
@@ -937,10 +942,10 @@ function renderReadings(){
     const t=activeTenancy(r),canBill=!!t&&tenancyValidInMonth(t,selectedMonth);
     const b=canBill?getBill(r.id):null,v=b?calc(b):null;
     const previousBills=state.bills.filter(x=>x.roomId===r.id&&x.month===selectedMonth&&(!b||x.id!==b.id));
-    const oldLinks=previousBills.map(x=>`<div class="detail small">Đợt thuê cũ · ${safe(x.tenant||'Không rõ tên')} · ${money(calc(x).total)} <button class="btn secondary" data-action="invoice" data-id="${safe(x.id)}">Xem hóa đơn</button> <button class="btn soft" data-action="paid" data-id="${safe(x.id)}">${x.settledBy?'Đã quyết toán':x.paid?'↩ Chưa thu':'✓ Đã thu'}</button></div>`).join('');
+    const oldLinks=previousBills.map(x=>`<div class="detail small">Đợt thuê cũ · ${safe(x.tenant||'Không rõ tên')} · ${money(calc(x).total)} <button class="btn secondary" data-action="invoice" data-id="${safe(x.id)}">Xem hóa đơn</button> ${!x.settledBy&&!state.settlements.some(q=>q.tenancyId===x.tenancyId)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(x.id)}">✏ Sửa tiền/phí</button>`:''} <button class="btn soft" data-action="paid" data-id="${safe(x.id)}">${x.settledBy?'Đã quyết toán':x.paid?'↩ Chưa thu':'✓ Đã thu'}</button></div>`).join('');
     return `<article class="item"><div class="item-head"><div><div class="item-title">Phòng ${safe(r.name)}</div><div class="detail">${t?safe(r.tenant||'(Chờ cập nhật tên)'):'Phòng trống'} · Tiền thuê: ${money(r.rent)}</div></div><span class="occupancy-badge ${roomOccupancy(r)}">${roomOccupancy(r)==='vacant'?'PHÒNG TRỐNG':roomOccupancy(r)==='pending'?'CHỜ CHỐT THUÊ':'CÓ KHÁCH'}</span></div>
       ${b?`<div class="detail">Điện: ${b.oldE} → ${b.newE} kWh ${b.waterMode==='meter'||b.waterAllowance>0?`· Nước: ${b.oldW} → ${b.newW} m³`:'· Nước theo người'}</div><div class="price">${money(v.total)}</div>`:''}
-      <div class="actions">${canBill?`<button class="btn" data-action="bill" data-id="${safe(r.id)}">${b?'Sửa hóa đơn':'✏ Nhập chỉ số'}</button>`:'<span class="muted small">Không có đợt thuê đang hoạt động trong tháng được chọn.</span>'}${b?`<button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem / In</button><button class="btn soft" data-action="paid" data-id="${safe(b.id)}">${b.settledBy?'Đã quyết toán':b.paid?'↩ Chưa thu':'✓ Đã thu'}</button><button class="btn danger" data-action="delete-bill" data-id="${safe(b.id)}">Xóa hóa đơn</button>`:''}</div>
+      <div class="actions">${canBill?b?.settledBy||state.settlements.some(x=>x.tenancyId===t?.id)?'<span class="muted small">Đợt thuê đã quyết toán: chỉ xem lịch sử.</span>':b&&earliestAfter(r.id,selectedMonth,b.tenancyId)?`<button class="btn" data-action="edit-bill-money" data-id="${safe(b.id)}">✏ Sửa tiền/phí</button>`:`<button class="btn" data-action="bill" data-id="${safe(r.id)}">${b?'Sửa hóa đơn':'✏ Nhập chỉ số'}</button>`:'<span class="muted small">Không có đợt thuê đang hoạt động trong tháng được chọn.</span>'}${b?`<button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem / In</button><button class="btn soft" data-action="paid" data-id="${safe(b.id)}">${b.settledBy?'Đã quyết toán':b.paid?'↩ Chưa thu':'✓ Đã thu'}</button><button class="btn danger" data-action="delete-bill" data-id="${safe(b.id)}">Xóa hóa đơn</button>`:''}</div>
       ${oldLinks?`<hr class="divider"><b>Hóa đơn các đợt thuê khác trong cùng tháng</b>${oldLinks}`:''}</article>`;
   }).join(''):empty('Chưa có phòng. Hãy vào mục “Phòng trọ” để thêm phòng.');
 }
@@ -1088,8 +1093,10 @@ function openRoom(roomId,mode='edit'){
   updateResidentSummary();
   $('roomLeaseStart').value=isNew?localToday():(r?.leaseStart||'');$('roomLeaseEnd').value=isNew?'':(r?.leaseEnd||'');$('roomDeposit').value=isNew?0:(r?.deposit??0);
   $('roomDeposit').readOnly=!!r&&!isNew;
-  $('roomElectricMeterCode').value=isNew?(r?.electricMeterCode||''):(r?.electricMeterCode||'');
-  $('roomWaterMeterCode').value=isNew?(r?.waterMeterCode||''):(r?.waterMeterCode||'');
+  // Khi tạo đợt thuê mới, không kế thừa mã công tơ của khách cũ.
+  // Khi sửa đợt đang thuê, bảo toàn mã cũ (nếu có) dù đã ẩn khỏi giao diện.
+  $('roomElectricMeterCode').value=isNew?'':(r?.electricMeterCode||'');
+  $('roomWaterMeterCode').value=isNew?'':(r?.waterMeterCode||'');
   $('roomMeterChangeReason').value=isNew?'':(r?.meterChangeReason||'');
   $('roomWaterAllowance').value=String(r?.waterAllowance??0);
   $('roomWaterExcessRate').value=r?.waterExcessRate??r?.waterRate??40000;
@@ -1261,7 +1268,7 @@ function openCloseTenancy(roomId){
   $('closingOther').value=0;$('closingOffset').value=0;$('closingCashReceived').value=0;
   $('closeTenancyTitle').textContent=`Quyết toán & trả phòng ${r.name}`;
   const hasFinalBill=bills.some(b=>b.month===$('closingDate').value.slice(0,7));
-  $('closingNote').textContent=`Đợt thuê: ${t.tenant||'(Chưa rõ)'} · Công tơ điện: ${t.electricMeterCode||'chưa ghi mã'} · Công tơ nước: ${t.waterMeterCode||'chưa ghi mã'}. ${hasFinalBill?'Đã có hóa đơn tháng đang chọn.':'CHƯA CÓ hóa đơn tháng đang chọn; hãy lập hóa đơn tiền phòng, phí cố định và nước cơ bản trước khi quyết toán, nếu tháng đó vẫn phải thu.'}`;
+  $('closingNote').textContent=`Đợt thuê: ${t.tenant||'(Chưa rõ)'}. ${hasFinalBill?'Đã có hóa đơn tháng đang chọn.':'CHƯA CÓ hóa đơn tháng đang chọn; hãy lập hóa đơn tiền phòng, phí cố định và nước cơ bản trước khi quyết toán, nếu tháng đó vẫn phải thu.'}`;
   updateClosingPreview(true);$('closeTenancyDialog').showModal();
 }
 ['closingDate','closingE','closingW','closingOther'].forEach(k=>$(k).addEventListener('input',()=>updateClosingPreview(true)));
@@ -1305,7 +1312,7 @@ function showSettlement(sid){
   const line=(name,amount)=>`<tr><td>${name}</td><td class="n">${money(amount)}</td></tr>`;
   $('invoiceContent').innerHTML=`<div class="invoice"><div class="invoice-top"><h2>PHIẾU QUYẾT TOÁN TRẢ PHÒNG</h2><div>Ngày ${dateText(s.date)}</div></div>
     <div class="invoice-meta"><div><b>Phòng:</b> ${safe(r?.name||'(Đã xóa)')}</div><div><b>Người thuê:</b> ${safe(s.tenant||'—')}</div>
-    <div><b>Đợt thuê:</b> ${safe(s.tenancyId.slice(-8))}</div><div><b>Công tơ điện:</b> ${safe(s.meterCode||'Chưa có mã')}</div></div>
+    <div><b>Đợt thuê:</b> ${safe(s.tenancyId.slice(-8))}</div></div>
     <div class="detail">Điện chốt: ${s.startE} → ${s.endE} kWh · Nước chốt: ${s.startW} → ${s.endW} m³</div>
     <table><thead><tr><th>Nội dung quyết toán</th><th>Thành tiền</th></tr></thead><tbody>
     ${line('Hóa đơn cũ chưa thu ('+s.invoiceIds.length+' hóa đơn)',s.unpaidBills)}
@@ -1331,11 +1338,12 @@ function showTenancyHistory(roomId){
       <div class="detail">Ngày bắt đầu: ${dateText(t.startedAt)} · Ngày trả thực tế: ${dateText(t.endedAt)}<br>Thời hạn hợp đồng: ${dateText(t.leaseEnd)}</div>
       <div class="detail">${(t.residents||[]).map(x=>safe(x.name||'(Chưa cập nhật)')).join(', ')||'Chưa có danh sách'}<br>Xe: ${safe(vehiclesText(t.vehicles||[]))||'Không có'}</div>
       <div class="detail">Giá phòng: ${money(t.rent)}/tháng · Điện: ${money(t.electricRate)}/kWh · Nước: ${t.waterMode==='meter'?money(t.waterRate)+'/m³':money(t.waterPerPerson)+'/người'}</div>
-      <div class="detail">Mã công tơ điện: ${safe(t.electricMeterCode||'—')} · Nước: ${safe(t.waterMeterCode||'—')}<br>${t.meterChangeReason?`Ghi chú thay công tơ: ${safe(t.meterChangeReason)}<br>`:''}Đồng hồ đầu kỳ: ${t.openingE??'—'} kWh · ${t.openingW??'—'} m³. Bàn giao cuối: ${t.closingE??'—'} kWh · ${t.closingW??'—'} m³.</div>
+      <div class="detail">${t.meterChangeReason?`Ghi chú thay công tơ: ${safe(t.meterChangeReason)}<br>`:''}Đồng hồ đầu kỳ: ${t.openingE??'—'} kWh · ${t.openingW??'—'} m³. Bàn giao cuối: ${t.closingE??'—'} kWh · ${t.closingW??'—'} m³.</div>
       <div class="detail"><b>Cọc còn giữ: ${money(t.depositBalance)}</b> · ${bills.length} hóa đơn · Chưa thu: ${money(outstanding)}</div>
       ${state.settlements?.find(x=>x.tenancyId===t.id)?`<div class="inline-info"><b>ĐÃ QUYẾT TOÁN ${dateText(state.settlements.find(x=>x.tenancyId===t.id).date)}</b> · Khấu trừ cọc ${money(state.settlements.find(x=>x.tenancyId===t.id).offset)} · Hoàn cọc ${money(state.settlements.find(x=>x.tenancyId===t.id).refund)} · Khách trả thêm ${money(state.settlements.find(x=>x.tenancyId===t.id).cashCollected)}<div class="actions"><button class="btn secondary" data-action="settlement" data-id="${safe(state.settlements.find(x=>x.tenancyId===t.id).id)}">📄 Xem / In phiếu quyết toán</button></div></div>`:''}
       ${t.status==='closed'&&t.depositBalance>0?`<button class="btn secondary" data-action="deposit-tenancy" data-id="${safe(r.id)}" data-tenancy="${safe(t.id)}">Quyết toán cọc khách cũ</button>`:''}
-      ${t.status==='closed'&&!t.endedAt?`<button class="btn secondary" data-action="set-tenancy-end" data-id="${safe(r.id)}" data-tenancy="${safe(t.id)}">Bổ sung ngày trả phòng cũ</button>`:''}</div>`;
+      ${t.status==='closed'&&!t.endedAt?`<button class="btn secondary" data-action="set-tenancy-end" data-id="${safe(r.id)}" data-tenancy="${safe(t.id)}">Bổ sung ngày trả phòng cũ</button>`:''}
+      ${bills.length?`<hr class="divider"><b>Hóa đơn đợt thuê này</b>${bills.slice().sort((a,b)=>b.month.localeCompare(a.month)).map(b=>`<div class="detail small">Tháng ${monthText(b.month)} · ${money(calc(b).total)} <button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem</button> ${!b.settledBy&&!state.settlements.some(z=>z.tenancyId===t.id)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(b.id)}">Sửa tiền/phí</button>`:''}</div>`).join('')}`:''}</div>`;
   }).join(''):'<p class="muted">Phòng chưa có đợt thuê nào.</p>';
   $('tenancyHistoryDialog').showModal();
 }
@@ -1364,8 +1372,16 @@ function openBill(roomId){
   const r=getRoom(roomId);if(!r)return;
   const tenancy=activeTenancy(r);
   if(!tenancy||!tenancyValidInMonth(tenancy,selectedMonth)){alert('Không có đợt thuê đang hoạt động thuộc tháng được chọn. Xem hóa đơn cũ ở lịch sử.');return;}
-  if(earliestAfter(roomId,selectedMonth)){alert('Phòng này có hóa đơn tháng sau. Để tránh sai lệch chỉ số, hãy sửa/xóa hóa đơn từ tháng mới nhất trở về trước.');return;}
-  const existing=getBill(roomId),previous=latestBefore(roomId,selectedMonth),meterPrevious=latestMeterBefore(roomId,selectedMonth);
+  const existing=getBill(roomId);
+  if(existing?.settledBy||state.settlements.some(x=>x.tenancyId===tenancy.id)){
+    alert('Đợt thuê đã được quyết toán. Hóa đơn chỉ được xem/in để giữ nguyên sổ cọc.');return;
+  }
+  if(earliestAfter(roomId,selectedMonth)){
+    if(existing){openHistoricalMoneyEdit(existing.id);return;}
+    alert('Đã có hóa đơn tháng sau. Không lập bổ sung tháng trước bằng cách tự suy đoán chỉ số. Hãy sao lưu và xử lý chuỗi chỉ số từ tháng mới nhất trở về trước.');return;
+  }
+  const previous=latestBefore(roomId,selectedMonth),meterPrevious=latestMeterBefore(roomId,selectedMonth);
+  historicalMoneyEdit=false;
   pendingBill=billDraft(r,existing,previous,meterPrevious);
   $('billForm').reset();$('billRoomId').value=roomId;
   $('billDialogTitle').textContent=`${existing?'Sửa hóa đơn':'Ghi chỉ số'} – ${r.name} (${monthText(selectedMonth)})`;
@@ -1376,9 +1392,12 @@ function openBill(roomId){
   $('oldE').value=pendingBill.oldE??'';$('newE').value=pendingBill.newE??'';
   $('oldW').value=pendingBill.oldW??'';$('newW').value=pendingBill.newW??'';
   $('oldE').readOnly=!!previous;$('oldW').readOnly=!!meterPrevious;
+  // Mở hóa đơn bình thường phải mở khóa số MỚI sau khi từng sửa hóa đơn lịch sử.
+  $('newE').readOnly=false;$('newW').readOnly=false;
   $('waterMeterFields').style.display=trackWater?'grid':'none';
   $('billMeterRateField').hidden=pendingBill.waterMode!=='meter';$('billPersonRateField').hidden=pendingBill.waterMode!=='person';
   $('billExcessRateField').hidden=!(pendingBill.waterMode==='person'&&pendingBill.waterAllowance>0);
+  $('billElectricRate').value=pendingBill.electricRate;
   $('billWaterRate').value=pendingBill.waterRate;
   $('billWaterPerPerson').value=pendingBill.waterPerPerson;
   $('billExcessWaterRate').value=pendingBill.waterExcessRate??pendingBill.waterRate;
@@ -1389,13 +1408,47 @@ function openBill(roomId){
   $('extraRows').innerHTML='';(pendingBill.extras||[]).forEach(addExtraRow);
   updateBillPreview();$('billDialog').showModal();
 }
+// Chỉnh tiền/phí hóa đơn cũ theo ID, kể cả khi đã đổi khách thuê.
+// Không cho sửa chỉ số điện/nước vì sẽ làm sai chuỗi công tơ các tháng tiếp theo.
+function openHistoricalMoneyEdit(billId){
+  const saved=state.bills.find(b=>b.id===billId);
+  if(!saved)return;
+  if(saved.settledBy||state.settlements.some(x=>x.tenancyId===saved.tenancyId)){
+    alert('Hóa đơn của đợt thuê đã quyết toán không được sửa tiền để tránh lệch sổ cọc.');return;
+  }
+  historicalMoneyEdit=true;pendingBill=copy(saved);
+  $('billForm').reset();$('billRoomId').value=saved.roomId;
+  $('billDialogTitle').textContent=`Sửa TIỀN/PHÍ hóa đơn – Phòng ${saved.roomName} (${monthText(saved.month)})`;
+  $('previousNote').textContent='Chế độ sửa hóa đơn lịch sử: chỉ được thay tiền phòng, đơn giá điện/nước, số người tính nước và phí phát sinh. Số công tơ cũ/mới được khóa để bảo vệ các tháng tiếp theo. Hóa đơn đã quyết toán không được sửa.';
+  $('oldE').value=saved.oldE;$('newE').value=saved.newE;
+  $('oldE').readOnly=true;$('newE').readOnly=true;
+  const trackWater=saved.waterMode==='meter'||(saved.waterMode==='person'&&saved.waterAllowance>0);
+  $('oldW').value=saved.oldW??'';$('newW').value=saved.newW??'';
+  $('oldW').readOnly=true;$('newW').readOnly=true;
+  $('waterMeterFields').style.display=trackWater?'grid':'none';
+  $('billMeterRateField').hidden=saved.waterMode!=='meter';
+  $('billPersonRateField').hidden=saved.waterMode!=='person';
+  $('billExcessRateField').hidden=!(saved.waterMode==='person'&&saved.waterAllowance>0);
+  $('billElectricRate').value=saved.electricRate;
+  $('billWaterRate').value=saved.waterRate;
+  $('billWaterPerPerson').value=saved.waterPerPerson;
+  $('billExcessWaterRate').value=saved.waterExcessRate??saved.waterRate;
+  $('billPeopleFields').hidden=saved.waterMode!=='person';
+  $('oldW').required=trackWater;$('newW').required=trackWater;
+  $('billRent').value=saved.rent;$('billAdults').value=saved.adults;
+  $('billChildren').value=saved.children;$('billOccupants').value=saved.occupants;
+  $('billPriceNote').textContent=`Chỉnh số tiền trên hóa đơn tháng ${monthText(saved.month)}. Không thay tiền cọc hay chỉ số đã chốt. Phí cố định cũ được giữ nguyên; có thể thêm/sửa phí phát sinh.`;
+  $('extraRows').innerHTML='';(saved.extras||[]).forEach(addExtraRow);
+  $('tenancyHistoryDialog').close();
+  updateBillPreview();$('billDialog').showModal();
+}
 function getFormBill(){
   if(!pendingBill)return null;
   const adults=num($('billAdults').value),children=num($('billChildren').value);
   const occupants=adults+children;
   $('billOccupants').value=Number.isInteger(occupants)&&occupants>=0?occupants:'';
   const trackWater=pendingBill.waterMode==='meter'||(pendingBill.waterMode==='person'&&pendingBill.waterAllowance>0);
-  return {...pendingBill,oldE:num($('oldE').value),newE:num($('newE').value),
+  return {...pendingBill,oldE:num($('oldE').value),newE:num($('newE').value),electricRate:num($('billElectricRate').value),
     oldW:trackWater?num($('oldW').value):null,
     newW:trackWater?num($('newW').value):null,
     waterRate:num($('billWaterRate').value),waterPerPerson:num($('billWaterPerPerson').value),
@@ -1413,7 +1466,7 @@ function billError(b){
     if(![b.oldW,b.newW].every(Number.isFinite)||b.oldW<0||b.newW<0)return 'Vui lòng nhập đầy đủ chỉ số nước hợp lệ.';
     if(b.newW<b.oldW)return '⚠️ Số nước MỚI không được nhỏ hơn số nước CŨ.';
   }
-  if(![b.waterRate,b.waterPerPerson,b.waterExcessRate].every(n=>Number.isSafeInteger(n)&&n>=0))return 'Đơn giá nước phải là số nguyên không âm.';
+  if(![b.electricRate,b.waterRate,b.waterPerPerson,b.waterExcessRate].every(n=>Number.isSafeInteger(n)&&n>=0))return 'Đơn giá điện/nước phải là số nguyên không âm.';
   return '';
 }
 function updateBillPreview(){
@@ -1421,7 +1474,7 @@ function updateBillPreview(){
   $('billPreview').textContent=error?error:`Tổng tiền: ${money(calc(b).total)}`;
   $('billPreview').style.background=error?'#fff1e5':'#e8f5ef';
 }
-['oldE','newE','oldW','newW','billRent','billAdults','billChildren','billWaterRate','billWaterPerPerson','billExcessWaterRate'].forEach(k=>$(k).addEventListener('input',updateBillPreview));
+['oldE','newE','oldW','newW','billRent','billAdults','billChildren','billElectricRate','billWaterRate','billWaterPerPerson','billExcessWaterRate'].forEach(k=>$(k).addEventListener('input',updateBillPreview));
 function addExtraRow(x={name:'',amount:''}){
   const box=document.createElement('div');box.className='setting-fee';
   box.innerHTML=`<input class="extra-name" maxlength="60" placeholder="VD: Giặt sấy" aria-label="Tên khoản phí" value="${safe(x.name||'')}"><input class="extra-amount" type="number" min="0" step="1" placeholder="Số tiền (đ)" aria-label="Số tiền" value="${x.amount??''}"><button class="btn danger remove-extra" type="button">Xóa</button>`;
@@ -1433,12 +1486,32 @@ $('extraRows').addEventListener('click',e=>{if(e.target.closest('.remove-extra')
 $('extraRows').addEventListener('input',updateBillPreview);
 $('billForm').addEventListener('submit',e=>{
   e.preventDefault();const b=getFormBill(),error=billError(b);if(error){alert(error);return;}
-  const previous=latestBefore(b.roomId,b.month),meterPrevious=latestMeterBefore(b.roomId,b.month);
-  if((previous && b.oldE!==previous.newE) || ((b.waterMode==='meter'||(b.waterMode==='person'&&b.waterAllowance>0))&&meterPrevious&&b.oldW!==meterPrevious.newW)){alert('Chỉ số cũ không khớp với hóa đơn trước. Vui lòng mở lại màn hình nhập.');return;}
-  if(earliestAfter(b.roomId,b.month,b.tenancyId)){alert('Có hóa đơn tháng sau của cùng đợt thuê, không thể sửa tháng này trước.');return;}
+  if(historicalMoneyEdit){
+    const original=state.bills.find(x=>x.id===b.id);
+    if(!original||original.settledBy||state.settlements.some(x=>x.tenancyId===original.tenancyId)){
+      alert('Không thể sửa: hóa đơn đã được quyết toán hoặc không còn tồn tại.');return;
+    }
+    if(b.roomId!==original.roomId||b.tenancyId!==original.tenancyId||b.month!==original.month||
+       !Object.is(b.oldE,original.oldE)||!Object.is(b.newE,original.newE)||
+       !Object.is(b.oldW,original.oldW)||!Object.is(b.newW,original.newW)){
+      alert('Chỉ số điện/nước hoặc thông tin đợt thuê đã thay đổi. Hãy mở lại hóa đơn.');return;
+    }
+    if(original.paid&&calc(original).total!==calc(b).total&&
+       !confirm(`Hóa đơn đã đánh dấu ĐÃ THU. Bạn đang sửa tổng tiền từ ${money(calc(original).total)} thành ${money(calc(b).total)}. Hãy kiểm tra số tiền đã nhận thực tế trước khi lưu. Tiếp tục?`))return;
+    if(calc(original).total!==calc(b).total&&!original.paid&&
+       !confirm(`Tổng tiền hóa đơn sẽ đổi từ ${money(calc(original).total)} sang ${money(calc(b).total)}. Xác nhận chỉnh sửa lịch sử?`))return;
+  }else{
+    const previous=latestBefore(b.roomId,b.month,b.tenancyId),meterPrevious=latestMeterBefore(b.roomId,b.month,b.tenancyId);
+    if((previous && b.oldE!==previous.newE) || ((b.waterMode==='meter'||(b.waterMode==='person'&&b.waterAllowance>0))&&meterPrevious&&b.oldW!==meterPrevious.newW)){
+      alert('Chỉ số cũ không khớp với hóa đơn trước. Vui lòng mở lại màn hình nhập.');return;
+    }
+    if(earliestAfter(b.roomId,b.month,b.tenancyId)){
+      alert('Có hóa đơn tháng sau, chỉ được chọn Sửa tiền/phí để không thay đổi chuỗi chỉ số.');return;
+    }
+  }
   b.updatedAt=new Date().toISOString();const old=copy(state);
   const i=state.bills.findIndex(x=>x.id===b.id);if(i>=0)state.bills[i]=b;else state.bills.push(b);
-  if(!save()){state=old;return;}$('billDialog').close();pendingBill=null;render();toast('Đã lưu hóa đơn thành công.');
+  if(!save()){state=old;return;}$('billDialog').close();pendingBill=null;historicalMoneyEdit=false;render();toast('Đã lưu hóa đơn thành công.');
 });
 function deleteBill(billId){
   const b=state.bills.find(x=>x.id===billId);if(!b)return;
@@ -1501,7 +1574,7 @@ function showInvoice(billId){
     <div class="invoice-top"><h2>HÓA ĐƠN TIỀN PHÒNG</h2><div>Tháng ${monthText(b.month)}</div></div>
     <div class="invoice-meta"><div><b>Phòng:</b> ${safe(b.roomName)}</div><div><b>Người thuê:</b> ${safe(b.tenant||'—')}</div>
       <div><b>Điện thoại:</b> ${safe(b.phone||'—')}</div>
-      <div><b>Trạng thái:</b> <span class="badge ${b.paid||b.settledBy?'paid':'unpaid'}">${b.settledBy?'ĐÃ QUYẾT TOÁN':b.paid?'ĐÃ THANH TOÁN':'CHƯA THANH TOÁN'}</span></div>${b.electricMeterCode?`<div><b>Công tơ điện:</b> ${safe(b.electricMeterCode)}</div>`:''}${b.waterMeterCode?`<div><b>Công tơ nước:</b> ${safe(b.waterMeterCode)}</div>`:''}</div>
+      <div><b>Trạng thái:</b> <span class="badge ${b.paid||b.settledBy?'paid':'unpaid'}">${b.settledBy?'ĐÃ QUYẾT TOÁN':b.paid?'ĐÃ THANH TOÁN':'CHƯA THANH TOÁN'}</span></div></div>
     
     <div class="tw"><table><thead><tr><th>Hạng mục</th><th class="n">Số cũ</th><th class="n">Số mới</th><th class="n">Tiêu thụ</th><th class="n">Đơn giá</th><th class="n">Thành tiền</th></tr></thead><tbody>${detail}</tbody>
       <tfoot><tr><td colspan="5">TỔNG CỘNG</td><td class="n">${money(v.total)}</td></tr></tfoot></table></div>
@@ -1857,6 +1930,7 @@ document.addEventListener('click',e=>{
   if(action==='deposit')openDeposit(key);
   if(action==='delete-room')deleteRoom(key);
   if(action==='bill')openBill(key);
+  if(action==='edit-bill-money')openHistoricalMoneyEdit(key);
   if(action==='invoice')showInvoice(key);
   if(action==='paid')togglePaid(key);
   if(action==='delete-bill')deleteBill(key);
