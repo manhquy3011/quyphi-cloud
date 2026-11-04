@@ -20,6 +20,7 @@ let cloudTimer = null;
 let cloudPollBusy = false;
 let cloudStarted = false;
 let cloudLastError = '';
+let cloudLastUpdatedAt = null;
 
 function cloudEl(name){return document.getElementById(name);}
 function cloudCacheKey(){
@@ -49,6 +50,26 @@ function cloudPersistCache(){
     return false;
   }
 }
+// Thời điểm cập nhật thật do Supabase lưu trong cột updated_at (giờ Việt Nam).
+function cloudLastUpdateLabel(){
+  if(!cloudLastUpdatedAt) return '☁️ Đã đồng bộ dữ liệu mới nhất (chưa có thời gian cập nhật)';
+  const date=new Date(cloudLastUpdatedAt);
+  if(Number.isNaN(date.getTime()))return '☁️ Đã đồng bộ dữ liệu mới nhất';
+  return '☁️ Đã cập nhật dữ liệu mới nhất lúc '+new Intl.DateTimeFormat('vi-VN',{
+    timeZone:'Asia/Ho_Chi_Minh',day:'2-digit',month:'2-digit',year:'numeric',
+    hour:'2-digit',minute:'2-digit',hour12:false
+  }).format(date);
+}
+// Đọc dấu thời gian của đúng revision đã lưu, tránh nhầm với thiết bị khác.
+async function cloudReadUpdatedAt(revision){
+  try{
+    const {data,error}=await cloudClient.from('quyphi_app_state')
+      .select('updated_at').eq('owner_id',cloudUser.id)
+      .eq('revision',revision).maybeSingle();
+    if(error) throw error;
+    return data?.updated_at||null;
+  }catch(err){console.warn('Không lấy được giờ cập nhật:',err);return null;}
+}
 function cloudStatus(message, level='good'){
   const bar = cloudEl('cloudSyncStatus');
   bar.textContent = message;
@@ -75,7 +96,7 @@ function cloudMakeDefaultData(){
   return {
     settings:copy(DEFAULT_SETTINGS), rooms:[], bills:[],
     flexRooms:[], flexEntries:[], meterAccounts:copy(DEFAULT_METERS),
-    meterPayments:[], expenses:[], flexWaterPayments:[]
+    meterPayments:[], expenses:[], flexWaterPayments:[], depositTransactions:[], settlements:[]
   };
 }
 function cloudReadLegacy(){
@@ -85,7 +106,7 @@ function cloudReadLegacy(){
 }
 async function cloudGetRemote(){
   const {data,error} = await cloudClient.from('quyphi_app_state')
-    .select('revision,data').eq('owner_id',cloudUser.id).maybeSingle();
+    .select('revision,data,updated_at').eq('owner_id',cloudUser.id).maybeSingle();
   if (error) throw error;
   return data;
 }
@@ -117,11 +138,13 @@ async function cloudFlush(){
       }
       cloudRevision=Number(data);
       cloudDirty=sequence!==cloudSequence;
+      // Lấy thời gian DB thật sau khi RPC lưu thành công.
+      cloudLastUpdatedAt=await cloudReadUpdatedAt(cloudRevision)||null;
       cloudLastError='';
       if (!cloudPersistCache()) {
         cloudStatus('⚠️ Cloud đã lưu, nhưng không cập nhật được bản tạm trên máy', 'error');
       } else if (!cloudDirty) {
-        cloudStatus('☁️ Đã đồng bộ lên Cloud · phiên bản '+cloudRevision,'good');
+        cloudStatus(cloudLastUpdateLabel(),'good');
       }
     }
   } catch(error) {
@@ -168,11 +191,13 @@ async function cloudPull(){
       const fresh=validateData(remote.data);
       state=fresh;
       cloudRevision=newRevision;
+      cloudLastUpdatedAt=remote.updated_at||null;
       cloudPersistCache();
       render();
-      cloudStatus('☁️ Đã cập nhật dữ liệu mới từ thiết bị khác · phiên bản '+cloudRevision,'good');
+      cloudStatus(cloudLastUpdateLabel(),'good');
     } else {
-      cloudStatus('☁️ Đã đồng bộ · phiên bản '+cloudRevision,'good');
+      cloudLastUpdatedAt=remote.updated_at||cloudLastUpdatedAt;
+      cloudStatus(cloudLastUpdateLabel(),'good');
     }
   } catch(error){
     cloudStatus('⚠️ Không đọc được Cloud: '+error.message,'error');
@@ -184,6 +209,7 @@ async function cloudLoadAccount(){
   cloudConflict=false;
   cloudRevision=0;
   cloudSequence=0;
+  cloudLastUpdatedAt=null;
   cloudShowGate('Đang kiểm tra dữ liệu trên Cloud...', 'loading');
   let remote;
   try { remote=await cloudGetRemote(); }
@@ -198,6 +224,7 @@ async function cloudLoadAccount(){
       const fresh=validateData(remote.data);
       const serverRevision=Number(remote.revision);
       cloudRevision=serverRevision;
+      cloudLastUpdatedAt=remote.updated_at||null;
       if (cache?.dirty) {
         if (cache.revision!==serverRevision) {
           state=cache.data; cloudRevision=cache.revision; cloudDirty=true;
@@ -209,7 +236,7 @@ async function cloudLoadAccount(){
       cloudReady=true;
       cloudPersistCache();
       cloudOpenApp();
-      cloudStatus(cloudDirty?'⏳ Có thay đổi chưa gửi từ lần trước. Đang đồng bộ...':'☁️ Đã tải dữ liệu Cloud · phiên bản '+cloudRevision,cloudDirty?'pending':'good');
+      cloudStatus(cloudDirty?'⏳ Có thay đổi chưa gửi từ lần trước. Đang đồng bộ...':cloudLastUpdateLabel(),cloudDirty?'pending':'good');
       if (cloudDirty) void cloudFlush();
     } catch(error) {
       cloudShowGate('Dữ liệu trên Cloud không hợp lệ: '+error.message+'. Không thể tự động sửa hoặc ghi đè.', 'retry');
@@ -242,6 +269,63 @@ async function cloudLoadAccount(){
     cloudShowGate('Cloud chưa có dữ liệu. Dữ liệu v7 trên máy đọc không được: '+error.message+'. Hãy dùng file sao lưu JSON để khôi phục, không xóa dữ liệu v7.', 'setup');
   }
 }
+// Xóa dữ liệu nghiệp vụ bằng việc GHI JSON rỗng trong cùng row (không xóa SQL, RLS, User).
+// Yêu cầu đồng bộ sạch, hai lần xác nhận, và RPC CAS để tránh mất dữ liệu từ thiết bị khác.
+async function cloudResetAllData(){
+  if(!cloudReady||!cloudUser||cloudConflict){alert('Bạn cần đăng nhập và tải dữ liệu Cloud thành công trước.');return;}
+  if(cloudDirty||cloudSending||cloudPollBusy){alert('Còn thao tác đang đồng bộ. Hãy chờ trạng thái Đã cập nhật, rồi thử lại.');return;}
+  if(!cloudEl('resetBackupConfirmed').checked){
+    alert('Trước tiên hãy xuất file sao lưu JSON, kiểm tra file đã tải về và đánh dấu ô xác nhận.');return;
+  }
+  const phrase=prompt('XÓA SẠCH TẤT CẢ DỮ LIỆU PHÒNG TRỌ, HÓA ĐƠN, THU CHI, CỌC, QR VÀ CÀI ĐẶT?\n\nĐể xác nhận, gõ đúng: XOA TOAN BO');
+  if(phrase!=='XOA TOAN BO'){if(phrase!==null)alert('Cụm từ không đúng. Không có dữ liệu nào bị xóa.');return;}
+  if(!confirm('Xác nhận lần cuối: thay toàn bộ dữ liệu Supabase của tài khoản này bằng dữ liệu trống? Bản sao lưu JSON đã lưu trên máy sẽ không bị xóa.'))return;
+
+  cloudSending=true;
+  cloudShowGate('Đang kiểm tra và khởi tạo dữ liệu mới. Vui lòng không đóng trang...', 'loading');
+  try {
+    const fresh=await cloudGetRemote();
+    if(!fresh || Number(fresh.revision)!==cloudRevision){
+      cloudSending=false;
+      cloudBlockConflict();
+      alert('Một thiết bị khác đã cập nhật dữ liệu. Thao tác xóa bị HỦY; hãy tải lại Cloud và xuất sao lưu mới.');
+      return;
+    }
+    const empty=validateData(cloudMakeDefaultData());
+    const {data,error}=await cloudClient.rpc('quyphi_save_state',{
+      p_expected_revision:cloudRevision,p_data:empty
+    });
+    if(error){
+      if(cloudIsConflict(error)){
+        cloudSending=false;
+        cloudBlockConflict();
+        alert('Đã phát hiện thiết bị khác cập nhật dữ liệu. KHÔNG xóa dữ liệu Cloud.');
+        return;
+      }
+      throw error;
+    }
+    // Chỉ thay state trên thiết bị SAU KHI Supabase xác nhận.
+    state=empty;
+    cloudRevision=Number(data);
+    cloudDirty=false;
+    cloudSequence++;
+    cloudLastUpdatedAt=await cloudReadUpdatedAt(cloudRevision)||null;
+    cloudEl('resetBackupConfirmed').checked=false;
+    // Dữ liệu v7 cũ trên CHÍNH trình duyệt này cũng được dọn sau khi Cloud xác nhận.
+    // Các bản sao lưu JSON và dữ liệu trình duyệt ở thiết bị khác không bị đụng tới.
+    try{localStorage.removeItem(CLOUD_LEGACY_KEY);}catch(_){}
+    selectedMonth=todayMonth();
+    const cached=cloudPersistCache();
+    cloudOpenApp();
+    cloudStatus(cached?cloudLastUpdateLabel():'⚠️ Cloud đã xóa dữ liệu, nhưng không lưu được bản tạm trên máy',cached?'good':'error');
+    alert('ĐÃ LÀM MỚI THÀNH CÔNG. Dữ liệu nghiệp vụ trên Cloud hiện trống. Giữ file JSON sao lưu để có thể phục hồi khi cần.');
+  }catch(error){
+    cloudOpenApp();
+    cloudStatus('⚠️ Chưa thể làm mới dữ liệu: '+error.message,'error');
+    alert('KHÔNG xác nhận xóa dữ liệu: '+error.message+'. Hãy kiểm tra lại trạng thái Supabase trước khi thao tác tiếp.');
+  }finally{cloudSending=false;}
+}
+
 async function cloudBeginData(initial){
   const previousState=state;
   cloudReady=true;

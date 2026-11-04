@@ -167,7 +167,7 @@ body.cloud-locked>.foot{display:none!important}
 <!-- Bảo vệ ứng dụng trước khi đăng nhập / tải dữ liệu Cloud. -->
 <section class="cloud-gate" id="cloudGate" aria-label="Đăng nhập Quý Phi">
   <div class="cloud-card">
-    <h2>☁️ Quý Phi Cloud v8.3</h2>
+    <h2>☁️ Quý Phi Cloud</h2>
     <p class="small muted">Quản lý nhà trọ &amp; thu chi · Dùng chung máy tính và điện thoại</p>
     <p id="cloudGateMessage" class="note">Đang khởi tạo...</p>
     <form id="cloudLoginForm" hidden>
@@ -324,6 +324,18 @@ body.cloud-locked>.foot{display:none!important}
       <div class="actions"><button class="btn" id="exportBackup">⬇ Xuất dữ liệu (.json)</button><button class="btn secondary" id="importBackup">⬆ Nhập dữ liệu (.json)</button></div>
       <input type="file" id="backupFile" accept=".json,application/json" hidden>
       <p class="small muted">Nên xuất bản sao lưu sau mỗi lần thu tiền. Nhập file sao lưu sẽ <b>thay thế toàn bộ dữ liệu hiện có</b>.</p>
+    </div>
+    <div class="panel" style="border:1px solid #e9b3ad">
+      <h3 style="color:#a6352c">🧹 Xóa toàn bộ dữ liệu và bắt đầu lại</h3>
+      <p class="small">Chỉ sử dụng khi bạn muốn <b>khởi tạo dữ liệu hoàn toàn mới</b>. Chức năng sẽ xóa khỏi dữ liệu đang sử dụng: phòng, người thuê, CCCD, hóa đơn, thu riêng, chi phí, công tơ đã cấu hình, sổ cọc, quyết toán, ngân hàng và ảnh QR.</p>
+      <p class="small muted"><b>Không xóa:</b> Project Supabase, bảng SQL, tài khoản đăng nhập, địa chỉ GitHub Pages. Bản JSON đã tải về máy vẫn được giữ.</p>
+      <div class="actions"><button type="button" class="btn secondary" id="resetDownloadBackup">⬇ Bước 1: Xuất bản sao lưu</button></div>
+      <label class="small" style="display:flex;align-items:flex-start;gap:9px;margin:14px 0">
+        <input id="resetBackupConfirmed" type="checkbox" style="margin-top:4px;flex:none">
+        <span>Tôi đã <b>kiểm tra file sao lưu JSON đã tải về</b>, đóng các tab cũ trên thiết bị khác, và hiểu rằng việc làm mới sẽ thay thế toàn bộ dữ liệu Cloud hiện tại.</span>
+      </label>
+      <button type="button" class="btn danger" id="resetAllCloud">🗑 Bước 2: Xóa dữ liệu Cloud, bắt đầu mới</button>
+      <p class="small muted">Ứng dụng sẽ yêu cầu nhập cụm từ xác nhận và kiểm tra phiên bản dữ liệu trên Cloud trước khi lưu dữ liệu rỗng. Nếu có xung đột, thao tác bị dừng.</p>
     </div>
   </section>
 </main>
@@ -489,7 +501,7 @@ body.cloud-locked>.foot{display:none!important}
 <!-- Cấu hình của riêng bạn và thư viện Supabase (client-side, không có khóa bí mật). -->
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="cloud.js"></script>
+<script src="cloud.js?v=8.3.2"></script>
 <script>
 'use strict';
 // Mọi dữ liệu của ứng dụng được lưu ở một khóa localStorage duy nhất.
@@ -1903,6 +1915,9 @@ function exportBackup(){
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);toast('Đã tạo file sao lưu JSON.');
 }
 $('exportBackup').addEventListener('click',exportBackup);
+// Khởi tạo dữ liệu sạch chỉ qua cơ chế Cloud có kiểm tra xung đột.
+$('resetDownloadBackup').addEventListener('click',exportBackup);
+$('resetAllCloud').addEventListener('click',()=>{void cloudResetAllData();});
 $('importBackup').addEventListener('click',()=>$('backupFile').click());
 $('backupFile').addEventListener('change',async e=>{
   const file=e.target.files[0];e.target.value='';if(!file)return;
