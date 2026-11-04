@@ -486,8 +486,9 @@ body.cloud-locked>.foot{display:none!important}
       <div class="field"><label for="billChildren">Trẻ em tính nước</label><input id="billChildren" type="number" min="0" step="1" required></div>
     </div></div><input type="hidden" id="billOccupants">
   </div>
-  <div class="subheading">Phí phát sinh tháng này (giặt sấy, sửa chữa...)</div>
-  <div id="extraRows"></div><button type="button" class="btn secondary" id="addExtra">+ Thêm khoản phí</button>
+  <div class="subheading">Phí phát sinh / Giảm trừ tháng này</div>
+  <div class="note small">Nhập số DƯƠNG để cộng phí; nhập số ÂM để giảm tiền. Ví dụ đồng hồ nước lỗi: ghi “Giảm trừ nước: chỉ tính 10/19 m³”, số tiền <b>-315000</b>. Chỉ số công tơ vẫn giữ nguyên để theo dõi.</div>
+  <div id="extraRows"></div><button type="button" class="btn secondary" id="addExtra">+ Thêm phí / giảm trừ</button>
   <div id="billPriceNote" class="muted small"></div><div id="billPreview" class="total-box">Tổng cộng: —</div>
   <p class="small muted">Chỉ số mới phải lớn hơn hoặc bằng chỉ số cũ. Giá nước nhập ở đây chỉ áp dụng hóa đơn tháng này; hóa đơn tháng đã lưu vẫn giữ đơn giá riêng.</p>
 </div><div class="modal-footer"><button type="button" class="btn secondary" data-close="billDialog">Hủy</button><button type="submit" class="btn">💾 Lưu hóa đơn</button></div></form></dialog>
@@ -772,7 +773,14 @@ function validateData(input){
     const waterExcessRate=moneyInt(b.waterExcessRate??b.waterRate,'Giá nước vượt hóa đơn');
     if(!Array.isArray(b.fees)) throw Error('Các khoản phí hóa đơn không hợp lệ.');
     const billFees=b.fees.map(f=>({name:String(f?.name??'Phí khác').slice(0,60),amount:moneyInt(f?.amount,'Tiền phí hóa đơn')}));
-    const billExtras=(Array.isArray(b.extras)?b.extras:[]).map(f=>({name:String(f?.name??'Phí phát sinh').slice(0,60),amount:moneyInt(f?.amount,'Tiền phí phát sinh')}));
+    // Phí phát sinh có thể ÂM (giảm trừ), khác với phí cố định luôn không âm.
+    const billExtras=(Array.isArray(b.extras)?b.extras:[]).map(f=>{
+      const amount=Number(f?.amount);
+      if(f?.amount===null || f?.amount==='' || !Number.isSafeInteger(amount)) throw Error('Phí phát sinh / giảm trừ không hợp lệ.');
+      const name=String(f?.name??'').trim().slice(0,60);
+      if(!name) throw Error('Phí phát sinh / giảm trừ phải có tên.');
+      return {name,amount};
+    });
     return {
       id:b.id,roomId:b.roomId,tenancyId:String(b.tenancyId||legacyTenancyId(b.roomId)),month:b.month,roomName:String(b.roomName??'').slice(0,50),
       tenant:String(b.tenant??'').slice(0,100),phone:String(b.phone??'').slice(0,30),
@@ -1542,7 +1550,9 @@ function getFormBill(){
     rent:num($('billRent').value),adults,children,occupants,extras:formExtras()};
 }
 function billError(b){
-  if(b&&(b.extras||[]).some(x=>!x.name||!Number.isSafeInteger(x.amount)||x.amount<0))return 'Mỗi khoản phí phát sinh cần có tên và số tiền hợp lệ (không âm).';
+  if(b&&(b.extras||[]).some(x=>!x.name||!Number.isSafeInteger(x.amount)))return 'Mỗi khoản phí / giảm trừ cần có tên và số tiền nguyên hợp lệ.';
+  // Không để việc giảm trừ làm tổng hóa đơn âm.
+  if(b && Number.isFinite(calc(b).total) && calc(b).total<0)return 'Tổng hóa đơn không được âm. Vui lòng kiểm tra khoản giảm trừ.';
   if(!b || ![b.oldE,b.newE,b.rent,b.adults,b.children].every(Number.isFinite)
     || b.oldE<0 || b.newE<0 || b.rent<0 || !Number.isSafeInteger(b.rent)
     || !Number.isInteger(b.adults)||!Number.isInteger(b.children)||b.adults<0||b.children<0||b.occupants<1)
@@ -1563,7 +1573,7 @@ function updateBillPreview(){
 ['oldE','newE','oldW','newW','billRent','billAdults','billChildren','billElectricRate','billWaterRate','billWaterPerPerson','billExcessWaterRate'].forEach(k=>$(k).addEventListener('input',updateBillPreview));
 function addExtraRow(x={name:'',amount:''}){
   const box=document.createElement('div');box.className='setting-fee';
-  box.innerHTML=`<input class="extra-name" maxlength="60" placeholder="VD: Giặt sấy" aria-label="Tên khoản phí" value="${safe(x.name||'')}"><input class="extra-amount" type="number" min="0" step="1" placeholder="Số tiền (đ)" aria-label="Số tiền" value="${x.amount??''}"><button class="btn danger remove-extra" type="button">Xóa</button>`;
+  box.innerHTML=`<input class="extra-name" maxlength="60" placeholder="VD: Giảm trừ nước 9 m³" aria-label="Tên phí hoặc giảm trừ" value="${safe(x.name||'')}"><input class="extra-amount" type="number" step="1" placeholder="+ thu / - giảm (đ)" aria-label="Số tiền phí hoặc giảm trừ" value="${x.amount??''}"><button class="btn danger remove-extra" type="button">Xóa</button>`;
   $('extraRows').appendChild(box);
 }
 function formExtras(){return [...$('extraRows').querySelectorAll('.setting-fee')].map(r=>({name:r.querySelector('.extra-name').value.trim(),raw:r.querySelector('.extra-amount').value})).filter(r=>r.name||r.raw!=='').map(r=>({name:r.name,amount:num(r.raw)}));}
