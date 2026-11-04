@@ -134,7 +134,7 @@
   .resident-archive-item:last-child{border:0}
   #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#173d36;color:white;padding:12px 18px;border-radius:11px;box-shadow:0 5px 30px #0003;z-index:9999;display:none;max-width:94vw}
   @media(max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}.top{padding:15px}.shell{padding:12px 12px 35px}.panel{padding:14px}.stat{padding:13px}.stat strong{font-size:18px}.setting-fee{grid-template-columns:1fr 110px}.setting-fee .btn{padding:9px}.invoice{padding:15px}.invoice-meta{grid-template-columns:1fr}.modal-body{padding:16px}.vehicle-editor .grid2{grid-template-columns:1fr}.header-controls{width:100%;align-items:flex-start}.month-box input{max-width:205px}}
-  /* Sổ thu riêng và sổ chi phí */
+  /* Sổ khoản thu khác và sổ chi phí */
   .finance-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0 18px}
   .finance-kpi{background:white;border:1px solid #dce9e3;border-radius:14px;padding:15px}
   .finance-kpi span{font-size:13px;color:#627a71}.finance-kpi strong{display:block;font-size:22px;margin-top:7px;color:#17665a;overflow-wrap:anywhere}
@@ -229,6 +229,82 @@ body.cloud-locked>.foot{display:none!important}
   #flex > .section-intro b, #flex > .soft-muted b,
   #finance > .section-intro b, #finance > .soft-muted b,
   #flex > .note b, #flex > .finance-section-title + .soft-muted b {font-weight:700}
+/* v8.4.5: tổng hợp thu chi 12 tháng – bảng ngang trên điện thoại. */
+.annual-header{align-items:flex-end}
+.annual-year-field{margin:0;min-width:130px}
+.annual-year-field select{width:100%;border:1px solid #b9cbc5;border-radius:9px;padding:10px 12px;background:#fff;color:#19332f;font-weight:700}
+.annual-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.annual-table-wrap{overflow-x:auto;max-width:100%;margin:12px 0 6px;border:1px solid #dce9e3;border-radius:14px;background:#fff}
+.annual-table{width:100%;min-width:640px;border-collapse:collapse;font-size:14px}
+.annual-table th,.annual-table td{padding:11px 12px;border-bottom:1px solid #e1ece8;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.annual-table th:first-child,.annual-table td:first-child{text-align:left}
+.annual-table thead{background:#edf6f2;color:#194b40}
+.annual-table tfoot{background:#e5f3ec;color:#116255;font-weight:800}
+.annual-table tfoot td{border-bottom:0;border-top:2px solid #17665a}
+.annual-table tbody tr:last-child td{border-bottom:0}
+.annual-table .annual-month-link{color:#17665a;background:none;border:0;text-decoration:underline;text-underline-offset:3px;font-weight:700;padding:0;min-height:30px}
+.annual-table .annual-month-link:focus-visible{outline:2px solid #17665a;outline-offset:2px}
+.annual-table .annual-negative{color:#ae3c35;font-weight:750}
+.annual-footnote{margin:8px 0 22px;line-height:1.6}
+@media(max-width:800px){.annual-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:460px){.annual-header h2{font-size:19px}.annual-table{font-size:13px}.annual-table th,.annual-table td{padding:10px 9px}}
+.annual-chart-panel{background:#fff;border:1px solid #dce9e3;border-radius:14px;padding:14px 14px 10px;margin:12px 0 16px;box-shadow:0 2px 9px #103f3010}
+.annual-chart-title{font-size:15px;font-weight:800;color:#194b40;margin:0 0 10px}
+.annual-chart-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin:0 0 10px;padding:0;list-style:none}
+.annual-chart-legend li{display:flex;align-items:center;gap:7px;font-size:13px;color:#4c6760;font-weight:650}
+.annual-chart-swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
+.annual-chart-grid{display:grid;gap:9px}
+.annual-chart-row{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px;align-items:center}
+.annual-chart-month{font-size:13px;font-weight:700;color:#335851}
+.annual-chart-bars{display:grid;gap:6px}
+.annual-chart-bar{position:relative;height:30px;border-radius:999px;background:#edf4f1;overflow:hidden;border:1px solid #dfebe6}
+.annual-chart-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;min-width:0}
+.annual-chart-label{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;height:100%;padding:0 12px;font-size:12px;font-weight:700;color:#173a33;gap:10px}
+.annual-chart-label small{font-size:11px;font-weight:700;color:#355d55}
+.annual-chart-fill.received{background:linear-gradient(90deg,#17665a,#36a47f)}
+.annual-chart-fill.electricity,.annual-chart-fill.water{background:linear-gradient(90deg,#d7604e,#f0a06f)}
+.annual-chart-fill.net{background:linear-gradient(90deg,#5ca18e,#b8e1d4)}
+.annual-chart-fill.other{background:linear-gradient(90deg,#9d7d36,#d9b45c)}
+.annual-chart-empty{font-size:13px;color:#6a817a;padding:10px 0}
+@media(max-width:680px){.annual-chart-row{grid-template-columns:1fr}.annual-chart-month{margin-bottom:2px}}
+.split-annual-header{align-items:end}
+.annual-donut-panel{background:#fff;border:1px solid #dce9e3;border-radius:18px;padding:18px;box-shadow:0 2px 10px #103f3010;margin:14px 0 10px}
+.annual-donut-layout{display:grid;grid-template-columns:minmax(270px,360px) 1fr;gap:20px;align-items:center}
+.annual-donut-wrap{display:flex;justify-content:center;align-items:center}
+.annual-donut{width:290px;height:290px;border-radius:50%;position:relative;box-shadow:inset 0 0 0 1px #dce9e3,0 10px 24px #103f3010}
+.annual-donut::after{content:'';position:absolute;inset:24px;background:#fff;border-radius:50%;box-shadow:0 0 0 1px #e5efeb}
+.annual-donut-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:1;text-align:center;padding:50px}
+.annual-donut-center strong{font-size:30px;line-height:1.2;color:#0b6155}
+.annual-donut-center span{font-size:13px;font-weight:700;color:#5b756e;text-transform:uppercase;letter-spacing:.3px}
+.annual-donut-center small{margin-top:6px;font-size:12px;color:#7b908b;font-weight:700}
+.annual-donut-side{display:grid;gap:14px}
+.annual-donut-title{font-size:24px;font-weight:900;color:#1b4338;margin:0}
+.annual-donut-desc{font-size:14px;line-height:1.6;color:#5a726b;margin:0}
+.annual-donut-legend{display:grid;gap:10px}
+.annual-donut-item{display:grid;grid-template-columns:16px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid #e2ece8;border-radius:12px;background:#f9fcfb}
+.annual-donut-swatch{width:16px;height:16px;border-radius:5px;display:inline-block}
+.annual-donut-item b{font-size:14px;color:#25483f}
+.annual-donut-item span{font-size:13px;color:#5f7771}
+.annual-donut-item strong{font-size:18px;color:#0d6659}
+.annual-donut-notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:4px}
+.annual-note-card{padding:12px 14px;border:1px solid #e1ece8;border-radius:12px;background:#f6fbf9}
+.annual-note-card span{display:block;font-size:12px;font-weight:800;color:#6b827c;text-transform:uppercase}
+.annual-note-card strong{display:block;margin-top:4px;font-size:18px;color:#19493f}
+.annual-note-card.negative strong{color:#ba452f}
+@media(max-width:860px){.annual-donut-layout{grid-template-columns:1fr}.annual-donut{width:260px;height:260px}.annual-donut-center strong{font-size:26px}.annual-donut-notes{grid-template-columns:1fr}}
+@media(max-width:460px){.annual-donut-panel{padding:14px}.annual-donut{width:228px;height:228px}.annual-donut::after{inset:20px}.annual-donut-center{padding:34px}.annual-donut-center strong{font-size:22px}.annual-donut-title{font-size:20px}}
+/* v8.4.7: cấp 2 cho Tổng hợp; năm hiển thị trực tiếp trong ô xổ xuống. */
+#annualSubnav[hidden]{display:none!important}
+.annual-subnav{display:flex;gap:9px;flex-wrap:wrap;padding:2px 0 13px;margin:-4px 0 16px;border-bottom:1px solid #d4e4dd}
+.annual-subtab{background:white;border:1px solid #bbd5cd;color:#17665a;font-weight:750;padding:10px 15px;border-radius:10px;min-height:43px}
+.annual-subtab.active{background:#e6f4ee;border-color:#17665a;color:#105548;box-shadow:inset 0 0 0 1px #17665a}
+.annual-subtab:focus-visible{outline:3px solid #95d3bb;outline-offset:2px}
+.annual-year-field{min-width:105px}
+.annual-year-field select{min-width:105px;font-size:15px;cursor:pointer}
+@media(max-width:600px){.annual-subnav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.annual-subtab{padding:10px 7px;font-size:13px}.split-annual-header{align-items:center}.annual-year-field{min-width:96px}}
+
+
+
 </style>
 </head>
 <body class="cloud-locked">
@@ -260,7 +336,7 @@ body.cloud-locked>.foot{display:none!important}
 </section>
 
 <header class="top"><div class="top-inner">
-  <div><h1>🏠 Quý Phi – Quản lý Nhà trọ &amp; Thu chi</h1><div class="subtitle">Phòng trọ · Hóa đơn · Thu riêng · Thu chi</div></div>
+  <div><h1>🏠 Quý Phi – Quản lý Nhà trọ &amp; Thu chi</h1><div class="subtitle">Phòng trọ · Hóa đơn · Khoản thu khác · Thu chi</div></div>
   <div class="header-controls">
     <div class="month-box"><label for="monthSel">Tháng</label><select id="monthSel"></select><label for="yearSel">Năm</label><select id="yearSel"></select></div>
   </div>
@@ -276,19 +352,46 @@ body.cloud-locked>.foot{display:none!important}
   <nav class="tabs" aria-label="Chức năng">
     <button class="tab active" data-tab="dashboard">📊 Tổng quan</button>
     <button class="tab" data-tab="readings">🧮 Ghi số & hóa đơn</button>
-    <button class="tab" data-tab="flex">🧾 Thu riêng</button>
+    <button class="tab" data-tab="annual" aria-controls="annualSubnav" aria-expanded="false">📊 Tổng hợp <span aria-hidden="true">▾</span></button>
+    <button class="tab" data-tab="flex">🧾 Khoản thu khác</button>
     <button class="tab" data-tab="finance">💰 Thu chi</button>
     <button class="tab" data-tab="rooms">🏘️ Phòng trọ</button>
     <button class="tab" data-tab="settings">⚙️ Cài đặt</button>
+  </nav>
+  <!-- Menu cấp 2 chỉ xuất hiện khi chọn tab Tổng hợp. -->
+  <nav id="annualSubnav" class="annual-subnav" aria-label="Các mục tổng hợp" hidden>
+    <button type="button" class="annual-subtab active" data-annual-view="annual-main" aria-pressed="true">📊 Tổng hợp thu chi</button>
+    <button type="button" class="annual-subtab" data-annual-view="annual-other" aria-pressed="false">🧾 Tổng hợp khác</button>
   </nav>
   <section id="dashboard" class="view active"><div class="section-head"><h2>Tổng quan <span class="month-title"></span></h2></div>
     <div id="stats" class="stats"></div>
     <h3>Thu chi thực tế tháng <span class="month-title"></span></h3>
     <div id="financeSnapshot" class="finance-kpis"></div>
-    <p class="soft-muted">Số dư này chỉ tính phòng thường: <b>đã thu − điện đã đóng − chi khác đã trả</b>. Thu riêng và tiền nước tổng theo dõi ở mục Thu riêng, không tính trùng.</p>
+    <p class="soft-muted">Số dư này chỉ tính phòng thường: <b>đã thu − điện đã đóng − chi khác đã trả</b>. Khoản thu khác và tiền nước tổng theo dõi ở mục Khoản thu khác, không tính trùng.</p>
     <h3>Hóa đơn đã lập</h3><div id="dashboardBills" class="stack"></div>
   </section>
-  <section id="readings" class="view"><div class="section-head"><h2>Ghi số tháng <span class="month-title"></span></h2></div>
+<!-- Báo cáo năm chỉ đọc: không can thiệp dữ liệu Supabase hoặc khoản thu chi đang lưu. -->
+<section id="annual-main" class="view" aria-label="Báo cáo tổng hợp thu chi theo năm">
+  <div class="section-head annual-header split-annual-header">
+    <h2>📊 Tổng hợp thu chi năm <span id="annualMainYearTitle"></span></h2>
+    <div class="field annual-year-field"><select id="annualMainYearSel" aria-label="Chọn năm tổng hợp thu chi"></select></div>
+  </div>
+  <div class="section-intro">Tổng hợp theo <b>hóa đơn phòng thường</b> và các khoản <b>Thu chi</b>. Chỉ cộng khoản <b>đã thu / đã đóng</b>. <b>Tiền cọc không tính</b> vào doanh thu hay chi phí hoạt động.</div>
+  <h3>🏠 Phòng thường – Tổng kết cả năm</h3>
+  <div id="annualMainCards" class="finance-kpis annual-kpis"></div>
+  <div id="annualMainDonut" class="annual-donut-panel" aria-label="Biểu đồ tròn tổng hợp thu chi"></div>
+</section>
+<section id="annual-other" class="view" aria-label="Báo cáo tổng hợp khác theo năm">
+  <div class="section-head annual-header split-annual-header">
+    <h2>🧾 Tổng hợp khác năm <span id="annualOtherYearTitle"></span></h2>
+    <div class="field annual-year-field"><select id="annualOtherYearSel" aria-label="Chọn năm tổng hợp khác"></select></div>
+  </div>
+  <div class="section-intro">Theo dõi riêng phần <b>Khoản thu khác</b> và <b>tiền nước đã đóng</b>. Phần này tách riêng khỏi phòng thường để tránh cộng trùng.</div>
+  <h3 class="finance-section-title">📎 Khoản thu khác – Theo dõi độc lập</h3>
+  <div id="annualFlexCards" class="finance-kpis"></div>
+  <div id="annualFlexDonut" class="annual-donut-panel" aria-label="Biểu đồ tròn tổng hợp khác"></div>
+</section>
+<section id="readings" class="view"><div class="section-head"><h2>Ghi số tháng <span class="month-title"></span></h2></div>
     <div class="note">Chỉ số đầu kỳ của khách MỚI lấy từ lúc bàn giao; các tháng sau lấy trong cùng đợt thuê. Hóa đơn khách cũ vẫn giữ riêng, kể cả khi thay khách trong cùng tháng.</div>
     <div class="note">Đã có hóa đơn tháng sau? Chọn <b>Sửa tiền/phí</b> để điều chỉnh đơn giá và khoản thu mà không đổi chỉ số điện nước. Hóa đơn thuộc đợt thuê đã quyết toán chỉ được xem/in.</div>
     <div id="readingList" class="stack"></div>
@@ -297,11 +400,11 @@ body.cloud-locked>.foot{display:none!important}
     <div id="roomList" class="stack"></div>
   </section>
   <section id="flex" class="view">
-    <div class="section-head"><h2>Phòng thu tiền linh hoạt <span class="month-title"></span></h2><button class="btn" type="button" id="addFlexRoom">+ Thêm phòng thu riêng</button></div>
-    <div class="section-intro"><b>Sổ Thu riêng – không cộng vào tổng thu chi phòng thường.</b> Mỗi phòng có thể nhập số tiền khác nhau theo tháng. Tiền nước tổng hằng tháng sẽ được trừ <b>chỉ trong sổ Thu riêng</b>.</div>
-    <!-- Tiền nước chỉ quản lý trong Thu riêng; khoản này không nhập lại tại Thu chi. -->
+    <div class="section-head"><h2>Phòng thu tiền linh hoạt <span class="month-title"></span></h2><button class="btn" type="button" id="addFlexRoom">+ Thêm phòng khoản thu khác</button></div>
+    <div class="section-intro"><b>Sổ Khoản thu khác – không cộng vào tổng thu chi phòng thường.</b> Mỗi phòng có thể nhập số tiền khác nhau theo tháng. Tiền nước tổng hằng tháng sẽ được trừ <b>chỉ trong sổ Khoản thu khác</b>.</div>
+    <!-- Tiền nước chỉ quản lý trong Khoản thu khác; khoản này không nhập lại tại Thu chi. -->
     <h3 class="finance-section-title">💧 Tiền nước phải đóng hằng tháng</h3>
-    <p class="soft-muted">Nhập <b>tiền nước phải trả</b> cho tháng đang chọn và đánh dấu <b>Đã đóng</b> khi thực tế thanh toán. Khoản này chỉ trừ vào <b>Thu riêng</b>, không trừ lần nữa trong <b>Thu chi</b>.</p>
+    <p class="soft-muted">Nhập <b>tiền nước phải trả</b> cho tháng đang chọn và đánh dấu <b>Đã đóng</b> khi thực tế thanh toán. Khoản này chỉ trừ vào <b>Khoản thu khác</b>, không trừ lần nữa trong <b>Thu chi</b>.</p>
     <form id="flexWaterForm" class="finance-card">
       <div class="meter-form">
         <div class="field"><label for="flexWaterMonthAmount">Tiền nước phải trả (nghìn đ)</label><input id="flexWaterMonthAmount" type="number" min="0" step="any" placeholder="500" required></div>
@@ -311,15 +414,15 @@ body.cloud-locked>.foot{display:none!important}
       </div>
       <div id="flexWaterNote" class="status-line" aria-live="polite"></div>
     </form>
-    <h3 class="finance-section-title">🧮 Tổng hợp Thu riêng sau khi trừ tiền nước</h3>
+    <h3 class="finance-section-title">🧮 Tổng hợp Khoản thu khác sau khi trừ tiền nước</h3>
     <div id="flexSummary" class="finance-kpis"></div>
-    <p class="soft-muted">Số dư dự kiến = <b>tổng phiếu Thu riêng</b> − <b>tiền nước phải trả</b>. Số dư thực tế = <b>Thu riêng đã nhận</b> − <b>tiền nước đã đóng</b>. Tiền nước này không được trừ vào phòng thường.</p>
-    <h3 class="finance-section-title">Danh sách phòng Thu riêng</h3>
+    <p class="soft-muted">Số dư dự kiến = <b>tổng phiếu Khoản thu khác</b> − <b>tiền nước phải trả</b>. Số dư thực tế = <b>Khoản thu khác đã nhận</b> − <b>tiền nước đã đóng</b>. Tiền nước này không được trừ vào phòng thường.</p>
+    <h3 class="finance-section-title">Danh sách phòng Khoản thu khác</h3>
     <div id="flexRoomList" class="stack"></div>
   </section>
   <section id="finance" class="view">
     <div class="section-head"><h2>Sổ thu chi <span class="month-title"></span></h2></div>
-    <div class="section-intro">Báo cáo thu chi chính <b>chỉ tính phòng thường</b>. Các công tơ điện và khoản chi khác được trừ từ phòng thường. Tiền nước tổng được ghi riêng, chỉ trừ vào Thu riêng; hai số dư không cộng lẫn.</div>
+    <div class="section-intro">Báo cáo thu chi chính <b>chỉ tính phòng thường</b>. Các công tơ điện và khoản chi khác được trừ từ phòng thường. Tiền nước tổng được ghi riêng, chỉ trừ vào Khoản thu khác; hai số dư không cộng lẫn.</div>
     <div id="financeSummary" class="finance-kpis"></div>
     <h3 class="finance-section-title">🔐 Tiền cọc theo phòng</h3>
     <div class="deposit-switch" role="group" aria-label="Chế độ xem tiền cọc">
@@ -407,7 +510,7 @@ body.cloud-locked>.foot{display:none!important}
     </div>
     <div class="panel" style="border:1px solid #e9b3ad">
       <h3 style="color:#a6352c">🧹 Xóa toàn bộ dữ liệu và bắt đầu lại</h3>
-      <p class="small">Chỉ sử dụng khi bạn muốn <b>khởi tạo dữ liệu hoàn toàn mới</b>. Chức năng sẽ xóa khỏi dữ liệu đang sử dụng: phòng, người thuê, CCCD, hóa đơn, thu riêng, chi phí, công tơ đã cấu hình, sổ cọc, quyết toán, ngân hàng và ảnh QR.</p>
+      <p class="small">Chỉ sử dụng khi bạn muốn <b>khởi tạo dữ liệu hoàn toàn mới</b>. Chức năng sẽ xóa khỏi dữ liệu đang sử dụng: phòng, người thuê, CCCD, hóa đơn, khoản thu khác, chi phí, công tơ đã cấu hình, sổ cọc, quyết toán, ngân hàng và ảnh QR.</p>
       <p class="small muted"><b>Không xóa:</b> Project Supabase, bảng SQL, tài khoản đăng nhập, địa chỉ GitHub Pages. Bản JSON đã tải về máy vẫn được giữ.</p>
       <div class="actions"><button type="button" class="btn secondary" id="resetDownloadBackup">⬇ Bước 1: Xuất bản sao lưu</button></div>
       <label class="small" style="display:flex;align-items:flex-start;gap:9px;margin:14px 0">
@@ -584,17 +687,17 @@ body.cloud-locked>.foot{display:none!important}
   </div><div class="modal-footer"><button class="btn secondary" type="button" data-close="meterHistoryDialog">Đóng</button></div></dialog>
 <!-- Phòng thu linh hoạt: đơn vị nhập nghìn đồng; dữ liệu luôn lưu VND. -->
 <dialog id="flexRoomDialog"><form id="flexRoomForm"><div class="modal-body">
-  <div class="modal-title"><h2 id="flexRoomTitle">Thêm phòng thu riêng</h2><button type="button" class="icon-close" data-close="flexRoomDialog">×</button></div>
+  <div class="modal-title"><h2 id="flexRoomTitle">Thêm phòng khoản thu khác</h2><button type="button" class="icon-close" data-close="flexRoomDialog">×</button></div>
   <input id="flexRoomId" type="hidden">
   <div class="field"><label for="flexRoomName">Tên / số phòng *</label><input id="flexRoomName" maxlength="60" required placeholder="Ví dụ: Phòng 1"></div>
   <div class="field"><label for="flexTenant">Người thuê / người nộp (không bắt buộc)</label><input id="flexTenant" maxlength="100"></div>
   <div class="field"><label for="flexPhone">Điện thoại (không bắt buộc)</label><input id="flexPhone" maxlength="30" type="tel"></div>
-  <div class="section-intro">Phòng này chỉ nằm trong <b>Thu riêng</b>, không ảnh hưởng doanh thu, công nợ, thu chi của các phòng thường.</div>
+  <div class="section-intro">Phòng này chỉ nằm trong <b>Khoản thu khác</b>, không ảnh hưởng doanh thu, công nợ, thu chi của các phòng thường.</div>
 </div><div class="modal-footer"><button class="btn secondary" type="button" data-close="flexRoomDialog">Hủy</button><button class="btn" type="submit">Lưu phòng</button></div></form></dialog>
 <dialog id="flexEntryDialog"><form id="flexEntryForm"><div class="note small">Tiền nhập theo <b>nghìn đồng</b>: nhập 150 sẽ tính thành 150.000 đ.</div><div class="modal-body">
-  <div class="modal-title"><h2 id="flexEntryTitle">Nhập tiền thu riêng</h2><button type="button" class="icon-close" data-close="flexEntryDialog">×</button></div>
+  <div class="modal-title"><h2 id="flexEntryTitle">Nhập tiền khoản thu khác</h2><button type="button" class="icon-close" data-close="flexEntryDialog">×</button></div>
   <input id="flexEntryRoomId" type="hidden">
-  <div class="note">Có thể sửa số tiền tháng sau độc lập với tháng trước. Chỉ lưu trong sổ Thu riêng.</div>
+  <div class="note">Có thể sửa số tiền tháng sau độc lập với tháng trước. Chỉ lưu trong sổ Khoản thu khác.</div>
   <div id="flexItemRows"></div>
   <button type="button" class="btn secondary" id="addFlexItem">+ Thêm khoản thu khác</button>
   <label style="display:flex;gap:9px;align-items:center;margin-top:17px"><input type="checkbox" id="flexEntryPaid"> Đã nhận đủ tiền tháng này</label>
@@ -839,6 +942,10 @@ function allDepositHolding(){return state.rooms.reduce((s,r)=>s+(r.tenancies||[]
 
 let state = {settings:copy(DEFAULT_SETTINGS),rooms:[],bills:[],flexRooms:[],flexEntries:[],meterAccounts:copy(DEFAULT_METERS),meterPayments:[],expenses:[],flexWaterPayments:[],depositTransactions:[],settlements:[]};
 let selectedMonth = todayMonth();
+// Chọn năm từng báo cáo độc lập, không thay đổi tháng/năm ghi chỉ số phía trên.
+let annualMainYear = Number(selectedMonth.slice(0,4));
+let annualOtherYear = Number(selectedMonth.slice(0,4));
+let annualActiveView = 'annual-main';
 let shownInvoiceId = null;
 let pendingBill = null;
 // Chế độ sửa hóa đơn lịch sử: chỉ điều chỉnh tiền/phí, không đổi số công tơ.
@@ -952,7 +1059,7 @@ function validateData(input){
     };
   });
   if(new Set(rooms.map(r=>r.id)).size!==rooms.length || new Set(bills.map(b=>b.id)).size!==bills.length || new Set(bills.map(b=>`${b.roomId}/${b.tenancyId}/${b.month}`)).size!==bills.length) throw Error('Có phòng hoặc hóa đơn bị trùng mã.');
-  // Bổ sung sổ thu riêng và sổ chi phí. Các bản sao lưu V1–V3 chưa có phần này
+  // Bổ sung sổ khoản thu khác và sổ chi phí. Các bản sao lưu V1–V3 chưa có phần này
   // sẽ được khởi tạo rỗng mà không làm thay đổi hóa đơn đã lưu.
   const validMonth=m=>/^\d{4}-(0[1-9]|1[0-2])$/.test(m);
   const boundedArray=(v,label)=>{
@@ -960,15 +1067,15 @@ function validateData(input){
     if(!Array.isArray(v)||v.length>5000)throw Error(label+' không hợp lệ.');
     return v;
   };
-  const flexRooms=boundedArray(d.flexRooms,'Danh sách phòng thu riêng').map(r=>{
-    if(!r||typeof r.id!=='string'||typeof r.name!=='string'||!r.name.trim())throw Error('Thông tin phòng thu riêng không hợp lệ.');
+  const flexRooms=boundedArray(d.flexRooms,'Danh sách phòng khoản thu khác').map(r=>{
+    if(!r||typeof r.id!=='string'||typeof r.name!=='string'||!r.name.trim())throw Error('Thông tin phòng khoản thu khác không hợp lệ.');
     return {id:r.id,name:r.name.trim().slice(0,60),tenant:String(r.tenant??'').slice(0,100),phone:String(r.phone??'').slice(0,30)};
   });
-  const flexEntries=boundedArray(d.flexEntries,'Phiếu thu riêng').map(e=>{
-    if(!e||typeof e.id!=='string'||typeof e.roomId!=='string'||!validMonth(e.month)||!Array.isArray(e.items)||!e.items.length||e.items.length>80)throw Error('Phiếu thu riêng không hợp lệ.');
+  const flexEntries=boundedArray(d.flexEntries,'Phiếu khoản thu khác').map(e=>{
+    if(!e||typeof e.id!=='string'||typeof e.roomId!=='string'||!validMonth(e.month)||!Array.isArray(e.items)||!e.items.length||e.items.length>80)throw Error('Phiếu khoản thu khác không hợp lệ.');
     const items=e.items.map(x=>{
-      if(!x||typeof x.name!=='string'||!x.name.trim())throw Error('Hạng mục thu riêng thiếu tên.');
-      return {name:x.name.trim().slice(0,100),amount:moneyInt(x.amount,'Tiền thu riêng')};
+      if(!x||typeof x.name!=='string'||!x.name.trim())throw Error('Hạng mục khoản thu khác thiếu tên.');
+      return {name:x.name.trim().slice(0,100),amount:moneyInt(x.amount,'Tiền khoản thu khác')};
     });
     return {id:e.id,roomId:e.roomId,month:e.month,items,paid:!!e.paid};
   });
@@ -995,10 +1102,10 @@ function validateData(input){
     if(!x||typeof x.id!=='string'||!validMonth(x.month)||typeof x.name!=='string'||!x.name.trim())throw Error('Khoản chi không hợp lệ.');
     return {id:x.id,month:x.month,name:x.name.trim().slice(0,100),amount:moneyInt(x.amount,'Tiền chi'),paid:!!x.paid};
   });
-  // Mỗi tháng chỉ có một hóa đơn nước phải trả; thuộc sổ Thu riêng, KHÔNG thuộc expenses.
-  const flexWaterPayments=boundedArray(d.flexWaterPayments,'Tiền nước của Thu riêng').map(x=>{
-    if(!x||!validMonth(x.month))throw Error('Tháng tiền nước Thu riêng không hợp lệ.');
-    return {month:x.month,amount:moneyInt(x.amount,'Tiền nước Thu riêng'),paid:!!x.paid};
+  // Mỗi tháng chỉ có một hóa đơn nước phải trả; thuộc sổ Khoản thu khác, KHÔNG thuộc expenses.
+  const flexWaterPayments=boundedArray(d.flexWaterPayments,'Tiền nước của Khoản thu khác').map(x=>{
+    if(!x||!validMonth(x.month))throw Error('Tháng tiền nước Khoản thu khác không hợp lệ.');
+    return {month:x.month,amount:moneyInt(x.amount,'Tiền nước Khoản thu khác'),paid:!!x.paid};
   });
   // Sổ tiền cọc tương thích bản v8.1 trở về trước: thiếu sổ thì khởi tạo rỗng.
   const depositTransactions=boundedArray(d.depositTransactions,'Sổ tiền cọc').map(x=>{
@@ -1061,12 +1168,30 @@ const roomFees=r=>[
   ...(r.internetFee>0?[{name:'Tiền mạng',amount:r.internetFee}]:[]),
   ...state.settings.fees.filter(f=>r.feeIds.includes(f.id)).map(f=>({name:f.name,amount:f.amount}))
 ];
-function switchTab(tab){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===tab));}
+function switchTab(tab){
+  // Một tab cha Tổng hợp, hai trang con riêng biệt.
+  const annual = tab === 'annual' || tab === 'annual-main' || tab === 'annual-other';
+  if(tab === 'annual-main' || tab === 'annual-other') annualActiveView = tab;
+  const visibleTab = annual ? 'annual' : tab;
+  document.querySelectorAll('.tab').forEach(b=>{
+    const active = b.dataset.tab === visibleTab;
+    b.classList.toggle('active',active);
+    if(b.dataset.tab === 'annual')b.setAttribute('aria-expanded',String(annual));
+  });
+  $('annualSubnav').hidden = !annual;
+  document.querySelectorAll('[data-annual-view]').forEach(b=>{
+    const active = b.dataset.annualView === annualActiveView;
+    b.classList.toggle('active',active);
+    b.setAttribute('aria-pressed',String(active));
+  });
+  const view = annual ? annualActiveView : tab;
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id === view));
+}
 function render(){
   buildMonthPicker();
   $('currentDate').textContent=nowLong();
   document.querySelectorAll('.month-title').forEach(n=>n.textContent=monthText(selectedMonth));
-  renderDashboard();renderReadings();renderRooms();renderSettings();renderFlex();renderFinance();renderDeposits();
+  renderDashboard();renderReadings();renderRooms();renderSettings();renderFlex();renderFinance();renderDeposits();renderAnnualMain();renderAnnualOther();
 }
 function empty(message){return `<div class="empty">${safe(message)}</div>`;}
 function billCard(b){const v=calc(b);return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(b.roomName)}</div><div class="detail">${safe(b.tenant||'Chưa có tên người thuê')} · Tháng ${monthText(b.month)}</div></div><span class="badge ${b.paid||b.settledBy?'paid':'unpaid'}">${b.settledBy?'Đã quyết toán':b.paid?'✓ Đã thanh toán':'● Chưa thanh toán'}</span></div><div class="price">${money(v.total)}</div><div class="detail small">Điện: ${money(v.electric)} · Nước: ${money(v.water)} · Phí khác: ${money(v.other)}</div><div class="actions"><button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem hóa đơn</button>${!b.settledBy&&!state.settlements.some(x=>x.tenancyId===b.tenancyId)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(b.id)}">✏ Sửa tiền/phí</button>`:''}<button class="btn soft" data-action="paid" data-id="${safe(b.id)}">${b.settledBy?'Đã quyết toán':b.paid?'↩ Chưa thu':'✓ Đã thu tiền'}</button></div></article>`;}
@@ -2116,36 +2241,36 @@ function showInvoice(billId){
 $('invoicePaidBtn').addEventListener('click',()=>{if(shownInvoiceId)togglePaid(shownInvoiceId);});
 $('printInvoice').addEventListener('click',()=>window.print());
 
-// ---------------- THU RIÊNG / SỔ THU CHI V4 ----------------
-// Thu riêng và khoản nước tổng dùng báo cáo riêng, không bao giờ cộng/trừ trong financeTotals().
+// ---------------- KHOẢN THU KHÁC / SỔ THU CHI V4 ----------------
+// Khoản thu khác và khoản nước tổng dùng báo cáo riêng, không bao giờ cộng/trừ trong financeTotals().
 function flexTotal(e){return e.items.reduce((s,x)=>s+x.amount,0);}
 function getFlexEntry(roomId){return state.flexEntries.find(x=>x.roomId===roomId&&x.month===selectedMonth);}
 function getFlexWater(month=selectedMonth){return state.flexWaterPayments.find(x=>x.month===month);}
-function flexTotals(){
-  const rows=state.flexEntries.filter(x=>x.month===selectedMonth);
+function flexTotals(month=selectedMonth){
+  const rows=state.flexEntries.filter(x=>x.month===month);
   const total=rows.reduce((s,x)=>s+flexTotal(x),0);
   const received=rows.filter(x=>x.paid).reduce((s,x)=>s+flexTotal(x),0);
-  const water=getFlexWater();const waterDue=water?.amount||0;const waterPaid=water?.paid?waterDue:0;
+  const water=getFlexWater(month);const waterDue=water?.amount||0;const waterPaid=water?.paid?waterDue:0;
   return {total,received,unreceived:total-received,waterDue,waterPaid,waterUnpaid:waterDue-waterPaid,
     netExpected:total-waterDue,netActual:received-waterPaid};
 }
 function flexCards(t){
-  return `<div class="finance-kpi"><span>TỔNG THU RIÊNG PHẢI THU</span><strong>${money(t.total)}</strong></div>
+  return `<div class="finance-kpi"><span>TỔNG KHOẢN THU KHÁC PHẢI THU</span><strong>${money(t.total)}</strong></div>
     <div class="finance-kpi negative"><span>TIỀN NƯỚC PHẢI TRẢ</span><strong>${money(t.waterDue)}</strong></div>
-    <div class="finance-kpi net ${t.netExpected<0?'negative':''}"><span>CÒN LẠI DỰ KIẾN (THU RIÊNG − NƯỚC PHẢI TRẢ)</span><strong>${money(t.netExpected)}</strong></div>
-    <div class="finance-kpi"><span>THU RIÊNG ĐÃ NHẬN</span><strong>${money(t.received)}</strong></div>
+    <div class="finance-kpi net ${t.netExpected<0?'negative':''}"><span>CÒN LẠI DỰ KIẾN (KHOẢN THU KHÁC − NƯỚC PHẢI TRẢ)</span><strong>${money(t.netExpected)}</strong></div>
+    <div class="finance-kpi"><span>KHOẢN THU KHÁC ĐÃ NHẬN</span><strong>${money(t.received)}</strong></div>
     <div class="finance-kpi negative"><span>NƯỚC ĐÃ ĐÓNG THỰC TẾ</span><strong>${money(t.waterPaid)}</strong></div>
     <div class="finance-kpi net ${t.netActual<0?'negative':''}"><span>THỰC CÒN LẠI (ĐÃ NHẬN − ĐÃ ĐÓNG)</span><strong>${money(t.netActual)}</strong></div>`;
 }
-function financeTotals(){
-  const bills=state.bills.filter(b=>b.month===selectedMonth);
+function financeTotals(month=selectedMonth){
+  const bills=state.bills.filter(b=>b.month===month);
   const invoiced=bills.reduce((s,b)=>s+calc(b).total,0);
   const receivedBills=bills.filter(b=>b.paid).reduce((s,b)=>s+calc(b).total,0);
-  const settlementCash=(state.settlements||[]).filter(x=>x.date.slice(0,7)===selectedMonth).reduce((s,x)=>s+x.cashCollected,0);
+  const settlementCash=(state.settlements||[]).filter(x=>x.date.slice(0,7)===month).reduce((s,x)=>s+x.cashCollected,0);
   const received=receivedBills+settlementCash;
   const settledBills=bills.filter(b=>b.settledBy).reduce((s,b)=>s+calc(b).total,0);
-  const meterRows=state.meterPayments.filter(x=>x.month===selectedMonth);
-  const extraRows=state.expenses.filter(x=>x.month===selectedMonth);
+  const meterRows=state.meterPayments.filter(x=>x.month===month);
+  const extraRows=state.expenses.filter(x=>x.month===month);
   const electricityPaid=meterRows.filter(x=>x.paid).reduce((s,x)=>s+x.amount,0);
   const otherPaid=extraRows.filter(x=>x.paid).reduce((s,x)=>s+x.amount,0);
   const due=meterRows.filter(x=>!x.paid).reduce((s,x)=>s+x.amount,0)+extraRows.filter(x=>!x.paid).reduce((s,x)=>s+x.amount,0);
@@ -2156,8 +2281,138 @@ function financeCards(t){
     <div class="finance-kpi negative"><span>ĐÃ CHI (điện + khoản khác)</span><strong>${money(t.paidOut)}</strong></div>
     <div class="finance-kpi net ${t.net<0?'negative':''}"><span>CÒN LẠI THỰC TẾ</span><strong>${money(t.net)}</strong></div>`;
 }
+function renderAnnualChart(targetId,rows,series,title){
+  const host=$(targetId);
+  if(!host)return;
+  const nums=[];
+  rows.forEach(row=>series.forEach(s=>{const v=Number(s.getter(row))||0;if(v>0)nums.push(v);}));
+  const max=Math.max(...nums,0);
+  const legend=`<p class="annual-chart-title">${title}</p><ul class="annual-chart-legend">${series.map(s=>`<li><span class="annual-chart-swatch" style="background:${s.legend}"></span>${s.label}</li>`).join('')}</ul>`;
+  if(!max){host.innerHTML=legend+`<div class="annual-chart-empty">Chưa có số liệu trong năm này để vẽ biểu đồ.</div>`;return;}
+  const bar=(value,s)=>{
+    const v=Math.max(0,Number(value)||0),w=max?Math.max(3,(v/max)*100):0;
+    return `<div class="annual-chart-bar"><div class="annual-chart-fill ${s.cls}" style="width:${w}%"></div><div class="annual-chart-label"><small>${s.short}</small><span>${money(v)}</span></div></div>`;
+  };
+  host.innerHTML=legend+`<div class="annual-chart-grid">${rows.map(row=>`<div class="annual-chart-row"><div class="annual-chart-month">T${Number(row.month.slice(5))}</div><div class="annual-chart-bars">${series.map(s=>bar(s.getter(row),s)).join('')}</div></div>`).join('')}</div>`;
+}
+
+// v8.4.5: Tổng hợp theo năm từ 12 báo cáo tháng hiện có; không ghi dữ liệu mới.
+function annualTotals(year){
+  const months=Array.from({length:12},(_,i)=>`${year}-${String(i+1).padStart(2,'0')}`);
+  const rows=months.map(month=>({month,main:financeTotals(month),flex:flexTotals(month)}));
+  const sum=(field,category)=>rows.reduce((s,r)=>s+r[category][field],0);
+  const main={received:sum('received','main'),electricityPaid:sum('electricityPaid','main'),
+    otherPaid:sum('otherPaid','main'),paidOut:sum('paidOut','main'),net:sum('net','main'),
+    invoiced:sum('invoiced','main'),settlementCash:sum('settlementCash','main')};
+  const flex={received:sum('received','flex'),waterPaid:sum('waterPaid','flex'),netActual:sum('netActual','flex')};
+  return {year,rows,main,flex};
+}
+
+document.addEventListener('click',e=>{
+  const link=e.target.closest('[data-report-month]');
+  if(!link)return;
+  const month=link.dataset.reportMonth;
+  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))return;
+  selectedMonth=month;resetExpenseForm();render();switchTab('dashboard');
+});
+function annualYearOptions(){
+  // Bao gồm cả những năm chọn riêng của báo cáo, kể cả khi tháng chính đang ở năm khác.
+  return [...new Set([...Array.from($('yearSel').options,o=>String(o.value)),
+    String(annualMainYear),String(annualOtherYear)])].sort((a,b)=>Number(a)-Number(b));
+}
+function setAnnualYearSelect(id,year){
+  const el=$(id);
+  el.innerHTML=annualYearOptions().map(y=>`<option value="${y}">${y}</option>`).join('');
+  el.value=String(year);
+}
+function makeDonutStyle(segments){
+  const positives=segments.filter(s=>Number(s.value)>0);
+  const total=positives.reduce((sum,s)=>sum+Number(s.value||0),0);
+  if(!total)return 'background:#edf4f1;';
+  let acc=0;
+  const parts=positives.map(seg=>{
+    const value=Number(seg.value||0); const start=acc/total*100; acc+=value; const end=acc/total*100;
+    return `${seg.color} ${start}% ${end}%`;
+  });
+  return `background:conic-gradient(${parts.join(',')});`;
+}
+function annualDonutPanel(targetId,cfg){
+  const host=$(targetId); if(!host)return;
+  const total=Number(cfg.total||0);
+  const legend=cfg.segments.map(seg=>`<div class="annual-donut-item"><span class="annual-donut-swatch" style="background:${seg.color}"></span><div><b>${seg.label}</b><span>${seg.hint||''}</span></div><strong>${money(seg.value||0)}</strong></div>`).join('');
+  host.innerHTML=`<div class="annual-donut-layout">
+    <div class="annual-donut-wrap">
+      <div class="annual-donut" style="${makeDonutStyle(cfg.segments)}">
+        <div class="annual-donut-center"><strong>${money(total)}</strong><span>${cfg.centerLabel}</span>${cfg.centerNote?`<small>${cfg.centerNote}</small>`:''}</div>
+      </div>
+    </div>
+    <div class="annual-donut-side">
+      <h4 class="annual-donut-title">${cfg.title}</h4>
+      <p class="annual-donut-desc">${cfg.description}</p>
+      <div class="annual-donut-legend">${legend}</div>
+      <div class="annual-donut-notes">${(cfg.notes||[]).map(n=>`<div class="annual-note-card ${n.negative?'negative':''}"><span>${n.label}</span><strong>${n.value}</strong></div>`).join('')}</div>
+    </div>
+  </div>`;
+}
+function renderAnnualMain(){
+  const year=annualMainYear;
+  setAnnualYearSelect('annualMainYearSel',year);
+  $('annualMainYearTitle').textContent=year;
+  const report=annualTotals(year),m=report.main;
+  const card=(name,value,mode='')=>`<div class="finance-kpi ${mode}"><span>${name}</span><strong>${money(value)}</strong></div>`;
+  $('annualMainCards').innerHTML=
+    card('TỔNG ĐÃ THU – PHÒNG THƯỜNG',m.received)+
+    card('ĐÃ CHI TIỀN ĐIỆN',m.electricityPaid,'negative')+
+    card('ĐÃ CHI CÁC KHOẢN KHÁC',m.otherPaid,'negative')+
+    card('CÒN LẠI – PHÒNG THƯỜNG',m.net,`net ${m.net<0?'negative':''}`);
+  annualDonutPanel('annualMainDonut',{
+    total:m.received,
+    centerLabel:'Đã thu trong năm',
+    centerNote:`Năm ${year}`,
+    title:'Biểu đồ Tổng hợp thu - chi',
+    description:'Biểu đồ thể hiện phần tiền đã thu trong năm được phân bổ vào chi phí điện, chi phí khác và phần còn lại thực tế.',
+    segments:[
+      {label:'Đã chi tiền điện',value:m.electricityPaid,color:'#e07a57',hint:' - Khoản đã thanh toán trong mục Thu chi'},
+      {label:'Đã chi khoản khác',value:m.otherPaid,color:'#d3b15f',hint:' - Sửa chữa, vệ sinh, khoản chi khác'},
+      {label:'Còn lại thực tế',value:Math.max(0,m.net),color:'#86c5b2',hint:' - Phần còn lại sau khi đã chi'}
+    ],
+    notes:[
+      {label:'Tổng hóa đơn đã lập',value:money(m.invoiced)},
+      {label:'Khách trả thêm khi quyết toán',value:money(m.settlementCash)}
+    ]
+  });
+}
+function renderAnnualOther(){
+  const year=annualOtherYear;
+  setAnnualYearSelect('annualOtherYearSel',year);
+  $('annualOtherYearTitle').textContent=year;
+  const report=annualTotals(year),f=report.flex;
+  const card=(name,value,mode='')=>`<div class="finance-kpi ${mode}"><span>${name}</span><strong>${money(value)}</strong></div>`;
+  $('annualFlexCards').innerHTML=
+    card('KHOẢN THU KHÁC ĐÃ NHẬN',f.received)+
+    card('TIỀN NƯỚC ĐÃ ĐÓNG',f.waterPaid,'negative')+
+    card('CÒN LẠI – KHOẢN THU KHÁC',f.netActual,`net ${f.netActual<0?'negative':''}`);
+  annualDonutPanel('annualFlexDonut',{
+    total:f.received,
+    centerLabel:'Khoản thu khác đã nhận',
+    centerNote:`Năm ${year}`,
+    title:'Biểu đồ Tổng hợp khác',
+    description:'Biểu đồ thể hiện phần Khoản thu khác đã nhận, đã dùng để đóng tiền nước và phần thực còn lại.',
+    segments:[
+      {label:'Tiền nước đã đóng',value:f.waterPaid,color:'#ee9167',hint:' - Phần đã chi từ Khoản thu khác'},
+      {label:'Còn lại của Khoản thu khác',value:Math.max(0,f.netActual),color:'#7abfaf',hint:' - Phần còn lại sau khi trừ tiền nước'}
+    ],
+    notes:[
+      {label:'Đã đóng tiền nước',value:money(f.waterPaid),negative:false},
+      {label:'Thực còn lại',value:money(f.netActual),negative:f.netActual<0}
+    ]
+  });
+}
+$('annualMainYearSel').addEventListener('change',e=>{const chosen=String(e.target.value); if(!/^\d{4}$/.test(chosen))return; annualMainYear=Number(chosen); renderAnnualMain();});
+$('annualOtherYearSel').addEventListener('change',e=>{const chosen=String(e.target.value); if(!/^\d{4}$/.test(chosen))return; annualOtherYear=Number(chosen); renderAnnualOther();});
+
 function renderFlex(){
-  // Khoản nước chỉ có trong tab Thu riêng; tính toán vẫn từ flexWaterPayments hiện có.
+  // Khoản nước chỉ có trong tab Khoản thu khác; tính toán vẫn từ flexWaterPayments hiện có.
   const water=getFlexWater();
   $('flexWaterMonthAmount').value=dongToNghin(water?water.amount:'');
   $('flexWaterPaid').checked=!!water?.paid;
@@ -2177,29 +2432,29 @@ function renderFlex(){
       ${e?`<button class="btn soft" data-action="flex-paid" data-id="${safe(e.id)}">${e.paid?'↩ Chưa nhận':'✓ Đã nhận'}</button><button class="btn danger" data-action="flex-delete-entry" data-id="${safe(e.id)}">Xóa phiếu</button>`:''}
       <button class="btn secondary" data-action="flex-edit-room" data-id="${safe(r.id)}">Sửa thông tin</button>
       <button class="btn danger" data-action="flex-delete-room" data-id="${safe(r.id)}">Xóa phòng</button></div></article>`;
-  }).join(''):empty('Chưa có phòng thu riêng. Nhấn "+ Thêm phòng thu riêng" để bắt đầu.');
+  }).join(''):empty('Chưa có phòng khoản thu khác. Nhấn "+ Thêm phòng khoản thu khác" để bắt đầu.');
 }
 function openFlexRoom(roomId){
   const r=state.flexRooms.find(x=>x.id===roomId);
   $('flexRoomForm').reset();$('flexRoomId').value=r?.id||'';
-  $('flexRoomTitle').textContent=r?'Sửa thông tin phòng thu riêng':'Thêm phòng thu riêng';
+  $('flexRoomTitle').textContent=r?'Sửa thông tin phòng khoản thu khác':'Thêm phòng khoản thu khác';
   $('flexRoomName').value=r?.name||'';$('flexTenant').value=r?.tenant||'';$('flexPhone').value=r?.phone||'';
   $('flexRoomDialog').showModal();
 }
 $('addFlexRoom').addEventListener('click',()=>openFlexRoom());
 $('flexRoomForm').addEventListener('submit',e=>{
   e.preventDefault();const rid=$('flexRoomId').value,name=$('flexRoomName').value.trim();
-  if(!name||state.flexRooms.some(r=>r.id!==rid&&r.name.toLowerCase()===name.toLowerCase())){alert('Tên phòng thu riêng bị trùng hoặc để trống.');return;}
+  if(!name||state.flexRooms.some(r=>r.id!==rid&&r.name.toLowerCase()===name.toLowerCase())){alert('Tên phòng khoản thu khác bị trùng hoặc để trống.');return;}
   const r={id:rid||id(),name,tenant:$('flexTenant').value.trim(),phone:$('flexPhone').value.trim()};
   const old=copy(state);if(rid)state.flexRooms=state.flexRooms.map(x=>x.id===rid?r:x);else state.flexRooms.push(r);
-  if(!save()){state=old;return;}$('flexRoomDialog').close();render();toast('Đã lưu phòng thu riêng.');
+  if(!save()){state=old;return;}$('flexRoomDialog').close();render();toast('Đã lưu phòng khoản thu khác.');
 });
 function deleteFlexRoom(rid){
   const r=state.flexRooms.find(x=>x.id===rid);if(!r)return;
   if(state.flexEntries.some(x=>x.roomId===rid)){alert('Phòng này đã có phiếu thu các tháng. Hãy xóa các phiếu trước nếu thực sự muốn xóa phòng, để tránh mất lịch sử.');return;}
-  if(!confirm(`Xóa phòng thu riêng "${r.name}"?`))return;
+  if(!confirm(`Xóa phòng khoản thu khác "${r.name}"?`))return;
   const old=copy(state);state.flexRooms=state.flexRooms.filter(x=>x.id!==rid);
-  if(!save()){state=old;return;}render();toast('Đã xóa phòng thu riêng.');
+  if(!save()){state=old;return;}render();toast('Đã xóa phòng khoản thu khác.');
 }
 function addFlexLine(x={name:'',amount:''}){
   if($('flexItemRows').children.length>=80){alert('Tối đa 80 khoản thu trong một tháng.');return;}
@@ -2220,7 +2475,7 @@ function updateFlexEntryTotal(){
 function openFlexEntry(rid){
   const r=state.flexRooms.find(x=>x.id===rid);if(!r)return;
   const e=getFlexEntry(rid);$('flexEntryRoomId').value=rid;
-  $('flexEntryTitle').textContent=`Thu riêng – ${r.name} – ${monthText(selectedMonth)}`;
+  $('flexEntryTitle').textContent=`Khoản thu khác – ${r.name} – ${monthText(selectedMonth)}`;
   $('flexItemRows').innerHTML='';(e?.items||[{name:'Tiền phòng',amount:''}]).forEach(addFlexLine);
   $('flexEntryPaid').checked=!!e?.paid;updateFlexEntryTotal();$('flexEntryDialog').showModal();
 }
@@ -2229,17 +2484,17 @@ $('flexEntryForm').addEventListener('submit',e=>{
   if(!items.length||items.some(x=>!x.name||!Number.isSafeInteger(x.amount)||x.amount<0)){alert('Vui lòng nhập đủ tên và số tiền nguyên không âm cho mỗi khoản thu.');return;}
   const entry={id:existing?.id||id(),roomId:rid,month:selectedMonth,items,paid:$('flexEntryPaid').checked};
   const old=copy(state);if(existing)state.flexEntries=state.flexEntries.map(x=>x.id===existing.id?entry:x);else state.flexEntries.push(entry);
-  if(!save()){state=old;return;}$('flexEntryDialog').close();render();toast('Đã lưu phiếu thu riêng; không cộng vào sổ thu chi.');
+  if(!save()){state=old;return;}$('flexEntryDialog').close();render();toast('Đã lưu phiếu khoản thu khác; không cộng vào sổ thu chi.');
 });
 function toggleFlexPaid(fid){
   const entry=state.flexEntries.find(x=>x.id===fid);if(!entry)return;
   const old=copy(state);entry.paid=!entry.paid;
-  if(!save()){state=old;return;}render();toast('Đã cập nhật trạng thái phiếu thu riêng.');
+  if(!save()){state=old;return;}render();toast('Đã cập nhật trạng thái phiếu khoản thu khác.');
 }
 function deleteFlexEntry(fid){
-  if(!confirm('Xóa phiếu thu riêng tháng này?'))return;
+  if(!confirm('Xóa phiếu khoản thu khác tháng này?'))return;
   const old=copy(state);state.flexEntries=state.flexEntries.filter(x=>x.id!==fid);
-  if(!save()){state=old;return;}render();toast('Đã xóa phiếu thu riêng.');
+  if(!save()){state=old;return;}render();toast('Đã xóa phiếu khoản thu khác.');
 }
 function renderFinance(){
   const t=financeTotals();$('financeSummary').innerHTML=financeCards(t)+
@@ -2274,7 +2529,7 @@ $('flexWaterForm').addEventListener('submit',e=>{
   const old=copy(state),current=getFlexWater();
   if(current)Object.assign(current,{amount,paid});
   else state.flexWaterPayments.push({month:selectedMonth,amount,paid});
-  if(!save()){state=old;return;}render();toast('Đã lưu tiền nước Thu riêng tháng '+monthText(selectedMonth)+'.');
+  if(!save()){state=old;return;}render();toast('Đã lưu tiền nước Khoản thu khác tháng '+monthText(selectedMonth)+'.');
 });
 $('deleteFlexWater').addEventListener('click',()=>{
   if(!getFlexWater())return;
@@ -2318,7 +2573,7 @@ function deleteExpense(eid){
   const old=copy(state);state.expenses=state.expenses.filter(x=>x.id!==eid);
   if(!save()){state=old;return;}resetExpenseForm();render();toast('Đã xóa khoản chi.');
 }
-// ---------------- KẾT THÚC THU RIÊNG / THU CHI ----------------
+// ---------------- KẾT THÚC KHOẢN THU KHÁC / THU CHI ----------------
 
 // Ảnh QR thực do chủ trọ tự chọn. Lưu thành data URL để không phụ thuộc file ngoài.
 function renderQrPreview(){
@@ -2439,13 +2694,15 @@ $('backupFile').addEventListener('change',async e=>{
   let imported;
   try{const parsed=JSON.parse(await file.text());if(parsed.app!=='QuanLyPhongTroOffline'||![1,2,3,4,5,6,7,8].includes(parsed.version))throw Error('Chỉ hỗ trợ file sao lưu phiên bản 1 đến 8 của ứng dụng.');imported=validateData(parsed.data);}
   catch(err){alert('Nhập dữ liệu thất bại: '+err.message);return;}
-  if(!confirm(`File có ${imported.rooms.length} phòng thường, ${imported.flexRooms.length} phòng thu riêng và ${imported.bills.length} hóa đơn. Khôi phục sẽ THAY THẾ TOÀN BỘ dữ liệu hiện tại. Bạn đã sao lưu dữ liệu hiện tại chưa?`))return;
+  if(!confirm(`File có ${imported.rooms.length} phòng thường, ${imported.flexRooms.length} phòng khoản thu khác và ${imported.bills.length} hóa đơn. Khôi phục sẽ THAY THẾ TOÀN BỘ dữ liệu hiện tại. Bạn đã sao lưu dữ liệu hiện tại chưa?`))return;
   const old=copy(state);state=imported;
   if(!save()){state=old;return;}render();toast('Đã khôi phục dữ liệu từ file sao lưu.');
 });
 // Gắn xử lý chung cho các nút được tạo động trong danh sách.
 document.addEventListener('click',e=>{
   const close=e.target.closest('[data-close]');if(close){$(close.dataset.close).close();return;}
+  const sub=e.target.closest('[data-annual-view]');
+  if(sub){switchTab(sub.dataset.annualView);return;}
   const tab=e.target.closest('[data-tab]');if(tab){switchTab(tab.dataset.tab);return;}
   const btn=e.target.closest('[data-action]');if(!btn)return;
   const action=btn.dataset.action,key=btn.dataset.id;
