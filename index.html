@@ -441,7 +441,9 @@ body.cloud-locked>.foot{display:none!important}
   <input type="hidden" id="closingRoomId">
   <div class="note warn" id="closingNote"></div>
   <div class="grid2">
-    <div class="field"><label for="closingDate">Ngày bàn giao thực tế *</label><input type="date" id="closingDate" required></div>
+    <div class="field"><label for="closingDate">Ngày khách thực tế trả phòng *</label><input type="date" id="closingDate" required></div>
+    <div class="field"><label for="closingSettlementDate">Ngày thực hiện quyết toán / giao tiền *</label><input type="date" id="closingSettlementDate" required></div>
+    <div class="field wide"><p class="inline-info small">Nhập ngày khách <b>thực sự chuyển đi</b> (ví dụ 31/03/2026), không phải ngày bạn đang thao tác trên ứng dụng. Ngày quyết toán có thể khác ngày trả phòng. Hai ngày được lưu riêng.</p></div>
     <div class="field"><label for="closingE">Số điện chốt cuối (kWh) *</label><input type="number" id="closingE" min="0" step="any" required></div>
     <div class="field"><label for="closingW">Số nước chốt cuối (m³) *</label><input type="number" id="closingW" min="0" step="any" required></div>
     <div class="field"><label for="closingOther">Phát sinh cần thu thêm (đ)</label><input type="number" id="closingOther" min="0" step="1" value="0" required></div>
@@ -636,7 +638,10 @@ function normalizeTenancies(r,raw){
     const residents=cleanResidents(t.residents||[]),vehicles=cleanVehicles(t.vehicles||[]);
     const depositBalance=Number(t.depositBalance??0);
     if(!Number.isSafeInteger(depositBalance)||depositBalance<0)throw Error('Tiền cọc đợt thuê không hợp lệ.');
-    return {id:t.id,status:t.status,startedAt,endedAt,tenant:String(t.tenant||'').slice(0,100),phone:String(t.phone||'').slice(0,30),cccd:String(t.cccd||''),
+    const dateCorrections=(Array.isArray(t.dateCorrections)?t.dateCorrections:[]).slice(-30).map(x=>({
+      from:String(x?.from||''),to:String(x?.to||''),at:String(x?.at||'')
+    })).filter(x=>validDate(x.from)&&validDate(x.to)&&x.to&&x.at.length<=50);
+    return {id:t.id,status:t.status,startedAt,endedAt,dateCorrections,tenant:String(t.tenant||'').slice(0,100),phone:String(t.phone||'').slice(0,30),cccd:String(t.cccd||''),
       residents,representativeId:String(t.representativeId||''),vehicles,leaseEnd:String(t.leaseEnd||''),
       rent:Number(t.rent??0),trashFee:Number(t.trashFee??0),internetFee:Number(t.internetFee??0),
       electricRate:Number(t.electricRate??r.electricRate),waterMode:t.waterMode||'meter',
@@ -851,7 +856,11 @@ function validateData(input){
        cleaned.offset+cleaned.cashCollected!==cleaned.totalDue)throw Error('Phiếu quyết toán không cân đối.');
     const room=rooms.find(r=>r.id===x.roomId);
     if(!room||!room.tenancies.some(t=>t.id===x.tenancyId))throw Error('Phiếu quyết toán không tìm thấy đợt thuê.');
-    return {id:x.id,roomId:x.roomId,tenancyId:x.tenancyId,date:x.date,tenant:String(x.tenant||'').slice(0,100),
+    // Phiếu cũ dùng chung ngày. Lấy ngày trả từ đợt thuê nếu có, rồi cho phép sửa có lưu vết.
+    const oldTenancy=room.tenancies.find(t=>t.id===x.tenancyId);
+    const moveOutDate=String(x.moveOutDate||oldTenancy?.endedAt||x.date);
+    if(!validDate(moveOutDate)||!moveOutDate)throw Error('Ngày trả phòng trên phiếu quyết toán không hợp lệ.');
+    return {id:x.id,roomId:x.roomId,tenancyId:x.tenancyId,date:x.date,moveOutDate,tenant:String(x.tenant||'').slice(0,100),
       extraNote:String(x.extraNote||'').slice(0,200),meterCode:String(x.meterCode||'').slice(0,80),
       invoiceIds:Array.isArray(x.invoiceIds)?x.invoiceIds.filter(v=>typeof v==='string'):[],...cleaned};
   });
@@ -1288,13 +1297,16 @@ function openCloseTenancy(roomId){
   $('closingRoomId').value=roomId;
   const bills=state.bills.filter(b=>b.roomId===roomId&&b.tenancyId===t.id).sort((a,b)=>b.month.localeCompare(a.month));
   const last=bills[0],lastW=bills.find(b=>Number.isFinite(b.newW));
-  $('closeTenancyForm').reset();$('closingDate').value=localToday();
+  $('closeTenancyForm').reset();
+  // Không điền ngày hiện tại vào ngày trả phòng: lịch sử nhập bù phải khai ngày thực tế.
+  $('closingDate').value='';
+  $('closingSettlementDate').value=localToday();
   $('closingE').value=last?.newE??t.openingE??'';
   $('closingW').value=lastW?.newW??t.openingW??(t.waterMode==='person'&&!t.waterAllowance?0:'');
   $('closingOther').value=0;$('closingOffset').value=0;$('closingCashReceived').value=0;
   $('closeTenancyTitle').textContent=`Quyết toán & trả phòng ${r.name}`;
   const hasFinalBill=bills.some(b=>b.month===$('closingDate').value.slice(0,7));
-  $('closingNote').textContent=`Đợt thuê: ${t.tenant||'(Chưa rõ)'}. ${hasFinalBill?'Đã có hóa đơn tháng đang chọn.':'CHƯA CÓ hóa đơn tháng đang chọn; hãy lập hóa đơn tiền phòng, phí cố định và nước cơ bản trước khi quyết toán, nếu tháng đó vẫn phải thu.'}`;
+  $('closingNote').textContent=`Đợt thuê: ${t.tenant||'(Chưa rõ)'}. Hạn hợp đồng (nếu đã nhập): ${dateText(t.leaseEnd)}. Bạn phải tự chọn NGÀY TRẢ PHÒNG THỰC TẾ; không tự lấy ngày hôm nay. ${hasFinalBill?'Đã có hóa đơn trong tháng hiện tại.':'Sau khi chọn ngày trả phòng, hãy kiểm tra hóa đơn tháng cuối trước khi quyết toán.'}`;
   updateClosingPreview(true);$('closeTenancyDialog').showModal();
 }
 ['closingDate','closingE','closingW','closingOther'].forEach(k=>$(k).addEventListener('input',()=>updateClosingPreview(true)));
@@ -1312,8 +1324,14 @@ $('closeTenancyForm').addEventListener('submit',e=>{
   if(!confirm(`Xác nhận kết thúc đợt thuê ${t.tenant||''} – phòng ${r.name}?\nCông nợ ${money(d.totalDue)}, trừ cọc ${money(offset)}, khách trả thêm ${money(cash)}, hoàn cọc ${money(d.depositBefore-offset)}.\nThao tác quyết toán được lưu lịch sử và không sửa trực tiếp được.`))return;
   if(!d.bills.some(b=>b.month===$('closingDate').value.slice(0,7)) &&
       !confirm('Tháng trả phòng chưa có hóa đơn tiền phòng/phí định kỳ. Bạn xác nhận KHÔNG CẦN lập thêm hóa đơn tháng đó?'))return;
-  const old=copy(state),sid=id(),date=$('closingDate').value,refund=d.depositBefore-offset;
-  const settlement={id:sid,roomId:r.id,tenancyId:t.id,date,tenant:t.tenant||'',startE:d.startE,endE:d.endE,startW:d.startW,endW:d.endW,
+  const moveOutDate=$('closingDate').value;
+  const settlementDate=$('closingSettlementDate').value;
+  if(!validDate(settlementDate)||!settlementDate||(t.startedAt&&settlementDate<t.startedAt)){
+    alert('Ngày quyết toán / giao tiền không hợp lệ.');return;
+  }
+  if(!confirm(`Kiểm tra lại hai mốc thời gian:\nKhách trả phòng: ${dateText(moveOutDate)}\nQuyết toán / giao tiền: ${dateText(settlementDate)}\nXác nhận đúng ngày?`))return;
+  const old=copy(state),sid=id(),date=settlementDate,refund=d.depositBefore-offset;
+  const settlement={id:sid,roomId:r.id,tenancyId:t.id,date,moveOutDate,tenant:t.tenant||'',startE:d.startE,endE:d.endE,startW:d.startW,endW:d.endW,
     electricRate:t.electricRate,waterRate:t.waterMode==='meter'?t.waterRate:t.waterExcessRate,
     electricCharge:d.electricCharge,waterCharge:d.waterCharge,extraCharge:d.additional,extraNote:otherNote,unpaidBills:d.unpaidBills,
     invoiceIds:d.unpaid.map(b=>b.id),totalDue:d.totalDue,depositBefore:d.depositBefore,offset,refund,cashCollected:cash,
@@ -1322,8 +1340,8 @@ $('closeTenancyForm').addEventListener('submit',e=>{
   for(const b of d.unpaid)b.settledBy=sid; // Phiếu cũ được đối trừ tại quyết toán, KHÔNG tính như đã thu đủ tiền mặt.
   if(offset>0)state.depositTransactions.push({id:id(),roomId:r.id,tenancyId:t.id,settlementId:sid,roomName:r.name,date,type:'offset',amount:offset,person:t.tenant||'',note:'Khấu trừ công nợ trong phiếu quyết toán'});
   if(refund>0)state.depositTransactions.push({id:id(),roomId:r.id,tenancyId:t.id,settlementId:sid,roomName:r.name,date,type:'refund',amount:refund,person:t.tenant||'',note:'Hoàn cọc tại thời điểm trả phòng'});
-  t.depositBalance=0;t.status='closed';t.endedAt=date;t.closingE=d.endE;t.closingW=d.endW;
-  t.residents=(r.residents||[]).map(p=>({...p,leftAt:p.leftAt||date}));t.representativeId=r.representativeId;
+  t.depositBalance=0;t.status='closed';t.endedAt=moveOutDate;t.closingE=d.endE;t.closingW=d.endW;
+  t.residents=(r.residents||[]).map(p=>({...p,leftAt:p.leftAt||moveOutDate}));t.representativeId=r.representativeId;
   r.activeTenancyId=null;r.tenant='';r.phone='';r.cccd='';r.residents=[];r.representativeId='';r.vehicles=[];r.vehicleCount=0;
   r.occupants=0;r.adults=0;r.children=0;r.leaseStart='';r.leaseEnd='';r.deposit=0;
   r.baseE=d.endE;r.baseW=d.endW;
@@ -1336,7 +1354,7 @@ function showSettlement(sid){
   const r=getRoom(s.roomId),t=tenancyById(r,s.tenancyId);
   shownInvoiceId=null;$('invoicePaidBtn').hidden=true;
   const line=(name,amount)=>`<tr><td>${name}</td><td class="n">${money(amount)}</td></tr>`;
-  $('invoiceContent').innerHTML=`<div class="invoice"><div class="invoice-top"><h2>PHIẾU QUYẾT TOÁN TRẢ PHÒNG</h2><div>Ngày ${dateText(s.date)}</div></div>
+  $('invoiceContent').innerHTML=`<div class="invoice"><div class="invoice-top"><h2>PHIẾU QUYẾT TOÁN TRẢ PHÒNG</h2><div>Ngày quyết toán: ${dateText(s.date)} · Ngày khách trả phòng: ${dateText(s.moveOutDate||t?.endedAt||s.date)}</div></div>
     <div class="invoice-meta"><div><b>Phòng:</b> ${safe(r?.name||'(Đã xóa)')}</div><div><b>Người thuê:</b> ${safe(s.tenant||'—')}</div>
     <div><b>Đợt thuê:</b> ${safe(s.tenancyId.slice(-8))}</div></div>
     <div class="detail">Điện chốt: ${s.startE} → ${s.endE} kWh · Nước chốt: ${s.startW} → ${s.endW} m³</div>
@@ -1368,18 +1386,38 @@ function showTenancyHistory(roomId){
       <div class="detail"><b>Cọc còn giữ: ${money(t.depositBalance)}</b> · ${bills.length} hóa đơn · Chưa thu: ${money(outstanding)}</div>
       ${state.settlements?.find(x=>x.tenancyId===t.id)?`<div class="inline-info"><b>ĐÃ QUYẾT TOÁN ${dateText(state.settlements.find(x=>x.tenancyId===t.id).date)}</b> · Khấu trừ cọc ${money(state.settlements.find(x=>x.tenancyId===t.id).offset)} · Hoàn cọc ${money(state.settlements.find(x=>x.tenancyId===t.id).refund)} · Khách trả thêm ${money(state.settlements.find(x=>x.tenancyId===t.id).cashCollected)}<div class="actions"><button class="btn secondary" data-action="settlement" data-id="${safe(state.settlements.find(x=>x.tenancyId===t.id).id)}">📄 Xem / In phiếu quyết toán</button></div></div>`:''}
       ${t.status==='closed'&&t.depositBalance>0?`<button class="btn secondary" data-action="deposit-tenancy" data-id="${safe(r.id)}" data-tenancy="${safe(t.id)}">Quyết toán cọc khách cũ</button>`:''}
-      ${t.status==='closed'&&!t.endedAt?`<button class="btn secondary" data-action="set-tenancy-end" data-id="${safe(r.id)}" data-tenancy="${safe(t.id)}">Bổ sung ngày trả phòng cũ</button>`:''}
+      ${t.status==='closed'?`<button class="btn secondary" data-action="correct-tenancy-end" data-id="${safe(r.id)}" data-tenancy="${safe(t.id)}">✏ Sửa ngày trả thực tế</button>`:''}
+      ${t.dateCorrections?.length?`<div class="small muted">Đã điều chỉnh ngày trả ${t.dateCorrections.length} lần; không thay đổi ngày giao dịch tiền.</div>`:''}
       ${bills.length?`<hr class="divider"><b>Hóa đơn đợt thuê này</b>${bills.slice().sort((a,b)=>b.month.localeCompare(a.month)).map(b=>`<div class="detail small">Tháng ${monthText(b.month)} · ${money(calc(b).total)} <button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem</button> ${!b.settledBy&&!state.settlements.some(z=>z.tenancyId===t.id)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(b.id)}">Sửa tiền/phí</button>`:''}</div>`).join('')}`:''}</div>`;
   }).join(''):'<p class="muted">Phòng chưa có đợt thuê nào.</p>';
   $('tenancyHistoryDialog').showModal();
 }
-function setTenancyEnd(roomId,tid){
-  const r=getRoom(roomId),t=tenancyById(r,tid);if(!t||t.status!=='closed'||t.endedAt)return;
-  const d=prompt('Nhập ngày khách cũ THỰC TẾ trả phòng theo định dạng YYYY-MM-DD (ví dụ 2026-04-30):','');
-  if(d===null)return;
-  if(!validDate(d)||!d||(t.startedAt&&d<t.startedAt)){alert('Ngày trả phòng không hợp lệ.');return;}
-  if(state.bills.some(b=>b.tenancyId===tid&&b.month>d.slice(0,7))){alert('Đợt thuê có hóa đơn sau ngày này. Hãy kiểm tra lại.');return;}
-  const old=copy(state);t.endedAt=d;if(!save()){state=old;return;}showTenancyHistory(roomId);render();
+function correctTenancyEnd(roomId,tid){
+  const r=getRoom(roomId),t=tenancyById(r,tid);
+  if(!t||t.status!=='closed')return;
+  const prior=t.endedAt||'';
+  const entered=prompt('Nhập NGÀY KHÁCH THỰC TẾ TRẢ PHÒNG theo YYYY-MM-DD (ví dụ 2026-03-31):',prior);
+  if(entered===null)return;
+  const d=entered.trim();
+  if(!validDate(d)||!d||(t.startedAt&&d<t.startedAt)){alert('Ngày trả phòng không hợp lệ hoặc trước ngày bắt đầu thuê.');return;}
+  if(d===prior){toast('Ngày trả phòng không thay đổi.');return;}
+  const bills=state.bills.filter(b=>b.tenancyId===tid);
+  if(bills.some(b=>b.month>d.slice(0,7))){alert('Có hóa đơn của đợt thuê sau tháng trả phòng được đề xuất. Hãy đối chiếu trước.');return;}
+  if((t.residents||[]).some(p=>p.joinedAt&&p.joinedAt>d)){
+    alert('Có người vào ở sau ngày trả phòng mới. Hãy kiểm tra lịch sử người ở trước.');return;
+  }
+  if(r.tenancies.some(x=>x.id!==tid&&x.startedAt&&x.startedAt<=d&&(!t.startedAt||x.startedAt>=t.startedAt))){
+    alert('Ngày trả phòng mới trùng đợt thuê khác. Hãy kiểm tra ngày nhận khách mới.');return;
+  }
+  const settlement=state.settlements.find(x=>x.tenancyId===tid);
+  if(!confirm(`Sửa NGÀY TRẢ PHÒNG: ${dateText(prior)} → ${dateText(d)}?\n${settlement?'Ngày quyết toán / hoàn cọc '+dateText(settlement.date)+' sẽ GIỮ NGUYÊN.':'Chưa có phiếu quyết toán.'}\nSố tiền, chỉ số điện nước và hóa đơn không thay đổi.`))return;
+  const before=copy(state);
+  t.endedAt=d;
+  t.residents=(t.residents||[]).map(p=>({...p,leftAt:p.leftAt===prior||!p.leftAt?d:p.leftAt}));
+  t.dateCorrections=[...(t.dateCorrections||[]),{from:prior,to:d,at:new Date().toISOString()}].slice(-30);
+  if(settlement)settlement.moveOutDate=d; // Sửa ngày trả, không sửa ngày giao tiền hoặc bút toán cọc.
+  if(!save()){state=before;return;}
+  showTenancyHistory(roomId);render();toast('Đã sửa ngày khách thực tế trả phòng. Ngày giao tiền và số tiền quyết toán vẫn giữ nguyên.');
 }
 const latestMeterBefore=(roomId,month,tid=getRoom(roomId)?.activeTenancyId)=>state.bills.filter(b=>b.roomId===roomId&&b.tenancyId===tid&&b.month<month&&Number.isFinite(b.newW)&&Number.isFinite(b.oldW)).sort((a,b)=>b.month.localeCompare(a.month))[0];
 function billDraft(room,existing,previous,meterPrevious){
@@ -1955,7 +1993,7 @@ document.addEventListener('click',e=>{
   if(action==='tenancy-history')showTenancyHistory(key);
   if(action==='settlement')showSettlement(key);
   if(action==='deposit-tenancy'){ $('tenancyHistoryDialog').close();openDeposit(key,btn.dataset.tenancy); }
-  if(action==='set-tenancy-end'){ $('tenancyHistoryDialog').close();setTenancyEnd(key,btn.dataset.tenancy); }
+  if(action==='correct-tenancy-end'){ correctTenancyEnd(key,btn.dataset.tenancy); }
   if(action==='deposit')openDeposit(key);
   if(action==='delete-room')deleteRoom(key);
   if(action==='bill')openBill(key);
