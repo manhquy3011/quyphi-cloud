@@ -27,7 +27,7 @@
   .item-title{font-size:18px;font-weight:800}.detail{margin:7px 0;color:#58706a;line-height:1.55}.price{font-weight:800;color:#17665a;font-size:19px}
   .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
   .btn{background:#17665a;border:1px solid #17665a;color:white;padding:11px 15px;border-radius:10px;font-weight:700;min-height:42px}
-  .btn:hover{filter:brightness(.95)}.btn.secondary{background:white;color:#17665a;border-color:#a8cbc1}.btn.danger{background:white;color:#b33d33;border-color:#e8ada8}.btn.soft{background:#e9f5f1;color:#17665a;border-color:#d4e9e3}
+  .btn:disabled{opacity:.55;cursor:not-allowed} .btn:hover{filter:brightness(.95)}.btn.secondary{background:white;color:#17665a;border-color:#a8cbc1}.btn.danger{background:white;color:#b33d33;border-color:#e8ada8}.btn.soft{background:#e9f5f1;color:#17665a;border-color:#d4e9e3}
   .badge{display:inline-block;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:800}.badge.paid{background:#dff6e9;color:#126e42}.badge.unpaid{background:#fff1d6;color:#985f09}
   .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field{display:flex;flex-direction:column;gap:6px;margin:9px 0}.field label{font-weight:650;font-size:14px}
   .field input,.field select{background:white;border:1px solid #b9cbc5;padding:11px 12px;min-height:43px;border-radius:9px;width:100%;color:#1e3732}
@@ -81,6 +81,20 @@
   .invoice th,.invoice td{padding:10px 6px;border-bottom:1px solid #dce7e2;text-align:left}.invoice th:last-child,.invoice td:last-child{text-align:right}
   .invoice .n{text-align:right;white-space:nowrap}.invoice .tw{overflow-x:auto}.invoice td[colspan]{font-weight:600}@media(max-width:560px){.invoice table{font-size:12px}.invoice th,.invoice td{padding:8px 3px}}
   .invoice tfoot td{font-weight:800;font-size:17px;color:#17665a;border-top:2px solid #17665a}.invoice-foot{text-align:center;color:#70827b;font-size:12px;margin-top:22px}
+
+  /* V8.1: quản lý nhiều người ở, có người đại diện và lịch sử chuyển đi. */
+  .resident-editor{background:#f8fbfa;border:1px solid #d9e7e1;border-radius:12px;padding:13px;margin:12px 0}
+  .resident-editor.is-left{background:#f5f6f5;border-style:dashed;opacity:.92}
+  .resident-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:7px}
+  .resident-editor .field{margin:5px 0}
+  .resident-rep-label{display:flex;align-items:center;gap:7px;font-weight:700;color:#17665a;font-size:13px}
+  .resident-rep-label input{accent-color:#17665a;width:17px;height:17px}
+  .resident-warning{color:#9b5a17;font-size:12px}
+  .resident-left-note{font-size:12px;color:#657973}
+  .resident-summary{margin:12px 0 4px}
+  .resident-archive{margin:14px 0 4px;padding:11px;background:#f5f7f6;border:1px dashed #c4d8d0;border-radius:10px}
+  .resident-archive-item{padding:7px 0;border-bottom:1px solid #dce7e2;font-size:13px;line-height:1.55}
+  .resident-archive-item:last-child{border:0}
   #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#173d36;color:white;padding:12px 18px;border-radius:11px;box-shadow:0 5px 30px #0003;z-index:9999;display:none;max-width:94vw}
   @media(max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}.top{padding:15px}.shell{padding:12px 12px 35px}.panel{padding:14px}.stat{padding:13px}.stat strong{font-size:18px}.setting-fee{grid-template-columns:1fr 110px}.setting-fee .btn{padding:9px}.invoice{padding:15px}.invoice-meta{grid-template-columns:1fr}.modal-body{padding:16px}.vehicle-editor .grid2{grid-template-columns:1fr}.header-controls{width:100%;align-items:flex-start}.month-box input{max-width:205px}}
   /* Sổ thu riêng và sổ chi phí */
@@ -298,21 +312,24 @@ body.cloud-locked>.foot{display:none!important}
 <dialog id="roomDialog"><form id="roomForm"><div class="modal-body">
   <div class="modal-title"><h2 id="roomDialogTitle">Thêm phòng</h2><button type="button" class="icon-close" data-close="roomDialog" aria-label="Đóng">×</button></div>
   <input type="hidden" id="roomId">
-  <div class="subheading">1. Thông tin phòng và người thuê</div>
+  <div class="subheading">1. Thông tin phòng và hợp đồng</div>
   <div class="grid2">
-    <div class="field"><label for="roomName">Tên / số phòng *</label><input id="roomName" required maxlength="50" placeholder="Ví dụ: 201"></div>
-    <div class="field"><label for="tenantName">Họ tên người thuê</label><input id="tenantName" maxlength="100"></div>
-    <div class="field"><label for="tenantPhone">Số điện thoại</label><input id="tenantPhone" type="tel" maxlength="30" placeholder="09xxxxxxxx"></div>
-    <div class="field"><label for="tenantCCCD">Số CCCD / CMND</label><input id="tenantCCCD" type="text" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="9 hoặc 12 chữ số" pattern="[0-9]{9}([0-9]{3})?"></div>
+    <div class="field wide"><label for="roomName">Tên / số phòng *</label><input id="roomName" required maxlength="50" placeholder="Ví dụ: 201"></div>
     <div class="field"><label for="roomLeaseStart">Thuê từ ngày</label><input id="roomLeaseStart" type="date"></div>
     <div class="field"><label for="roomLeaseEnd">Thuê đến ngày</label><input id="roomLeaseEnd" type="date"></div>
     <div class="field wide"><label for="roomDeposit">Tiền đặt cọc (đ)</label><input id="roomDeposit" type="number" min="0" step="1" value="0" required placeholder="VD: 3000000"></div>
   </div>
-  <div class="subheading">2. Phương tiện đăng ký</div>
+  <div class="subheading">2. Danh sách người ở</div>
+  <div class="inline-info">Mỗi người có thông tin riêng. Chọn <b>một người đại diện</b> để hiện tên trên hóa đơn. Người chuyển đi vẫn được giữ trong lịch sử; số người tính nước tự đếm từ người đang ở.</div>
+  <div id="residentRows"></div>
+  <button type="button" class="btn secondary" id="addResident">+ Thêm người ở</button>
+  <div class="inline-info resident-summary" id="residentSummary">Chưa có người ở.</div>
+  <div id="residentArchive" class="resident-archive" hidden></div>
+  <div class="subheading">3. Phương tiện đăng ký</div>
   <p class="small muted">Thêm từng xe, chọn loại phương tiện và nhập biển số. Không nhập số lượng tổng; ứng dụng tự đếm.</p>
   <div id="vehicleRows"></div>
   <button type="button" class="btn secondary" id="addVehicle">+ Thêm phương tiện</button>
-  <div class="subheading">3. Chi phí cố định của phòng</div>
+  <div class="subheading">4. Chi phí cố định của phòng</div>
   <div class="grid2">
     <div class="field"><label for="roomRent">Tiền phòng / tháng (đ) *</label><input id="roomRent" type="number" min="0" step="1" required placeholder="3000000"></div>
     <div class="field"><label for="roomTrashFee">Tiền rác / tháng (đ)</label><input id="roomTrashFee" type="number" min="0" step="1" required value="0" placeholder="30000"></div>
@@ -328,21 +345,19 @@ body.cloud-locked>.foot{display:none!important}
       <div class="field"><label for="roomWaterCustom">Hoặc nhập giá nước khác (đ)</label><input id="roomWaterCustom" type="number" min="0" step="1" placeholder="Để trống nếu dùng lựa chọn ở trên"></div>
     </div>
     <div class="wide" id="roomPeopleFields" hidden>
-      <div class="inline-info">Chỉ nhập người lớn / trẻ em khi chọn nước tính theo đầu người. Thông tin này không hiện trên hóa đơn.</div>
-      <div class="grid2">
-        <div class="field"><label for="roomAdults">Người lớn</label><input id="roomAdults" type="number" min="0" step="1" value="1" required></div>
-        <div class="field"><label for="roomChildren">Trẻ em</label><input id="roomChildren" type="number" min="0" step="1" value="0" required></div>
-      </div>
+      <div class="inline-info">Đếm người lớn và trẻ em từ danh sách người đang ở. Khi lập hóa đơn lịch sử, vẫn có thể chỉnh số người tính nước theo từng tháng.</div>
     </div>
+    <input type="hidden" id="roomAdults" value="1">
+    <input type="hidden" id="roomChildren" value="0">
     <input type="hidden" id="roomOccupants" value="1">
   </div>
-  <div class="subheading">4. Chỉ số đồng hồ ban đầu</div>
+  <div class="subheading">5. Chỉ số đồng hồ ban đầu</div>
   <p class="small muted">Không bắt buộc. Để trống nếu chưa biết; tháng đầu tiên có thể nhập số cũ khi lập hóa đơn.</p>
   <div class="grid2">
     <div class="field"><label for="roomBaseE">Điện ban đầu (kWh)</label><input id="roomBaseE" type="number" min="0" step="any" placeholder="Ví dụ: 1435"></div>
     <div class="field"><label for="roomBaseW">Nước ban đầu (m³)</label><input id="roomBaseW" type="number" min="0" step="any" placeholder="Ví dụ: 91"></div>
   </div>
-  <div class="subheading">5. Các khoản phí khác (nếu có)</div>
+  <div class="subheading">6. Các khoản phí khác (nếu có)</div>
   <div id="roomFeeChoices" class="check-grid"></div>
   <p class="small muted">Không cần chọn tiền rác / tiền mạng ở đây vì đã nhập trực tiếp ở mục 3. Tiền cọc chỉ lưu để theo dõi, không cộng vào hóa đơn mỗi tháng.</p>
   <p class="small muted">🔒 CCCD chỉ lưu trên trình duyệt này, không in trên hóa đơn. Hãy đặt mật khẩu máy và sao lưu ở nơi an toàn.</p>
@@ -430,6 +445,55 @@ function cleanVehicles(list){
     if(!type)throw Error('Loại xe chưa hợp lệ.');return {type,plate};});
 }
 function vehiclesText(list){return (list||[]).map(v=>`${v.type}${v.plate?' – '+v.plate:' – chưa nhập biển số'}`).join('; ');}
+
+// V8.1: danh sách người ở lưu theo từng phòng (người chuyển đi vẫn ở trong mảng).
+// Chỉ số người lớn/trẻ em trên phòng là bản tổng hợp người ĐANG ở; hóa đơn cũ giữ snapshot riêng.
+function cleanResidents(list){
+  if(!Array.isArray(list)||list.length>60)throw Error('Mỗi phòng quản lý tối đa 60 hồ sơ người ở.');
+  const result=list.map(p=>{
+    if(!p || typeof p.id!=='string' || !p.id.trim())throw Error('Mã người ở không hợp lệ.');
+    const name=String(p.name??'').trim().slice(0,100);
+    const phone=String(p.phone??'').trim().slice(0,30);
+    const cccd=String(p.cccd??'').trim();
+    const type=String(p.type??'adult');
+    const joinedAt=String(p.joinedAt??'');
+    const leftAt=String(p.leftAt??'');
+    const legacyPlaceholder=p.legacyPlaceholder===true;
+    if(!name && !legacyPlaceholder)throw Error('Vui lòng nhập họ tên của từng người ở.');
+    if(cccd && !/^(?:\d{9}|\d{12})$/.test(cccd))throw Error('CCCD/CMND của người ở phải gồm 9 hoặc 12 chữ số.');
+    if(!['adult','child'].includes(type))throw Error('Loại người ở phải là người lớn hoặc trẻ em.');
+    if(!validDate(joinedAt)||!validDate(leftAt)||(joinedAt&&leftAt&&leftAt<joinedAt))throw Error('Ngày vào/ngày chuyển đi không hợp lệ.');
+    return {id:p.id,name,phone,cccd,type,joinedAt,leftAt,legacyPlaceholder};
+  });
+  if(new Set(result.map(p=>p.id)).size!==result.length)throw Error('Hồ sơ người ở bị trùng mã.');
+  return result;
+}
+function migrateResidents(room){
+  if(Array.isArray(room.residents))return cleanResidents(room.residents);
+  // Dữ liệu V8 cũ: chỉ có tên người đại diện và tổng số người.
+  // Giữ lại số lượng nhưng không đoán họ tên hoặc giấy tờ của những người chưa khai báo.
+  const adults=Number(room.adults??room.occupants??1);
+  const children=Number(room.children??0);
+  const rows=[];
+  for(let i=0;i<adults+children;i++){
+    rows.push({id:id(),name:i===0?String(room.tenant??''):'',phone:i===0?String(room.phone??''):'',
+      cccd:i===0?String(room.cccd??''):'',type:i<adults?'adult':'child',joinedAt:'',leftAt:'',
+      legacyPlaceholder:i!==0||!String(room.tenant??'').trim()});
+  }
+  return cleanResidents(rows);
+}
+function residentStats(residents,representativeId){
+  const active=residents.filter(p=>!p.leftAt);
+  const adults=active.filter(p=>p.type==='adult').length;
+  const children=active.length-adults;
+  const representative=active.find(p=>p.id===representativeId) || active[0] || null;
+  return {active,adults,children,occupants:active.length,representative,
+    representativeId:representative?.id||''};
+}
+function localToday(){
+  const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
 function getBank(){return {bankName:state.settings.bankName||'',bankAccount:state.settings.bankAccount||'',bankHolder:state.settings.bankHolder||'',qrImage:state.settings.qrImage||''};}
 
 let state = {settings:copy(DEFAULT_SETTINGS),rooms:[],bills:[],flexRooms:[],flexEntries:[],meterAccounts:copy(DEFAULT_METERS),meterPayments:[],expenses:[],flexWaterPayments:[]};
@@ -473,22 +537,23 @@ function validateData(input){
   // lấy giá điện/nước cũ từ Cài đặt mà KHÔNG tự đổi tiền của phòng đã nhập.
   const rooms=d.rooms.map(r=>{
     if(!r || typeof r.id!=='string' || typeof r.name!=='string') throw Error('Dữ liệu phòng không hợp lệ.');
-    const adults=countInt(r.adults??r.occupants,'Số người lớn');
-    const children=countInt(r.children??0,'Số trẻ em');
-    const occupants=adults+children;
-    if(occupants<1) throw Error('Phòng phải có ít nhất 1 người.');
+    const residents=migrateResidents(r);
+    const persons=residentStats(residents,r.representativeId);
+    const {adults,children,occupants}=persons;
+    // Phòng có thể đang trống: vẫn giữ được lịch sử của những người đã chuyển đi.
     const baseE=r.baseE===null||r.baseE===''||r.baseE===undefined?null:Number(r.baseE);
     const baseW=r.baseW===null||r.baseW===''||r.baseW===undefined?null:Number(r.baseW);
     if((baseE!==null && (!Number.isFinite(baseE)||baseE<0)) || (baseW!==null && (!Number.isFinite(baseW)||baseW<0))) throw Error('Chỉ số ban đầu không hợp lệ.');
     const waterMode=r.waterMode??rawSettings.waterMode;
     if(!['meter','person'].includes(waterMode)) throw Error('Cách tính nước của phòng không hợp lệ.');
-    const cccd=String(r.cccd??'').trim();
-    if(cccd && !/^(?:\d{9}|\d{12})$/.test(cccd)) throw Error('CCCD/CMND phòng '+r.name+' phải có 9 hoặc 12 chữ số.');
+    const tenant=persons.representative?.name??'';
+    const phone=persons.representative?.phone??'';
+    const cccd=persons.representative?.cccd??'';
     const leaseStart=String(r.leaseStart??''),leaseEnd=String(r.leaseEnd??'');
     if(!validDate(leaseStart)||!validDate(leaseEnd)||(leaseStart&&leaseEnd&&leaseStart>leaseEnd)) throw Error('Thời hạn thuê phòng '+r.name+' không hợp lệ.');
     const vehicles=cleanVehicles(migrateVehicles(r));
     return {
-      id:r.id,name:r.name.slice(0,50),tenant:String(r.tenant??'').slice(0,100),phone:String(r.phone??'').slice(0,30),cccd,
+      id:r.id,name:r.name.slice(0,50),tenant,phone,cccd,residents,representativeId:persons.representativeId,
       rent:moneyInt(r.rent,'Tiền phòng'),adults,children,occupants,vehicles,vehicleCount:vehicles.length,
       leaseStart,leaseEnd,deposit:moneyInt(r.deposit??0,'Tiền đặt cọc'),
       electricRate:moneyInt(r.electricRate??rawSettings.electricRate,'Giá điện phòng'),
@@ -621,7 +686,7 @@ function renderReadings(){
     const b=getBill(r.id),v=b?calc(b):null;
     return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(r.name)}</div><div class="detail">${safe(r.tenant||'Chưa có tên người thuê')} · Tiền thuê: ${money(r.rent)}</div></div>${b?`<span class="badge ${b.paid?'paid':'unpaid'}">${b.paid?'Đã thanh toán':'Chưa thanh toán'}</span>`:'<span class="badge unpaid">Chưa lập hóa đơn</span>'}</div>
     ${b?`<div class="detail">Điện: ${b.oldE} → ${b.newE} kWh ${b.waterMode==='meter'?`· Nước: ${b.oldW} → ${b.newW} m³`:`· Nước: tính theo đầu người`}</div><div class="price">${money(v.total)}</div>`:''}
-    <div class="actions"><button class="btn" data-action="bill" data-id="${safe(r.id)}">${b?'Sửa hóa đơn':'✏ Nhập chỉ số'}</button>${b?`<button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem / In</button><button class="btn soft" data-action="paid" data-id="${safe(b.id)}">${b.paid?'↩ Chưa thu':'✓ Đã thu'}</button><button class="btn danger" data-action="delete-bill" data-id="${safe(b.id)}">Xóa hóa đơn</button>`:''}</div></article>`;
+    <div class="actions"><button class="btn" data-action="bill" data-id="${safe(r.id)}" ${!b&&r.occupants===0?'disabled title="Phòng đang trống"':''}>${b?'Sửa hóa đơn':r.occupants>0?'✏ Nhập chỉ số':'Phòng đang trống'}</button>${b?`<button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem / In</button><button class="btn soft" data-action="paid" data-id="${safe(b.id)}">${b.paid?'↩ Chưa thu':'✓ Đã thu'}</button><button class="btn danger" data-action="delete-bill" data-id="${safe(b.id)}">Xóa hóa đơn</button>`:''}</div></article>`;
   }).join(''):empty('Chưa có phòng. Hãy vào mục “Phòng trọ” để thêm phòng đầu tiên.');
 }
 function renderRooms(){
@@ -629,9 +694,12 @@ function renderRooms(){
   $('roomList').innerHTML=rooms.length?rooms.map(r=>{
     const water=r.waterMode==='meter'?`${money(r.waterRate)}/m³`:`${money(r.waterPerPerson)}/người/tháng`;
     const fees=roomFees(r);
-    const maskedCCCD=r.cccd?`<br>CCCD/CMND: ****${safe(r.cccd.slice(-4))}`:'';
+    const people=residentStats(r.residents||migrateResidents(r),r.representativeId);
+    const maskedCCCD=r.cccd?`<br>CCCD đại diện: ****${safe(r.cccd.slice(-4))}`:'';
+    const members=people.active.map(p=>safe(p.name||'(Chưa cập nhật tên)')).join(', ');
+    const leftCount=(r.residents||[]).filter(p=>p.leftAt).length;
     return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(r.name)}</div>
-      <div class="detail">Người thuê: ${safe(r.tenant||'Chưa cập nhật')}<br>Điện thoại: ${safe(r.phone||'Chưa cập nhật')}${maskedCCCD}
+      <div class="detail">Đại diện phòng: ${safe(r.tenant||'Chưa cập nhật')}<br>Điện thoại đại diện: ${safe(r.phone||'Chưa cập nhật')}${maskedCCCD}<br>Đang ở: ${people.occupants} người (${people.adults} lớn, ${people.children} trẻ em) — ${members}${leftCount?`<br>Lịch sử đã chuyển đi: ${leftCount} người`:''}
       <br>Thời gian thuê: ${dateText(r.leaseStart)} đến ${dateText(r.leaseEnd)}
       <br>Tiền cọc: ${money(r.deposit||0)}
       <br>Phương tiện (${r.vehicles.length}): ${r.vehicles.length?safe(vehiclesText(r.vehicles)):'Không có'}</div>
@@ -650,23 +718,87 @@ function renderSettings(){
   $('meterConfigNote').textContent=`Đang sử dụng ${state.settings.meterCount} công tơ. Có ${state.meterAccounts.length} mã công tơ được giữ trong lịch sử.`;
   $('feeList').innerHTML=state.settings.fees.length?state.settings.fees.map(f=>`<div class="setting-fee"><input aria-label="Tên phí" id="fee-name-${safe(f.id)}" value="${safe(f.name)}" maxlength="60"><input aria-label="Số tiền phí" id="fee-amount-${safe(f.id)}" type="number" min="0" step="1" value="${f.amount}"><button class="btn secondary" data-action="save-fee" data-id="${safe(f.id)}">Lưu</button><button class="btn danger" data-action="delete-fee" data-id="${safe(f.id)}">Xóa</button></div>`).join(''):'<p class="muted small">Hiện chưa có khoản phí cố định nào.</p>';
 }
-// Cập nhật tổng số người; theo đầu người mặc định tính cả người lớn và trẻ em.
-function updateRoomOccupants(){
-  const adults=num($('roomAdults').value),children=num($('roomChildren').value);
-  $('roomOccupants').value=Number.isInteger(adults)&&Number.isInteger(children)&&adults>=0&&children>=0?adults+children:'';
+// V8.1: tạo / sửa từng người ở, cả người đang ở và người đã chuyển đi.
+function addResidentRow(person={id:id(),name:'',phone:'',cccd:'',type:'adult',joinedAt:'',leftAt:'',legacyPlaceholder:false},representative=false){
+  if($('residentRows').children.length>=60){alert('Tối đa 60 hồ sơ người ở mỗi phòng.');return;}
+  const el=document.createElement('div');el.className='resident-editor';el.dataset.id=person.id;
+  el.dataset.legacyPlaceholder=person.legacyPlaceholder?'true':'false';
+  el.innerHTML=`
+    <div class="resident-heading"><strong class="resident-title">Người ở</strong>
+      <button type="button" class="btn secondary resident-move">${person.leftAt?'↩ Cho ở lại':'→ Chuyển đi'}</button></div>
+    <div class="grid2">
+      <div class="field"><label>Họ và tên *</label><input class="resident-name" maxlength="100" value="${safe(person.name)}" placeholder="Họ tên người ở"></div>
+      <div class="field"><label>Loại người ở</label><select class="resident-type">
+        <option value="adult" ${person.type==='adult'?'selected':''}>Người lớn</option>
+        <option value="child" ${person.type==='child'?'selected':''}>Trẻ em</option>
+      </select></div>
+      <div class="field"><label>Số điện thoại</label><input class="resident-phone" type="tel" maxlength="30" value="${safe(person.phone)}" placeholder="Có thể để trống"></div>
+      <div class="field"><label>CCCD / CMND</label><input class="resident-cccd" inputmode="numeric" maxlength="12" value="${safe(person.cccd)}" placeholder="9 hoặc 12 chữ số (nếu có)"></div>
+      <div class="field"><label>Ngày vào ở</label><input class="resident-start" type="date" value="${safe(person.joinedAt)}"></div>
+      <div class="field"><label>Ngày chuyển đi</label><input class="resident-left" type="date" value="${safe(person.leftAt)}"></div>
+    </div>
+    <label class="resident-rep-label"><input class="resident-rep" type="radio" name="residentRepresentative" value="${safe(person.id)}" ${representative?'checked':''}> Là người đại diện phòng</label>
+    ${person.legacyPlaceholder&&!person.name?'<div class="resident-warning">Hồ sơ cũ chưa có tên: vui lòng bổ sung khi biết thông tin.</div>':''}
+  `;
+  $('residentRows').appendChild(el);
+  updateResidentSummary();
+}
+function formResidents(){
+  return [...$('residentRows').querySelectorAll('.resident-editor')].map(row=>({
+    id:row.dataset.id,name:row.querySelector('.resident-name').value.trim(),
+    phone:row.querySelector('.resident-phone').value.trim(),
+    cccd:row.querySelector('.resident-cccd').value.trim(),
+    type:row.querySelector('.resident-type').value,
+    joinedAt:row.querySelector('.resident-start').value,
+    leftAt:row.querySelector('.resident-left').value,
+    legacyPlaceholder:row.dataset.legacyPlaceholder==='true'
+  }));
+}
+function updateResidentSummary(){
+  const list=formResidents();
+  const active=list.filter(p=>!p.leftAt);
+  const reps=[...$('residentRows').querySelectorAll('.resident-editor')].filter(row=>!row.querySelector('.resident-left').value);
+  // Người đã chuyển đi không được đại diện.
+  for(const [i,row] of [...$('residentRows').querySelectorAll('.resident-editor')].entries()){
+    const left=!!row.querySelector('.resident-left').value;
+    row.querySelector('.resident-title').textContent=`Người ${i+1}${left?' · Đã chuyển đi':''}`;
+    row.classList.toggle('is-left',left);
+    row.querySelector('.resident-rep').disabled=left;
+    row.querySelector('.resident-move').textContent=left?'↩ Cho ở lại':'→ Chuyển đi';
+  }
+  if(reps.length && !reps.some(row=>row.querySelector('.resident-rep').checked))reps[0].querySelector('.resident-rep').checked=true;
+  const adults=active.filter(p=>p.type==='adult').length,children=active.length-adults;
+  $('roomAdults').value=adults;$('roomChildren').value=children;$('roomOccupants').value=active.length;
+  $('residentSummary').textContent=`Đang ở: ${active.length} người (${adults} người lớn, ${children} trẻ em). Đã chuyển đi: ${list.length-active.length} người.`;
+  const history=list.filter(p=>p.leftAt);
+  $('residentArchive').hidden=!history.length;
+  $('residentArchive').innerHTML=history.length?'<b>Lịch sử người đã chuyển đi</b>'+history.map(p=>`<div class="resident-archive-item">${safe(p.name||'(Chưa có tên)')} — vào: ${dateText(p.joinedAt)}; chuyển đi: ${dateText(p.leftAt)}${p.cccd?` · CCCD: ****${safe(p.cccd.slice(-4))}`:''}</div>`).join(''):'';
   updateRoomWaterExplanation();
 }
 function updateRoomWaterExplanation(){
   const plan=$('roomWaterPlan').value;
   $('roomPeopleFields').hidden=!plan.startsWith('person-');
   if(plan.startsWith('person-')){
-    const n=num($('roomOccupants').value),price=Number(plan.slice(7));
-    $('roomWaterExplanation').textContent=`Theo đầu người: tính cả người lớn và trẻ em. ${Number.isFinite(n)?n:0} người × ${money(price)} = ${money((Number.isFinite(n)?n:0)*price)}/tháng.`;
+    const n=Number($('roomOccupants').value)||0,price=Number(plan.slice(7));
+    $('roomWaterExplanation').textContent=`Theo đầu người: ${n} người đang ở × ${money(price)} = ${money(n*price)}/tháng. Khi lập hóa đơn tháng cũ, bạn có thể sửa số người theo thực tế của tháng đó.`;
   }else{
     $('roomWaterExplanation').textContent=`Theo đồng hồ: (số nước mới − số nước cũ) × ${money(Number(plan.slice(6)))}/m³.`;
   }
 }
-['roomAdults','roomChildren'].forEach(k=>$(k).addEventListener('input',updateRoomOccupants));
+$('addResident').addEventListener('click',()=>addResidentRow());
+$('residentRows').addEventListener('input',updateResidentSummary);
+$('residentRows').addEventListener('change',updateResidentSummary);
+$('residentRows').addEventListener('click',e=>{
+  const btn=e.target.closest('.resident-move');if(!btn)return;
+  const row=btn.closest('.resident-editor'),left=row.querySelector('.resident-left');
+  if(left.value){left.value='';}
+  else {
+    const name=row.querySelector('.resident-name').value.trim()||'người này';
+    if(!confirm(`Ghi nhận ${name} đã chuyển đi? Hồ sơ vẫn lưu trong lịch sử.`))return;
+    left.value=localToday();
+  }
+  updateResidentSummary();
+});
 $('roomWaterPlan').addEventListener('change',updateRoomWaterExplanation);
 // Mỗi phương tiện là một dòng riêng, thêm/xóa trong form không lưu ngay cho đến khi nhấn Lưu phòng.
 function addVehicleRow(vehicle={type:'Xe máy',plate:''}){
@@ -685,11 +817,16 @@ $('vehicleRows').addEventListener('click',e=>{if(e.target.closest('.remove-vehic
 function openRoom(roomId){
   const r=roomId?getRoom(roomId):null;
   $('roomDialogTitle').textContent=r?'Sửa thông tin phòng':'Thêm phòng mới';$('roomForm').reset();
-  $('roomId').value=r?.id||'';$('roomName').value=r?.name||'';$('tenantName').value=r?.tenant||'';$('tenantPhone').value=r?.phone||'';$('tenantCCCD').value=r?.cccd||'';
+  $('roomId').value=r?.id||'';$('roomName').value=r?.name||'';
+  $('residentRows').innerHTML='';
+  const residents=r?migrateResidents(r):[];
+  residents.forEach(p=>addResidentRow(p,p.id===r.representativeId));
+  if(!residents.length)addResidentRow();
+  updateResidentSummary();
   $('roomLeaseStart').value=r?.leaseStart||'';$('roomLeaseEnd').value=r?.leaseEnd||'';$('roomDeposit').value=r?.deposit??0;
   $('vehicleRows').innerHTML='';(r?.vehicles||[]).forEach(addVehicleRow);
   $('roomRent').value=r?.rent??'';$('roomTrashFee').value=r?.trashFee??0;$('roomInternetFee').value=r?.internetFee??0;
-  $('roomAdults').value=r?.adults??1;$('roomChildren').value=r?.children??0;
+  // roomAdults/roomChildren được tự động lấy từ danh sách người ở.
   $('roomElectricRate').value=r?.electricRate??state.settings.electricRate;
   $('roomBaseE').value=r?.baseE??'';$('roomBaseW').value=r?.baseW??'';
   // Giữ được mức giá cũ (ví dụ 20.000 đ/m³) khi mở phòng từ V1.
@@ -703,28 +840,34 @@ function openRoom(roomId){
     option.textContent=waterMode==='meter'?`Theo khối – giá hiện tại ${money(rate)}/m³`:`Theo người – giá hiện tại ${money(rate)}/người/tháng`;
     menu.appendChild(option);
   }
-  menu.value=plan;updateRoomOccupants();
+  menu.value=plan;updateResidentSummary();
   $('roomFeeChoices').innerHTML=state.settings.fees.length?state.settings.fees.map(f=>`<label><input type="checkbox" name="roomFee" value="${safe(f.id)}" ${r?.feeIds.includes(f.id)?'checked':''}> ${safe(f.name)} (${money(f.amount)})</label>`).join(''):'<div class="muted small">Chưa có phí khác. Có thể để trống.</div>';
   $('roomDialog').showModal();
 }
 $('roomForm').addEventListener('submit',e=>{
   e.preventDefault();const roomId=$('roomId').value;const name=$('roomName').value.trim();
   const rent=num($('roomRent').value),trashFee=num($('roomTrashFee').value),internetFee=num($('roomInternetFee').value),electricRate=num($('roomElectricRate').value);
-  const adults=num($('roomAdults').value),children=num($('roomChildren').value),occupants=adults+children;
+  let residents;
+  try{residents=cleanResidents(formResidents());}
+  catch(err){alert(err.message);return;}
+  const selectedRep=$('residentRows').querySelector('input[name="residentRepresentative"]:checked')?.value||'';
+  const personInfo=residentStats(residents,selectedRep);
+  const {adults,children,occupants}=personInfo;
   const vehicles=formVehicles(),vehicleCount=vehicles.length;
   const leaseStart=$('roomLeaseStart').value,leaseEnd=$('roomLeaseEnd').value,deposit=num($('roomDeposit').value);
-  const cccd=$('tenantCCCD').value.trim();
+  const cccd=personInfo.representative?.cccd||'';
   const baseE=$('roomBaseE').value===''?null:num($('roomBaseE').value),baseW=$('roomBaseW').value===''?null:num($('roomBaseW').value);
   const [waterMode,waterPriceText]=$('roomWaterPlan').value.split('-'),waterPrice=$('roomWaterCustom').value!==''?num($('roomWaterCustom').value):Number(waterPriceText);
   if(!name || ![rent,trashFee,internetFee,electricRate,deposit].every(v=>Number.isSafeInteger(v)&&v>=0)
-    || ![adults,children,vehicleCount].every(v=>Number.isSafeInteger(v)&&v>=0) || occupants<1
+    || ![adults,children,vehicleCount].every(v=>Number.isSafeInteger(v)&&v>=0)
     || !['meter','person'].includes(waterMode) || !Number.isSafeInteger(waterPrice) || waterPrice<0
     || [baseE,baseW].some(v=>v!==null&&(!Number.isFinite(v)||v<0))){alert('Vui lòng kiểm tra số người, phương tiện, chỉ số và số tiền.');return;}
-  if(cccd && !/^(?:\d{9}|\d{12})$/.test(cccd)){alert('CCCD/CMND phải gồm 9 hoặc 12 chữ số.');return;}
+
   if(!validDate(leaseStart)||!validDate(leaseEnd)||(leaseStart&&leaseEnd&&leaseStart>leaseEnd)){alert('Ngày kết thúc thuê phải bằng hoặc sau ngày bắt đầu thuê.');return;}
   if(state.rooms.some(r=>r.id!==roomId&&r.name.toLowerCase()===name.toLowerCase())){alert('Tên phòng đã tồn tại.');return;}
   const previousRoom=roomId?getRoom(roomId):null;
-  const room={id:roomId||id(),name,tenant:$('tenantName').value.trim(),phone:$('tenantPhone').value.trim(),cccd,
+  const room={id:roomId||id(),name,tenant:personInfo.representative?.name||'',
+    phone:personInfo.representative?.phone||'',cccd,residents,representativeId:personInfo.representativeId,
     rent,trashFee,internetFee,electricRate,adults,children,occupants,vehicleCount,vehicles,leaseStart,leaseEnd,deposit,
     waterMode,waterRate:waterMode==='meter'?waterPrice:(previousRoom?.waterRate??state.settings.waterRate),
     waterPerPerson:waterMode==='person'?waterPrice:(previousRoom?.waterPerPerson??state.settings.waterPerPerson),
@@ -750,6 +893,7 @@ function billDraft(room,existing,previous,meterPrevious){
 }
 function openBill(roomId){
   const r=getRoom(roomId);if(!r)return;
+  if(!getBill(roomId) && r.occupants===0){alert('Phòng chưa có người ở; hãy thêm người ở trước khi lập hóa đơn mới.');return;}
   if(earliestAfter(roomId,selectedMonth)){alert('Phòng này có hóa đơn tháng sau. Để tránh sai lệch chỉ số, hãy sửa/xóa hóa đơn từ tháng mới nhất trở về trước.');return;}
   const existing=getBill(roomId),previous=latestBefore(roomId,selectedMonth),meterPrevious=latestMeterBefore(roomId,selectedMonth);
   pendingBill=billDraft(r,existing,previous,meterPrevious);
