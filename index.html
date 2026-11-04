@@ -210,6 +210,21 @@ body.cloud-locked>.foot{display:none!important}
     .deposit-room-row .deposit-room-money{font-size:14px}
     .deposit-switch-btn{flex:1 1 160px}
   }
+
+  /* v8.4.2: thông báo cùng font, cỡ và kiểu; chỉ nội dung b/strong được in đậm. */
+  #readings > .note, #flex > .section-intro, #flex > .soft-muted,
+  #finance > .section-intro, #finance > .soft-muted,
+  #flex > .note, #flex > .finance-section-title + .soft-muted {
+    font-family: inherit;
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+  #readings > .note b, #readings > .note strong,
+  #flex > .section-intro b, #flex > .soft-muted b,
+  #finance > .section-intro b, #finance > .soft-muted b,
+  #flex > .note b, #flex > .finance-section-title + .soft-muted b {font-weight:700}
 </style>
 </head>
 <body class="cloud-locked">
@@ -271,7 +286,7 @@ body.cloud-locked>.foot{display:none!important}
   </section>
   <section id="readings" class="view"><div class="section-head"><h2>Ghi số tháng <span class="month-title"></span></h2></div>
     <div class="note">Chỉ số đầu kỳ của khách MỚI lấy từ lúc bàn giao; các tháng sau lấy trong cùng đợt thuê. Hóa đơn khách cũ vẫn giữ riêng, kể cả khi thay khách trong cùng tháng.</div>
-    <div class="note small">Đã có hóa đơn tháng sau? Chọn <b>Sửa tiền/phí</b> để điều chỉnh đơn giá và khoản thu mà không đổi chỉ số điện nước. Hóa đơn thuộc đợt thuê đã quyết toán chỉ được xem/in.</div>
+    <div class="note">Đã có hóa đơn tháng sau? Chọn <b>Sửa tiền/phí</b> để điều chỉnh đơn giá và khoản thu mà không đổi chỉ số điện nước. Hóa đơn thuộc đợt thuê đã quyết toán chỉ được xem/in.</div>
     <div id="readingList" class="stack"></div>
   </section>
   <section id="rooms" class="view"><div class="section-head"><h2>Danh sách phòng trọ</h2><button class="btn" id="addRoom">+ Thêm phòng</button></div>
@@ -280,9 +295,22 @@ body.cloud-locked>.foot{display:none!important}
   <section id="flex" class="view">
     <div class="section-head"><h2>Phòng thu tiền linh hoạt <span class="month-title"></span></h2><button class="btn" type="button" id="addFlexRoom">+ Thêm phòng thu riêng</button></div>
     <div class="section-intro"><b>Sổ Thu riêng – không cộng vào tổng thu chi phòng thường.</b> Mỗi phòng có thể nhập số tiền khác nhau theo tháng. Tiền nước tổng hằng tháng sẽ được trừ <b>chỉ trong sổ Thu riêng</b>.</div>
+    <!-- Tiền nước chỉ quản lý trong Thu riêng; khoản này không nhập lại tại Thu chi. -->
+    <h3 class="finance-section-title">💧 Tiền nước phải đóng hằng tháng</h3>
+    <p class="soft-muted">Nhập <b>tiền nước phải trả</b> cho tháng đang chọn và đánh dấu <b>Đã đóng</b> khi thực tế thanh toán. Khoản này chỉ trừ vào <b>Thu riêng</b>, không trừ lần nữa trong <b>Thu chi</b>.</p>
+    <form id="flexWaterForm" class="finance-card">
+      <div class="meter-form">
+        <div class="field"><label for="flexWaterMonthAmount">Tiền nước phải trả (nghìn đ)</label><input id="flexWaterMonthAmount" type="number" min="0" step="any" placeholder="500" required></div>
+        <label class="check-pay"><input id="flexWaterPaid" type="checkbox"> Đã đóng tiền nước</label>
+        <button class="btn" type="submit">💾 Lưu tiền nước</button>
+        <button class="btn secondary" id="deleteFlexWater" type="button">Xóa khoản tháng này</button>
+      </div>
+      <div id="flexWaterNote" class="status-line" aria-live="polite"></div>
+    </form>
+    <h3 class="finance-section-title">🧮 Tổng hợp Thu riêng sau khi trừ tiền nước</h3>
     <div id="flexSummary" class="finance-kpis"></div>
     <p class="soft-muted">Số dư dự kiến = <b>tổng phiếu Thu riêng</b> − <b>tiền nước phải trả</b>. Số dư thực tế = <b>Thu riêng đã nhận</b> − <b>tiền nước đã đóng</b>. Tiền nước này không được trừ vào phòng thường.</p>
-    <div class="note">💧 Nhập tiền nước phải đóng theo từng tháng tại tab <b>Thu chi → Tiền nước của Thu riêng</b>. Bảng tổng hợp ở đây sẽ tự cập nhật.</div>
+    <h3 class="finance-section-title">Danh sách phòng Thu riêng</h3>
     <div id="flexRoomList" class="stack"></div>
   </section>
   <section id="finance" class="view">
@@ -307,20 +335,7 @@ body.cloud-locked>.foot{display:none!important}
     <h3 class="finance-section-title">⚡ Tiền điện phải đóng hằng tháng (<span id="visibleMeterCount">3</span> công tơ)</h3>
     <p class="soft-muted">Tên từng công tơ được khai báo tại <b>Cài đặt → Tên công tơ điện</b>. Mục này chỉ nhập <b>số tiền điện phải đóng</b> hằng tháng và đánh dấu đã đóng. Chỉ khoản đã đóng mới trừ vào tiền còn lại.</p>
     <div id="meterList"></div>
-    <h3 class="finance-section-title">💧 Tiền nước phải đóng — trừ riêng vào Thu riêng</h3>
-    <p class="soft-muted">Nhập <b>một khoản tiền nước phải trả cho mỗi tháng</b>. Số tiền này chỉ được tính trong bảng Thu riêng; <b>không trừ lần nữa</b> ở báo cáo phòng thường. Có thể ghi nhận đã đóng hoặc chưa đóng.</p>
-    <form id="flexWaterForm" class="finance-card">
-      <div class="meter-form">
-        <div class="field"><label for="flexWaterMonthAmount">Tiền nước phải trả (nghìn đ)</label><input id="flexWaterMonthAmount" type="number" min="0" step="any" placeholder="500" required></div>
-        <label class="check-pay"><input id="flexWaterPaid" type="checkbox"> Đã đóng tiền nước</label>
-        <button class="btn" type="submit">💾 Lưu tiền nước</button>
-        <button class="btn secondary" id="deleteFlexWater" type="button">Xóa khoản tháng này</button>
-      </div>
-      <div id="flexWaterNote" class="status-line" aria-live="polite"></div>
-    </form>
-    <h3 class="finance-section-title">🧮 Tổng hợp Thu riêng sau khi trừ tiền nước</h3>
-    <div id="flexFinanceSnapshot" class="finance-kpis"></div>
-    <div class="section-head" style="margin-top:22px"><h3>🧾 Các khoản chi khác (phòng thường)</h3></div>
+    <div class="section-head" style="margin-top:22px"><h3>🧾 Các khoản chi khác</h3></div>
     <form id="expenseForm" class="finance-card">
       <input type="hidden" id="expenseId">
       <div class="grid2">
@@ -2136,6 +2151,12 @@ function financeCards(t){
     <div class="finance-kpi net ${t.net<0?'negative':''}"><span>CÒN LẠI THỰC TẾ</span><strong>${money(t.net)}</strong></div>`;
 }
 function renderFlex(){
+  // Khoản nước chỉ có trong tab Thu riêng; tính toán vẫn từ flexWaterPayments hiện có.
+  const water=getFlexWater();
+  $('flexWaterMonthAmount').value=dongToNghin(water?water.amount:'');
+  $('flexWaterPaid').checked=!!water?.paid;
+  $('deleteFlexWater').disabled=!water;
+  $('flexWaterNote').textContent=water?`Tháng ${monthText(selectedMonth)}: ${money(water.amount)} · ${water.paid?'Đã đóng':'Chưa đóng'}`:'Tháng này chưa ghi tiền nước phải trả.';
   const t=flexTotals();
   $('flexSummary').innerHTML=flexCards(t);
   $('flexRoomList').innerHTML=state.flexRooms.length?state.flexRooms.map(r=>{
@@ -2232,14 +2253,6 @@ function renderFinance(){
       <div class="status-line" style="grid-column:1/-1">${x?`Đã ghi: ${money(x.amount)} · ${x.paid?'Đã đóng':'Chưa đóng'}`:'Chưa ghi tiền điện tháng này'}</div>
     </form></div>`;
   }).join('');
-  // Phần nước tổng thuộc Thu riêng, được tổng hợp riêng, không ghi thành Chi khác.
-  const water=getFlexWater();
-  $('flexWaterMonthAmount').value=dongToNghin(water?water.amount:'');
-  $('flexWaterPaid').checked=!!water?.paid;
-  $('deleteFlexWater').disabled=!water;
-  $('flexWaterNote').textContent=water?`Tháng ${monthText(selectedMonth)}: ${money(water.amount)} · ${water.paid?'Đã đóng':'Chưa đóng'}`:'Tháng này chưa ghi tiền nước phải trả.';
-  const ft=flexTotals();
-  $('flexFinanceSnapshot').innerHTML=flexCards(ft);
   const list=state.expenses.filter(x=>x.month===selectedMonth);
   $('expenseList').innerHTML=list.length?list.map(x=>`<article class="item"><div class="item-head">
     <div><div class="item-title">${safe(x.name)}</div><div class="detail">${money(x.amount)}</div></div>
