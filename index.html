@@ -106,6 +106,14 @@
   }
   #roomWaterQuotaFields[hidden],#billMeterRateField[hidden],#billPersonRateField[hidden],#billExcessRateField[hidden]{display:none!important}
   .invoice tfoot td{font-weight:800;font-size:17px;color:#17665a;border-top:2px solid #17665a}.invoice-foot{text-align:center;color:#70827b;font-size:12px;margin-top:22px}
+  /* Chỉ chia cột khi đồng thời có hóa đơn chưa thu và đã thu. */
+  .bill-status-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start;margin-top:12px}
+  .bill-status-column{min-width:0;padding:14px;border:1px solid #dce7e2;border-radius:15px;background:#f7faf9}
+  .bill-status-column h4{font-size:17px;margin:0 0 4px;color:#183c34}
+  .bill-status-column .bill-status-summary{color:#617970;font-size:13px;margin:0 0 12px}
+  .bill-status-column .stack{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+  /* Điện thoại hiển thị hai nhóm theo chiều dọc để các nút vẫn dễ bấm. */
+  @media (max-width:760px){.bill-status-columns{grid-template-columns:minmax(0,1fr)}.bill-status-column{padding:12px}}
 
   /* V8.2: quản lý nhiều người ở, có người đại diện và lịch sử chuyển đi. */
   .resident-editor{background:#f8fbfa;border:1px solid #d9e7e1;border-radius:12px;padding:13px;margin:12px 0}
@@ -1171,7 +1179,40 @@ function renderDashboard(){
   const items=[['Tổng phòng',state.rooms.length],['Có khách hiện tại',occupied],['Phòng trống',vacant],['Chờ chốt trả phòng',pending],['Tổng hóa đơn tháng',money(expected)],['Đã thu trực tiếp',money(collected)],['Đã chuyển qua quyết toán',money(offsetBills)],['Chưa thu / chưa quyết toán',money(expected-collected-offsetBills)]];
   $('stats').innerHTML=items.map(([label,value])=>`<div class="stat"><div class="stat-label">${label}</div><strong>${value}</strong></div>`).join('');
   $('financeSnapshot').innerHTML=financeCards(financeTotals());
-  $('dashboardBills').innerHTML=(unbilled?`<div class="note warn">Có <b>${unbilled} đợt thuê đang hoạt động</b> chưa lập hóa đơn tháng ${monthText(selectedMonth)}.</div>`:'')+(bills.length?bills.map(billCard).join(''):empty('Chưa có hóa đơn tháng này. Vào “Ghi số & hóa đơn” để bắt đầu.'));
+  // Cả hai trạng thái cùng xuất hiện: tách chưa thu bên trái, đã thu bên phải.
+  // Nếu chưa có khoản đã thu HOẶC đã thu hết: giữ danh sách một cột như trước.
+  // Sắp xếp cột đã thu theo thời điểm ghi nhận: thanh toán sau nằm bên dưới.
+  // Nếu dữ liệu cũ chưa có thời điểm thanh toán, xếp trước và giữ thứ tự phòng.
+  const paidTime=b=>{
+    if(b.paidAt)return Date.parse(b.paidAt)||0;
+    if(b.settledBy){
+      const settlement=(state.settlements||[]).find(s=>s.id===b.settledBy);
+      return Date.parse(settlement?.date||'')||0;
+    }
+    return 0;
+  };
+  const paidBills=bills.filter(b=>b.paid||b.settledBy).sort((a,b)=>paidTime(a)-paidTime(b)||a.roomName.localeCompare(b.roomName,'vi',{numeric:true}));
+  const unpaidBills=bills.filter(b=>!b.paid&&!b.settledBy);
+  const showTwoColumns=paidBills.length>0 && unpaidBills.length>0;
+  const notice=unbilled?`<div class="note warn">Có <b>${unbilled} đợt thuê đang hoạt động</b> chưa lập hóa đơn tháng ${monthText(selectedMonth)}.</div>`:'';
+  const normalList=bills.length?bills.map(billCard).join(''):empty('Chưa có hóa đơn tháng này. Vào “Ghi số & hóa đơn” để bắt đầu.');
+  const splitList=()=>{
+    const unpaidAmount=unpaidBills.reduce((sum,b)=>sum+calc(b).total,0);
+    const paidAmount=paidBills.reduce((sum,b)=>sum+calc(b).total,0);
+    return `<div class="bill-status-columns">
+      <section class="bill-status-column" aria-label="Danh sách chưa thanh toán">
+        <h4>🟠 Chưa thanh toán</h4>
+        <p class="bill-status-summary">${unpaidBills.length} hóa đơn · ${money(unpaidAmount)}</p>
+        <div class="stack">${unpaidBills.map(billCard).join('')}</div>
+      </section>
+      <section class="bill-status-column" aria-label="Danh sách đã thanh toán hoặc đã quyết toán">
+        <h4>🟢 Đã thanh toán</h4>
+        <p class="bill-status-summary">${paidBills.length} hóa đơn · ${money(paidAmount)}</p>
+        <div class="stack">${paidBills.map(billCard).join('')}</div>
+      </section>
+    </div>`;
+  };
+  $('dashboardBills').innerHTML=notice+(showTwoColumns?splitList():normalList);
 }
 function renderReadings(){
   const rooms=[...state.rooms].sort((a,b)=>a.name.localeCompare(b.name,'vi',{numeric:true}));
