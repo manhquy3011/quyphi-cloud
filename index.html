@@ -80,6 +80,20 @@
   .invoice-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;padding:17px 0}.invoice table{width:100%;border-collapse:collapse;font-size:14px}
   .invoice th,.invoice td{padding:10px 6px;border-bottom:1px solid #dce7e2;text-align:left}.invoice th:last-child,.invoice td:last-child{text-align:right}
   .invoice .n{text-align:right;white-space:nowrap}.invoice .tw{overflow-x:auto}.invoice td[colspan]{font-weight:600}@media(max-width:560px){.invoice table{font-size:12px}.invoice th,.invoice td{padding:8px 3px}}
+  /* Căn ngang 2 ô định mức / giá nước vượt: nhãn trái dài 2 dòng. */
+  #roomWaterQuotaFields > .field { min-width: 0; }
+  #roomWaterQuotaFields > .field > label {
+    display: flex;
+    align-items: flex-end;
+    min-height: 40px;
+  }
+  /* Khi hiển thị 1 cột trên điện thoại, không giữ khoảng trống nhãn. */
+  @media (max-width: 760px) {
+    #roomWaterQuotaFields > .field > label {
+      display: block;
+      min-height: 0;
+    }
+  }
   #roomWaterQuotaFields[hidden],#billMeterRateField[hidden],#billPersonRateField[hidden],#billExcessRateField[hidden]{display:none!important}
   .invoice tfoot td{font-weight:800;font-size:17px;color:#17665a;border-top:2px solid #17665a}.invoice-foot{text-align:center;color:#70827b;font-size:12px;margin-top:22px}
 
