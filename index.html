@@ -1115,6 +1115,7 @@ $('vehicleRows').addEventListener('click',e=>{if(e.target.closest('.remove-vehic
 let roomFormMode='edit';
 function openRoom(roomId,mode='edit'){
   const r=roomId?getRoom(roomId):null;
+  const currentTenancy=r?activeTenancy(r):null;
   const isNew=mode==='new-tenancy';roomFormMode=mode;
   if(isNew&&(!r||activeTenancy(r))){alert('Chỉ nhận khách mới khi phòng không có đợt thuê hoạt động.');return;}
   $('roomDialogTitle').textContent=isNew?`Nhận khách mới – Phòng ${r.name}`:r?'Sửa thông tin đợt thuê':'Thêm phòng mới';$('roomForm').reset();
@@ -1126,7 +1127,8 @@ function openRoom(roomId,mode='edit'){
   residents.forEach(p=>addResidentRow(p,p.id===r.representativeId));
   if(!residents.length)addResidentRow();
   updateResidentSummary();
-  $('roomLeaseStart').value=isNew?localToday():(r?.leaseStart||'');$('roomLeaseEnd').value=isNew?'':(r?.leaseEnd||'');$('roomDeposit').value=isNew?0:(r?.deposit??0);
+  // Nếu dữ liệu cũ thiếu leaseStart, dùng ngày bắt đầu gốc từ chính đợt thuê.
+  $('roomLeaseStart').value=isNew?localToday():(r?.leaseStart||currentTenancy?.startedAt||'');$('roomLeaseEnd').value=isNew?'':(r?.leaseEnd||'');$('roomDeposit').value=isNew?0:(r?.deposit??0);
   $('roomDeposit').readOnly=!!r&&!isNew;
   // Khi tạo đợt thuê mới, không kế thừa mã công tơ của khách cũ.
   // Khi sửa đợt đang thuê, bảo toàn mã cũ (nếu có) dù đã ẩn khỏi giao diện.
@@ -1199,6 +1201,20 @@ $('roomForm').addEventListener('submit',e=>{
     }
   }
   if(!newTenancy&&previousRoom&&!activeTenancy(previousRoom)&&occupants>0){alert('Phòng đã trống. Hãy dùng nút “Nhận khách mới” để tạo đợt thuê riêng.');return;}
+  // Khi sửa ngày thuê, phải cập nhật cả room.leaseStart và tenancy.startedAt.
+  // Trước khi đổi ngày gốc, chặn việc đè lên đợt thuê khác hoặc hóa đơn trước ngày mới.
+  const editingTenancy=!newTenancy&&previousRoom?activeTenancy(previousRoom):null;
+  const hasStartDateChange=!!editingTenancy&&leaseStart!==editingTenancy.startedAt;
+  if(hasStartDateChange){
+    if(!leaseStart){alert('Ngày bắt đầu đợt thuê không được để trống.');return;}
+    const conflict=previousRoom.tenancies.some(t=>t.id!==editingTenancy.id&&
+      ((!t.endedAt)||t.endedAt>=leaseStart||(t.startedAt&&t.startedAt>=leaseStart)));
+    if(conflict){alert('Ngày bắt đầu mới chồng lấn hoặc chưa xác nhận ngày trả của khách cũ. Hãy sửa ngày trả thực tế trong Lịch sử thuê trước, rồi lưu lại ngày bắt đầu của khách mới.');return;}
+    if(state.bills.some(b=>b.tenancyId===editingTenancy.id&&b.month<leaseStart.slice(0,7))){
+      alert('Có hóa đơn thuộc đợt thuê này trước ngày bắt đầu mới. Hãy kiểm tra hóa đơn lịch sử trước khi chỉnh ngày.');return;
+    }
+    if(!confirm(`Cập nhật ngày bắt đầu đợt thuê: ${dateText(editingTenancy.startedAt)} → ${dateText(leaseStart)}?\nHóa đơn, ngày nhận cọc và phiếu quyết toán đã lưu sẽ không bị tự đổi ngày.`))return;
+  }
   if(!previousRoom&&occupants===0&&deposit>0){alert('Phòng trống chưa có khách thì số dư cọc phải là 0.');return;}
   const room={id:roomId||id(),name,tenant:personInfo.representative?.name||'',
     phone:personInfo.representative?.phone||'',cccd,residents,representativeId:personInfo.representativeId,
@@ -1217,7 +1233,13 @@ $('roomForm').addEventListener('submit',e=>{
   }else if(previousRoom){
     room.tenancies=copy(previousRoom.tenancies);room.activeTenancyId=previousRoom.activeTenancyId;
     if(!room.activeTenancyId){room.deposit=0;room.tenant='';room.phone='';room.cccd='';room.residents=[];room.representativeId='';room.occupants=0;room.adults=0;room.children=0;}
-    else{room.deposit=previousRoom.deposit;syncActiveTenancy(room);}
+    else{
+      room.deposit=previousRoom.deposit;
+      syncActiveTenancy(room);
+      // Quan trọng: giá trị startedAt được syncActiveTenancy bảo toàn theo mặc định;
+      // chỉ khi chủ trọ chủ động đổi ngày và xác nhận, mới cập nhật ngày lịch sử của đợt đang thuê.
+      if(hasStartDateChange)activeTenancy(room).startedAt=leaseStart;
+    }
   }else if(occupants){
     room.activeTenancyId=id();room.tenancies=[tenancySnapshot(room,room.activeTenancyId)];
   }else{room.activeTenancyId=null;room.tenancies=[];}
