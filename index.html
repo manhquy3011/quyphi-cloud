@@ -455,6 +455,29 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
   #billRentPeopleGrid {grid-template-columns:repeat(2,minmax(0,1fr))}
   #billPeopleFields > .grid2 {grid-template-columns:repeat(2,minmax(0,1fr))}
   #billPeopleFields > .grid2 > .field[hidden] {display:none!important}
+
+/* v8.5.8: Nhật ký thao tác giữ chiều cao gọn, lịch sử dài cuộn bên trong. */
+#auditHistory {
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #a9cfc3 #f4f8f6;
+  border: 1px solid #dce8e3;
+  border-radius: 10px;
+  padding: 0 10px;
+  background: #fff;
+}
+#auditHistory .line { align-items: flex-start; min-width: 0; overflow-wrap: anywhere; }
+#auditHistory .line span { min-width: 0; }
+#auditHistory::-webkit-scrollbar { width: 8px; }
+#auditHistory::-webkit-scrollbar-track { background: #f4f8f6; border-radius: 8px; }
+#auditHistory::-webkit-scrollbar-thumb { background: #b4d1c7; border-radius: 8px; }
+@media (max-width: 600px) {
+  #auditHistory { max-height: 220px; padding: 0 8px; }
+}
 </style>
 </head>
 <body class="cloud-locked">
@@ -1751,7 +1774,7 @@ function renderCheckResults(){
   $('dataCheckResults').innerHTML=warnings.length?warnings.map(w=>`<div class="data-check-item">⚠️ ${safe(w)}</div>`).join(''):'<div class="data-check-item ok">✓ Chưa phát hiện mâu thuẫn thuộc các quy tắc kiểm tra hiện có.</div>';
 }
 function renderAuditHistory(){
-  const logs=(state.auditLog||[]).slice().reverse().slice(0,40);
+  const logs=(state.auditLog||[]).slice().reverse();
   $('auditHistory').innerHTML=logs.length?logs.map(x=>`<div class="line"><span><b>${safe(x.message)}</b><br><span class="small muted">${safe(x.at&&Number.isFinite(Date.parse(x.at))?new Date(x.at).toLocaleString('vi-VN'):'Không rõ thời gian')}</span></span></div>`).join(''):'<p class="soft-muted">Chưa ghi nhật ký thay đổi sau khi nâng cấp.</p>';
 }
 $('runDataChecks').addEventListener('click',renderCheckResults);
