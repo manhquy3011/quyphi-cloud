@@ -41,7 +41,8 @@
   .wide{grid-column:1/-1}.vehicle-editor{background:#f8fbfa;border:1px solid #d9e7e1;border-radius:11px;padding:12px;margin-bottom:10px}
   .vehicle-editor .grid2{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}.vehicle-header{display:flex;justify-content:space-between;align-items:center;gap:10px}
   .invoice-info{background:#f5faf7;border:1px solid #dcebe4;border-radius:9px;padding:12px;margin:8px 0 14px;font-size:13px;line-height:1.7}
-  .invoice-date{text-align:right;font-size:12px;color:#58716a;margin-bottom:8px}
+  .invoice-date{text-align:right;font-size:14px;color:#17665a;margin-bottom:8px;font-weight:800;font-style:italic}
+  .invoice-subtitle{font-weight:800}
   /* Hai cột thông tin ngân hàng + mã QR, ảnh nằm bên phải. */
   .transfer-box{border:1px solid #bfded2;border-radius:10px;padding:13px;margin-top:18px;
     font-size:13px;line-height:1.8;display:grid;grid-template-columns:minmax(0,1fr) 164px;
@@ -82,7 +83,7 @@
   /* Thông báo lỗi: xuống dòng từ "người lớn" và căn giữa hai dòng. */
   .total-box.is-error{text-align:center;white-space:pre-line}
   .invoice{background:white;padding:24px}.invoice-top{text-align:center;border-bottom:2px solid #17665a;padding-bottom:15px}.invoice-top h2{margin:5px 0;color:#17665a;letter-spacing:.5px}
-  .invoice-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;padding:17px 0}.invoice table{width:100%;border-collapse:collapse;font-size:14px}
+  .invoice-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;padding:17px 0}.invoice-meta-label{font-weight:400}.invoice-meta-value{font-weight:800}.invoice table{width:100%;border-collapse:collapse;font-size:14px}
   .invoice th,.invoice td{padding:10px 6px;border-bottom:1px solid #dce7e2;text-align:left}.invoice th:last-child,.invoice td:last-child{text-align:right}
   /* Nhật ký đổi công tơ: các lần lắp/tháo được ghi theo từng giai đoạn trong hóa đơn. */
   .meter-segment-panel{background:#f7fbf9;border:1px solid #c6ddd4;border-radius:12px;padding:12px;margin:10px 0}
@@ -110,7 +111,7 @@
     }
   }
   #roomWaterQuotaFields[hidden],#billMeterRateField[hidden],#billPersonRateField[hidden],#billExcessRateField[hidden]{display:none!important}
-  .invoice tfoot td{font-weight:800;font-size:17px;color:#17665a;border-top:2px solid #17665a}.invoice-foot{text-align:center;color:#70827b;font-size:12px;margin-top:22px}
+  .invoice tfoot td{font-weight:800;font-size:17px;color:#17665a;border-top:2px solid #17665a}.invoice-foot{text-align:center;color:#c33b32;font-size:12px;margin-top:22px;font-weight:800;font-style:italic}
   /* Chỉ chia cột khi đồng thời có hóa đơn chưa thu và đã thu. */
   .bill-status-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start;margin-top:12px}
   .bill-status-column{min-width:0;padding:14px;border:1px solid #dce7e2;border-radius:15px;background:#f7faf9}
@@ -470,6 +471,9 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
 #auditHistory::-webkit-scrollbar-track { background: #f4f8f6; border-radius: 8px; }
 #auditHistory::-webkit-scrollbar-thumb { background: #b4d1c7; border-radius: 8px; }
 @media (max-width: 600px) {
+    #invoiceDialog{max-width:760px;max-height:none;overflow:visible;}
+  #invoiceDialog .modal-body{overflow:visible;max-height:none;padding-top:12px;}
+  #invoiceDialog .modal-title{display:none;}
   #auditHistory { max-height: 220px; padding: 0 8px; }
 }
 </style>
@@ -912,7 +916,7 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
   <div id="flexEntryTotal" class="total-box">Tổng: 0 đ</div>
 </div><div class="modal-footer"><button class="btn secondary" type="button" data-close="flexEntryDialog">Hủy</button><button class="btn" type="submit">💾 Lưu tiền tháng</button></div></form></dialog>
 <!-- Hộp xem / in hóa đơn -->
-<dialog id="invoiceDialog"><div class="modal-body"><div class="modal-title"><h2>Chi tiết hóa đơn</h2><button type="button" class="icon-close" data-close="invoiceDialog" aria-label="Đóng">×</button></div><div id="invoiceContent"></div></div>
+<dialog id="invoiceDialog"><div class="modal-body"><div id="invoiceContent"></div></div>
   <div class="modal-footer"><button class="btn secondary" type="button" data-close="invoiceDialog">Đóng</button><button class="btn secondary" type="button" id="invoicePaidBtn">Đánh dấu đã thu</button><button class="btn" type="button" id="printInvoice">🖨 In / Lưu PDF</button></div>
 </dialog>
 <!-- v8.4.9: ghi các lần thu tiền thực tế, tách khỏi trạng thái hóa đơn -->
@@ -2840,35 +2844,45 @@ function showInvoice(billId){
   // Tiền thuê, điện, nước và các khoản phí vẫn lấy từ hóa đơn đã lưu.
   const fmtN=x=>new Intl.NumberFormat('vi-VN').format(Math.round(Number(x)||0));
   const full=(label,amt)=>`<tr><td colspan="5">${label}</td><td class="n">${money(amt)}</td></tr>`;
+  // Dòng nước vượt: chỉ hiển thị khi CÓ VƯỢT; không cộng thêm tiền ngoài calc().
+  // Nếu thay nhiều công tơ trong cùng kỳ, không ghép sai chỉ số của hai thiết bị.
+  const overWaterRow=(period,volume,rate,amount)=>{
+    const segments=hasMeterSegments(b,'water')?meterSegmentsOf(b,'water'):[];
+    const reading=segments.length===1?segments[0]:segments.length>1?null:b;
+    const oldValue=reading?(reading.old??reading.oldW??'–'):'Nhiều CT';
+    const newValue=reading?(reading.new??reading.newW??'–'):'Nhiều CT';
+    return `<tr><td><b>Vượt định mức</b>${period?`<div class="muted small">Nước kỳ ${monthText(period)}</div>`:''}</td><td class="n">${oldValue}</td><td class="n">${newValue}</td><td class="n">${Number(volume.toFixed(3))} m³</td><td class="n">${fmtN(rate)}</td><td class="n">${money(amount)}</td></tr>`;
+  };
   const segLine=(label,seg,type,amount,rate)=>`<tr><td>${label} · ${safe(seg.meter)}<div class="muted small">${dateText(seg.start)}–${dateText(seg.end)}</div></td><td class="n">${seg.old}</td><td class="n">${seg.new}</td><td class="n">${Number(segmentVolume(seg).toFixed(3))} ${meterUnits(type)}</td><td class="n">${fmtN(rate)}</td><td class="n">${money(amount)}</td></tr>`;
   let detail=hasMeterSegments(b,'electric')
-    ?meterSegmentsOf(b,'electric').map(seg=>segLine('Tiền điện',seg,'electric',Math.round(segmentVolume(seg)*(seg.rate??b.electricRate)),seg.rate??b.electricRate)).join('')
-    :`<tr><td>Tiền điện</td><td class="n">${b.oldE}</td><td class="n">${b.newE}</td><td class="n">${Number((b.newE-b.oldE).toFixed(3))} kWh</td><td class="n">${fmtN(b.electricRate)}</td><td class="n">${money(v.electric)}</td></tr>`;
+    ?meterSegmentsOf(b,'electric').map(seg=>segLine('Tiền điện sinh hoạt',seg,'electric',Math.round(segmentVolume(seg)*(seg.rate??b.electricRate)),seg.rate??b.electricRate)).join('')
+    :`<tr><td>Tiền điện sinh hoạt</td><td class="n">${b.oldE}</td><td class="n">${b.newE}</td><td class="n">${Number((b.newE-b.oldE).toFixed(3))} kWh</td><td class="n">${fmtN(b.electricRate)}</td><td class="n">${money(v.electric)}</td></tr>`;
   if(b.waterBillingPrior&&b.waterPrior&&b.waterPriorAccounting==='current-base-prior-excess'){
     const p=b.waterPrior;
-    detail+=`<tr><td><b>Tiền nước cơ bản ${monthText(b.month)}</b> – ${b.occupants} người</td><td class="n">–</td><td class="n">–</td><td class="n">${b.occupants} người</td><td class="n">${fmtN(b.waterPerPerson)}/người</td><td class="n">${money(v.basicWater)}</td></tr>`;
-    // Chỉ in định mức trong hóa đơn khi thực sự vượt; vẫn lưu định mức để tính tháng sau.
-    const priorQuotaNote=v.extraVolume>0?`, định mức ${p.allowance} m³`:'';
-    detail+=`<tr><td>Nước sử dụng ${monthText(p.period)} (chốt đầu ${monthText(b.month)}${priorQuotaNote})</td><td class="n">${b.oldW??'–'}</td><td class="n">${b.newW??'–'}</td><td class="n">${p.used??'–'} m³</td><td class="n">–</td><td class="n">Đối chiếu</td></tr>`;
-    if(v.extraVolume>0)detail+=`<tr><td>Phụ thu vượt định mức ${monthText(p.period)} (${v.extraVolume} m³)</td><td class="n">–</td><td class="n">–</td><td class="n">${v.extraVolume} m³</td><td class="n">${fmtN(p.excessRate)}/m³</td><td class="n">${money(v.excessWater)}</td></tr>`;
+    if(b.waterMode==='person'){
+      detail+=`<tr><td><b>Tiền nước sinh hoạt</b></td><td class="n">–</td><td class="n">–</td><td class="n">${b.occupants} người</td><td class="n">${fmtN(b.waterPerPerson)}/người</td><td class="n">${money(v.basicWater)}</td></tr>`;
+    }else{
+      // Đổi sang cách tính theo m³: không hiển thị sai đơn giá /người trên hóa đơn.
+      detail+=`<tr><td><b>Tiền nước sinh hoạt</b></td><td class="n">–</td><td class="n">–</td><td class="n">${p.used??0} m³</td><td class="n">${fmtN(b.waterRate||p.rate)}/m³</td><td class="n">${money(v.basicWater)}</td></tr>`;
+    }
+    // Không vượt thì KHÔNG có dòng theo dõi nước trên hóa đơn; số cũ/mới vẫn giữ trong dữ liệu.
+    if(v.extraVolume>0)detail+=overWaterRow(p.period,v.extraVolume,p.excessRate,v.excessWater);
   }else if(b.waterBillingPrior&&b.waterPrior){
     const p=b.waterPrior;
     const head=`Tiền nước kỳ ${monthText(p.period)}${p.included?' (đã tính trên hóa đơn trước)':''}`;
     if(p.included){detail+=full(head,0);}
     else if(p.mode==='person'){
-      detail+=`<tr><td>${safe(head)} · ${p.people} người</td><td class="n">–</td><td class="n">–</td><td class="n">${p.people} người</td><td class="n">${fmtN(p.rate)}/người</td><td class="n">${money(v.basicWater)}</td></tr>`;
-      if(v.extraVolume>0)detail+=`<tr><td>Phụ thu vượt ĐỊNH MỨC KỲ ${monthText(p.period)} (${p.allowance} m³)</td><td class="n">–</td><td class="n">–</td><td class="n">${Number(v.extraVolume.toFixed(3))} m³</td><td class="n">${fmtN(p.excessRate)}</td><td class="n">${money(v.excessWater)}</td></tr>`;
+      detail+=`<tr><td>Tiền nước sinh hoạt</td><td class="n">–</td><td class="n">–</td><td class="n">${p.people} người</td><td class="n">${fmtN(p.rate)}/người</td><td class="n">${money(v.basicWater)}</td></tr>`;
+      if(v.extraVolume>0)detail+=overWaterRow(p.period,v.extraVolume,p.excessRate,v.excessWater);
     }else detail+=`<tr><td>${safe(head)} · theo khối</td><td class="n">–</td><td class="n">–</td><td class="n">${p.used??0} m³</td><td class="n">${fmtN(p.rate)}</td><td class="n">${money(v.water)}</td></tr>`;
     const used=hasMeterSegments(b,'water')?totalMeterVolume(b,'water'):(Number.isFinite(b.oldW)&&Number.isFinite(b.newW)?b.newW-b.oldW:null);
     detail+=`<tr><td><b>Theo dõi nước ${monthText(b.month)} – TÍNH TIỀN THÁNG SAU</b></td><td class="n">${b.oldW??'–'}</td><td class="n">${b.newW??'–'}</td><td class="n">${used===null?'–':Number(used.toFixed(3))+' m³'}</td><td class="n">–</td><td class="n">Chưa thu</td></tr>`;
   }else if(b.waterMode==='meter'){
-    detail+=hasMeterSegments(b,'water')?meterSegmentsOf(b,'water').map(seg=>segLine('Tiền nước',seg,'water',Math.round(segmentVolume(seg)*(seg.rate??b.waterRate)),seg.rate??b.waterRate)).join('')
-      :`<tr><td>Tiền nước</td><td class="n">${b.oldW}</td><td class="n">${b.newW}</td><td class="n">${Number((b.newW-b.oldW).toFixed(3))} m³</td><td class="n">${fmtN(b.waterRate)}</td><td class="n">${money(v.water)}</td></tr>`;
+    detail+=hasMeterSegments(b,'water')?meterSegmentsOf(b,'water').map(seg=>segLine('Tiền nước sinh hoạt',seg,'water',Math.round(segmentVolume(seg)*(seg.rate??b.waterRate)),seg.rate??b.waterRate)).join('')
+      :`<tr><td>Tiền nước sinh hoạt</td><td class="n">${b.oldW}</td><td class="n">${b.newW}</td><td class="n">${Number((b.newW-b.oldW).toFixed(3))} m³</td><td class="n">${fmtN(b.waterRate)}</td><td class="n">${money(v.water)}</td></tr>`;
   }else{
-    detail+=`<tr><td>Nước theo người (${b.occupants} người${v.extraVolume>0?', định mức '+b.waterAllowance+' m³/phòng':''})</td><td class="n">–</td><td class="n">–</td><td class="n">${b.occupants} người</td><td class="n">${fmtN(b.waterPerPerson)}/người</td><td class="n">${money(v.basicWater)}</td></tr>`;
-    if(hasMeterSegments(b,'water'))detail+=meterSegmentsOf(b,'water').map(seg=>segLine('Theo dõi nước',seg,'water',0,0)).join('');
-    else if(b.waterAllowance>0)detail+=`<tr><td>Chỉ số nước dùng định mức</td><td class="n">${b.oldW}</td><td class="n">${b.newW}</td><td class="n">${Number((b.newW-b.oldW).toFixed(3))} m³</td><td class="n">–</td><td class="n">–</td></tr>`;
-    if(v.extraVolume>0)detail+=`<tr><td>Phụ thu nước vượt định mức</td><td class="n">–</td><td class="n">–</td><td class="n">${Number(v.extraVolume.toFixed(3))} m³</td><td class="n">${fmtN(b.waterExcessRate)}</td><td class="n">${money(v.excessWater)}</td></tr>`;
+    detail+=`<tr><td>Tiền nước sinh hoạt</td><td class="n">–</td><td class="n">–</td><td class="n">${b.occupants} người</td><td class="n">${fmtN(b.waterPerPerson)}/người</td><td class="n">${money(v.basicWater)}</td></tr>`;
+    if(v.extraVolume>0)detail+=overWaterRow(b.month,v.extraVolume,b.waterExcessRate??b.waterRate,v.excessWater);
   }
   detail+=[...b.fees,...(b.extras||[])].map(f=>full(safe(f.name),f.amount)).join('');
   detail+=full('Tiền phòng',b.rent);
@@ -2894,15 +2908,14 @@ function showInvoice(billId){
 `;
   }
   $('invoiceContent').innerHTML=`<div class="invoice">
-    <div class="invoice-date">Ngày xem / in: ${nowText()}</div>
-    <div class="invoice-top"><h2>HÓA ĐƠN TIỀN PHÒNG</h2><div>Tháng ${monthText(b.month)}</div></div>
-    <div class="invoice-meta"><div><b>Phòng:</b> ${safe(b.roomName)}</div><div><b>Người thuê:</b> ${safe(b.tenant||'—')}</div>
-      <div><b>Điện thoại:</b> ${safe(b.phone||'—')}</div>
-      <div><b>Trạng thái:</b> <span class="badge ${b.paid||b.settledBy?'paid':'unpaid'}">${b.settledBy?'ĐÃ QUYẾT TOÁN':b.paid?'ĐÃ THANH TOÁN':billPaidAmount(b)>0?'ĐÃ THU MỘT PHẦN':'CHƯA THANH TOÁN'}</span></div></div>
+    <div class="invoice-date"><b><i>Ngày lập: ${nowText()}</i></b></div>
+    <div class="invoice-top"><h2>HÓA ĐƠN TIỀN PHÒNG</h2><div class="invoice-subtitle"><b>Tháng ${monthText(b.month)}</b></div></div>
+    <div class="invoice-meta"><div><span class="invoice-meta-label">Phòng:</span> <span class="invoice-meta-value">${safe(b.roomName)}</span></div><div><span class="invoice-meta-label">Người thuê:</span> <span class="invoice-meta-value">${safe(b.tenant||'—')}</span></div>
+      <div><span class="invoice-meta-label">Điện thoại:</span> <span class="invoice-meta-value">${safe(b.phone||'—')}</span></div>
+      <div><span class="invoice-meta-label">Trạng thái:</span> <span class="invoice-meta-value"><span class="badge ${b.paid||b.settledBy?'paid':'unpaid'}">${b.settledBy?'ĐÃ QUYẾT TOÁN':b.paid?'ĐÃ THANH TOÁN':billPaidAmount(b)>0?'ĐÃ THU MỘT PHẦN':'CHƯA THANH TOÁN'}</span></span></div></div>
     
     <div class="tw"><table><thead><tr><th>Hạng mục</th><th class="n">Số cũ</th><th class="n">Số mới</th><th class="n">Tiêu thụ</th><th class="n">Đơn giá</th><th class="n">Thành tiền</th></tr></thead><tbody>${detail}</tbody>
       <tfoot><tr><td colspan="5">TỔNG CỘNG</td><td class="n">${money(v.total)}</td></tr></tfoot></table></div>
-    <div class="detail small">Đã nhận trực tiếp: <b>${money(billPaidAmount(b))}</b> · ${b.settledBy?`Đã xử lý bằng quyết toán: <b>${money(billDueAmount(b))}</b>`:`Còn phải thu: <b>${money(billDueAmount(b))}</b>`}</div>
     ${billReceipts(b).map(p=>`<div class="detail small">Thu ${dateText(p.date)}: ${money(p.amount)}${p.note?' · '+safe(p.note):''}</div>`).join('')}
     ${transfer}
     <div class="invoice-foot">${b.paid?'Cảm ơn bạn đã thanh toán!':'Vui lòng kiểm tra thông tin và thanh toán trước ngày '+(state.settings.payDay||5)+' hàng tháng.'}</div></div>`;
