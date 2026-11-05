@@ -508,7 +508,7 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
 /* ===== QUÝ PHI 8.6.1 / THỦY MẶC: chỉ đổi bố cục và giao diện ===== */
 html{background:#f5f6f3}
 body{background:#f5f6f3 url('./nen-thuy-mac.svg') center top / cover fixed no-repeat!important;min-height:100vh;color:#1d3b35}
-.top{background:linear-gradient(115deg,#075245,#106957 50%,#095247)!important;
+.top{position:sticky;top:0;z-index:40;background:linear-gradient(115deg,#075245,#106957 50%,#095247)!important;
      box-shadow:0 5px 20px rgba(16,50,43,.18);padding:17px 32px}
 .top-inner{max-width:none;gap:24px}
 .top .brand{display:flex;align-items:center;gap:15px;min-width:0}
@@ -517,15 +517,15 @@ body{background:#f5f6f3 url('./nen-thuy-mac.svg') center top / cover fixed no-re
 .top h1{font-weight:800;letter-spacing:-.3px;font-size:22px}
 .month-box select{background:#f1d681!important;color:#224039!important;box-shadow:0 4px 14px rgba(0,0,0,.08)}
 .shell{max-width:none;width:auto;margin:0 0 0 232px;padding:26px 32px 58px;min-width:0}
-/* The original navigation is displayed as a fixed sidebar on desktop. */
-.tabs{position:fixed;left:16px;top:101px;bottom:16px;width:200px;
-  margin:0;padding:17px 12px;display:flex;flex-direction:column;gap:9px;
-  overflow-y:auto;overflow-x:hidden;z-index:12;border:1px solid rgba(212,221,216,.9);
-  border-radius:19px;background:rgba(255,255,255,.88);box-shadow:0 16px 40px rgba(38,60,52,.09);backdrop-filter:blur(10px)}
-.tabs .tab{width:100%;white-space:normal;text-align:left;border:0;border-radius:11px;padding:14px 15px;
-  background:transparent;color:#234a40;box-shadow:none;min-height:51px;font-size:13px;white-space:nowrap}
-.tabs .tab:hover{background:rgba(231,240,236,.9)}
-.tabs .tab.active{background:linear-gradient(120deg,#116e58,#075244);color:white;box-shadow:0 5px 14px rgba(20,94,77,.18)}
+/* Sidebar gọn theo số lượng menu, giữ nền trong suốt để nhìn thấy thủy mặc */
+.tabs{position:sticky;left:16px;top:96px;width:200px;height:fit-content;max-height:calc(100vh - 116px);
+  margin:0;padding:0;display:flex;flex-direction:column;gap:9px;
+  overflow-y:auto;overflow-x:hidden;z-index:20;border:0;
+  border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none}
+.tabs .tab{width:100%;white-space:normal;text-align:left;border:1px solid rgba(215,227,221,.92);border-radius:14px;padding:14px 15px;
+  background:rgba(255,255,255,.55);color:#234a40;box-shadow:0 8px 24px rgba(38,60,52,.05);min-height:51px;font-size:13px;white-space:nowrap;backdrop-filter:blur(4px)}
+.tabs .tab:hover{background:rgba(255,255,255,.75)}
+.tabs .tab.active{background:linear-gradient(120deg,#116e58,#075244);border-color:transparent;color:white;box-shadow:0 5px 14px rgba(20,94,77,.18)}
 .cloud-toolbar,.stat,.panel,.item,.finance-kpi,.finance-card,.bill-status-column,.annual-donut-panel,.dashboard-chart{
   background:rgba(255,255,255,.92);border-color:rgba(211,223,218,.85);
   box-shadow:0 10px 28px rgba(27,61,51,.07);backdrop-filter:blur(6px)}
@@ -577,7 +577,7 @@ body{background:#f5f6f3 url('./nen-thuy-mac.svg') center top / cover fixed no-re
 .foot{color:#235346;border-top-color:rgba(166,190,177,.7)}
 /* Mobile layout deliberately retains top navigation, instead of shrinking the sidebar. */
 @media(max-width:1050px) and (min-width:761px){
-  .tabs{width:175px;left:9px;padding:12px 8px}
+  .tabs{width:175px;left:9px;top:90px}
   .shell{margin-left:195px;padding:22px 20px 50px}
   .dashboard-visuals{grid-template-columns:1fr}
 }
