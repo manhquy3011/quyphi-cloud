@@ -317,16 +317,12 @@ body.cloud-locked>.foot{display:none!important}
 
 
 
-/* v8.4.9 – lịch thu tiền, báo cáo tiền thực tế */
-.annual-mode-bar{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin:14px 0 5px;font-weight:700;color:#28574d}
-.annual-mode-bar select{padding:9px 12px;border:1px solid #b3d0c4;border-radius:9px;background:white;color:#12483d;font-weight:700;max-width:100%}
-#annualMainDateNote,#annualOtherDateNote{margin-bottom:14px}
+/* v8.4.9 – nhật ký thu tiền được giữ nguyên, báo cáo năm chỉ sử dụng kỳ hóa đơn. */
 .data-check-results{margin:12px 0;display:grid;gap:7px}
 .data-check-item{padding:9px 12px;border-radius:9px;border:1px solid #edddbf;background:#fffaf0;font-size:13px;line-height:1.5}
 .data-check-item.ok{border-color:#c6e6d7;background:#f4fbf7;color:#125c44}
 .payment-row{padding:9px 0;border-bottom:1px solid #e0e9e5;display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
 .payment-row .small{font-size:12px}
-@media(max-width:700px){.annual-mode-bar{align-items:stretch;flex-direction:column}.annual-mode-bar select{width:100%}}
 
 /* === v8.5.0 | Mobile-first tinh chỉnh. Chỉ thay đổi cách hiển thị. === */
 .nav-mobile{display:none}
@@ -370,8 +366,6 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
   .annual-header h2{font-size:clamp(16px,4.4vw,19px);flex:1;min-width:0}
   .annual-year-field{min-width:83px;width:83px;flex:none;margin:0}
   .annual-year-field select{width:100%;min-width:0;min-height:43px;font-size:14px;padding:8px}
-  .annual-mode-bar{gap:7px;margin-top:8px}
-  .annual-mode-bar select{font-size:14px;min-height:43px}
   .annual-donut-panel{padding:13px;border-radius:14px}
   .annual-donut-layout{grid-template-columns:1fr;gap:15px}
   .annual-donut{width:min(64vw,250px);height:min(64vw,250px)}
@@ -551,8 +545,6 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
   </div>
   <div class="section-intro">Tổng hợp theo <b>hóa đơn phòng thường</b> và các khoản <b>Thu chi</b>. Chỉ cộng khoản <b>đã thu / đã đóng</b>. <b>Tiền cọc không tính</b> vào doanh thu hay chi phí hoạt động.</div>
   <h3>🏠 Phòng thường – Tổng kết cả năm</h3>
-  <div class="annual-mode-bar"><span>Chế độ thống kê:</span><select id="annualMainMode" aria-label="Chế độ tổng hợp thu chi"><option value="period">Theo tháng hóa đơn</option><option value="cash" selected>Theo ngày thu / chi thực tế</option></select></div>
-  <div id="annualMainDateNote" class="soft-muted"></div>
   <div id="annualMainCards" class="finance-kpis annual-kpis"></div>
   <div id="annualMainDonut" class="annual-donut-panel" aria-label="Biểu đồ tròn tổng hợp thu chi"></div>
 </section>
@@ -563,8 +555,6 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
   </div>
   <div class="section-intro">Theo dõi riêng phần <b>Khoản thu khác</b> và <b>tiền nước đã đóng</b>. Phần này tách riêng khỏi phòng thường để tránh cộng trùng.</div>
   <h3 class="finance-section-title">📎 Khoản thu khác – Theo dõi độc lập</h3>
-  <div class="annual-mode-bar"><span>Chế độ thống kê:</span><select id="annualOtherMode" aria-label="Chế độ tổng hợp khoản thu khác"><option value="period">Theo tháng ghi sổ</option><option value="cash" selected>Theo ngày thu / chi thực tế</option></select></div>
-  <div id="annualOtherDateNote" class="soft-muted"></div>
   <div id="annualFlexCards" class="finance-kpis"></div>
   <div id="annualFlexDonut" class="annual-donut-panel" aria-label="Biểu đồ tròn tổng hợp khác"></div>
 </section>
@@ -3054,8 +3044,8 @@ function renderAnnualMain(){
   const year=annualMainYear;
   setAnnualYearSelect('annualMainYearSel',year);
   $('annualMainYearTitle').textContent=year;
-  const mode=$('annualMainMode').value;const report=annualTotals(year,mode),m=report.main;
-  $('annualMainDateNote').textContent=mode==='cash'?`Báo cáo theo ngày thực nhận / thực chi. Trong toàn bộ dữ liệu có ${countMissingDates('main')} giao dịch chưa rõ ngày; chưa được cộng vào thống kê ngày thực tế.`:'Báo cáo theo tháng ghi hóa đơn và tháng ghi sổ, phù hợp đối chiếu kỳ tiền phòng.';
+  // Báo cáo năm luôn tổng hợp theo tháng hóa đơn / kỳ ghi sổ, không phân loại theo ngày thanh toán.
+  const report=annualTotals(year,'period'),m=report.main;
   const card=(name,value,mode='')=>`<div class="finance-kpi ${mode}"><span>${name}</span><strong>${money(value)}</strong></div>`;
   $('annualMainCards').innerHTML=
     card('TỔNG ĐÃ THU – PHÒNG THƯỜNG',m.received)+
@@ -3083,8 +3073,8 @@ function renderAnnualOther(){
   const year=annualOtherYear;
   setAnnualYearSelect('annualOtherYearSel',year);
   $('annualOtherYearTitle').textContent=year;
-  const mode=$('annualOtherMode').value;const report=annualTotals(year,mode),f=report.flex;
-  $('annualOtherDateNote').textContent=mode==='cash'?`Báo cáo theo ngày thực thu / thực chi. Trong toàn bộ dữ liệu có ${countMissingDates('other')} giao dịch chưa rõ ngày; chưa được cộng vào thống kê ngày thực tế.`:'Báo cáo theo tháng ghi sổ Khoản thu khác.';
+  // Báo cáo Khoản thu khác cũng luôn theo tháng ghi sổ.
+  const report=annualTotals(year,'period'),f=report.flex;
   const card=(name,value,mode='')=>`<div class="finance-kpi ${mode}"><span>${name}</span><strong>${money(value)}</strong></div>`;
   $('annualFlexCards').innerHTML=
     card('KHOẢN THU KHÁC ĐÃ NHẬN',f.received)+
@@ -3106,8 +3096,6 @@ function renderAnnualOther(){
     ]
   });
 }
-$('annualMainMode').addEventListener('change',renderAnnualMain);
-$('annualOtherMode').addEventListener('change',renderAnnualOther);
 $('annualMainYearSel').addEventListener('change',e=>{const chosen=String(e.target.value); if(!/^\d{4}$/.test(chosen))return; annualMainYear=Number(chosen); renderAnnualMain();});
 $('annualOtherYearSel').addEventListener('change',e=>{const chosen=String(e.target.value); if(!/^\d{4}$/.test(chosen))return; annualOtherYear=Number(chosen); renderAnnualOther();});
 
