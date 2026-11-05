@@ -66,7 +66,27 @@
     overflow:hidden;background:#f6faf8;color:#647c74;text-align:center;font-size:12px;padding:7px}
   .qr-preview img{display:block;width:100%;height:100%;object-fit:contain}
   .qr-editor-help{flex:1;min-width:220px}
-  @media(max-width:560px){
+  
+  /* Preset gợi ý nhanh:
+     - Muốn nền đậm hơn:   --qp-ink-wash-bg: .24;
+     - Muốn nền nhạt hơn:  --qp-ink-wash-bg: .10;
+     - Muốn khung trong hơn: --qp-card-alpha: .68; --qp-panel-alpha: .74;
+     - Muốn khung đặc hơn:   --qp-card-alpha: .88; --qp-panel-alpha: .92;
+  */
+  .card,.room-card,.summary-card,.stat,.box,.panel,.form-card,.list-card,.kpi-card,.info-card,.tile,.meter-card,.invoice-card,.money-card,.summary-box,.white-panel,.glass{
+    background:rgba(255,255,255,var(--qp-card-alpha)) !important;
+    border-color:rgba(116,157,146,.35) !important;
+  }
+  .soft-card,.summary-soft,.overview-note,.hero-note,.note-box,.info-strip,.alert-box,.intro-box{
+    background:rgba(255,255,255,var(--qp-soft-alpha)) !important;
+  }
+  .topbar,.top,.header,.site-header,.main-header,.page-header,.app-header,.sticky-header{
+    background:rgba(18,92,77,var(--qp-header-alpha)) !important;
+    backdrop-filter:blur(10px) saturate(1.05);
+  }
+  .main-menu,.sidebar,.sidebar-shell,.sidebar-inner,.nav-side{background:rgba(255,255,255,.34)!important;backdrop-filter:blur(12px);}
+
+@media(max-width:560px){
     .transfer-box{grid-template-columns:minmax(0,1fr) 120px;gap:8px;padding:10px;font-size:12px}
     .transfer-right img{max-width:120px;max-height:120px;padding:3px}
     .qr-caption{font-size:10px}
@@ -140,7 +160,7 @@
   .resident-archive-item:last-child{border:0}
   #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#173d36;color:white;padding:12px 18px;border-radius:11px;box-shadow:0 5px 30px #0003;z-index:9999;display:none;max-width:94vw}
   @media(max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}.top{padding:15px}.shell{padding:12px 12px 35px}.panel{padding:14px}.stat{padding:13px}.stat strong{font-size:18px}.setting-fee{grid-template-columns:1fr 110px}.setting-fee .btn{padding:9px}.invoice{padding:15px}.invoice-meta{grid-template-columns:1fr}.modal-body{padding:16px}.vehicle-editor .grid2{grid-template-columns:1fr}.header-controls{width:100%;align-items:flex-start}.month-box input{max-width:205px}}
-  /* Sổ khoản thu khác và sổ chi phí */
+  /* Sổ khoản thu linh hoạt và sổ chi phí */
   .finance-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0 18px}
   .finance-kpi{background:white;border:1px solid #dce9e3;border-radius:14px;padding:15px}
   .finance-kpi span{font-size:13px;color:#627a71}.finance-kpi strong{display:block;font-size:22px;margin-top:7px;color:#17665a;overflow-wrap:anywhere}
@@ -507,13 +527,28 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
 
 /* ===== QUÝ PHI 8.6.1 / THỦY MẶC: chỉ đổi bố cục và giao diện ===== */
 /* Phần điều chỉnh màu nền chỉ thuộc giao diện máy này; không thay dữ liệu Supabase. */
-html{--qp-ink-wash:.16;background:#f5f6f3}
+html{
+    /* ==== TÙY CHỈNH NHANH GIAO DIỆN ====
+       --qp-ink-wash-bg: độ đậm nền thủy mặc (tăng lên = đậm hơn, giảm xuống = nhạt hơn)
+       --qp-card-alpha: độ trong suốt của khung nội dung (giảm xuống = trong hơn, tăng lên = đặc hơn)
+       --qp-panel-alpha: độ trong suốt của các khối thống kê / form
+       --qp-header-alpha: độ trong suốt của header
+       Bạn chỉ cần sửa các số bên dưới.
+    ================================= */
+    --qp-ink-wash-bg:.18;
+    --qp-card-alpha:.78;
+    --qp-panel-alpha:.84;
+    --qp-soft-alpha:.72;
+    --qp-header-alpha:.88;
+    --qp-ink-wash:var(--qp-ink-wash-bg);
+    background:#f5f6f3
+  }
 body{
- background-image:linear-gradient(rgba(255,255,255,var(--qp-ink-wash)),rgba(255,255,255,var(--qp-ink-wash))),url('./nen-thuy-mac.svg')!important;
+ background-image:linear-gradient(rgba(255,255,255,var(--qp-ink-wash)),rgba(255,255,255,var(--qp-ink-wash))),url('./nen-thuy-mac-goc.png')!important;
  background-color:#f5f6f3!important;
  background-position:center top,center top!important;
  background-repeat:no-repeat,no-repeat!important;
- background-size:cover,cover!important;
+ background-size:100% auto,100% auto!important;
  background-attachment:fixed,fixed!important;
  min-height:100vh;color:#173b33;
 }
@@ -544,7 +579,7 @@ body{
   box-shadow:0 4px 11px rgba(33,72,60,.05);font-size:12px;font-weight:750;
   backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
 }
-.tabs .tab:hover{background:rgba(255,255,255,.78)}
+.tabs .tab:hover{background:rgba(255,255,255,var(--qp-card-alpha))}
 .tabs .tab.active{background:linear-gradient(120deg,#116e58,#075244);border-color:transparent;color:#fff;box-shadow:0 5px 14px rgba(20,94,77,.18)}
 .cloud-toolbar,.stat,.panel,.item,.finance-kpi,.finance-card,.bill-status-column,.annual-donut-panel,.dashboard-chart{
   background:rgba(255,255,255,.92);border-color:rgba(211,223,218,.85);
@@ -690,6 +725,147 @@ body{
   }
 }
 
+
+/* ===== v8.6.5: Mục con Thu chi và chiều rộng vừa phải ===== */
+#finance .finance-subnav{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:9px;
+  max-width:1060px;
+  margin:8px auto 22px;
+  padding:0 0 14px;
+  border-bottom:1px solid rgba(141,173,160,.45);
+}
+#finance .finance-subnav .deposit-switch-btn {
+  flex:none;
+  background:rgba(255,255,255,.76);
+  border:1px solid #bbd9ce;
+  border-radius:11px;
+  box-shadow:0 4px 13px rgba(26,68,53,.035);
+}
+#finance .finance-subnav .deposit-switch-btn.active {
+  color:#fff;
+  background:#17665a;
+  border-color:#17665a;
+}
+#finance .finance-content {
+  width:100%;
+  max-width:1060px;
+  margin-inline:auto;
+  min-width:0;
+}
+#finance .finance-content[hidden]{display:none!important}
+#finance .finance-content-heading{margin:6px 0 14px;font-size:20px;color:#0e4c3e}
+#finance #depositFinanceSummary.finance-kpis{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  max-width:920px;
+}
+#finance #depositHistorySummary.finance-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+#finance .finance-card{max-width:100%}
+/* 5 ô và nút Lưu công tơ trên MỘT dòng khi đủ rộng. */
+#finance .meter-form{
+  display:grid;
+  grid-template-columns:minmax(205px,1.8fr) minmax(125px,.75fr) auto minmax(145px,.82fr) auto;
+  align-items:end;
+  gap:10px;
+}
+#finance .meter-form>.btn{min-width:75px;min-height:43px;white-space:nowrap}
+#finance .meter-form .field{min-width:0}
+#finance .meter-form .check-pay{align-self:end;min-height:43px;padding:8px 0}
+#finance .meter-form .status-line{grid-column:1/-1!important}
+@media(max-width:1250px){
+  #finance .meter-form{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;
+  }
+  #finance .meter-form>.field:nth-child(4){grid-column:1/3}
+  #finance .meter-form>.btn{grid-column:3}
+}
+@media(max-width:760px){
+  #finance .finance-subnav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:3px 0 16px}
+  #finance .finance-subnav .deposit-switch-btn{min-width:0;padding:9px 5px;font-size:12px;line-height:1.35;min-height:47px}
+  #finance #depositFinanceSummary.finance-kpis,
+  #finance #depositHistorySummary.finance-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #finance .meter-form{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #finance .meter-form>.field:nth-child(4){grid-column:auto}
+  #finance .meter-form>.btn{grid-column:1/-1}
+}
+@media(max-width:420px){
+  #finance .finance-subnav{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #finance .finance-subnav .deposit-switch-btn:last-child{grid-column:1/-1}
+  #finance #depositHistorySummary.finance-kpis{grid-template-columns:1fr}
+}
+
+
+/* ===== Quý Phi v8.6.6: Thu gọn đồng bộ tất cả các trang =====
+   Giống Sổ thu chi: nội dung rộng tối đa 1060px và luôn căn giữa.
+   Không thay đổi điều khiển, dữ liệu hoặc công thức của ứng dụng. */
+:root { --qp-content-max: 1060px; }
+.shell > .view,
+.shell > .cloud-toolbar,
+.shell > .annual-subnav,
+.shell > #storageWarning {
+  width: 100%;
+  max-width: var(--qp-content-max);
+  min-width: 0;
+  margin-left: auto;
+  margin-right: auto;
+}
+/* Để các ô và biểu đồ không tràn khỏi bề ngang giới hạn */
+.shell > .view .stats,
+.shell > .view .finance-kpis,
+.shell > .view .dashboard-visuals,
+.shell > .view .stack,
+.shell > .view .annual-donut-panel,
+.shell > .view .bill-status-columns {
+  max-width: 100%;
+  min-width: 0;
+}
+/* Bảng nhiều cột được cuộn ngang ở màn hình nhỏ; không kéo giãn cả trang. */
+.shell > .view .tw,
+.shell > .view .annual-table-wrap {
+  max-width: 100%;
+}
+@media (max-width: 760px) {
+  /* Điện thoại tận dụng chiều ngang còn lại, không tạo viền trống vô ích. */
+  .shell > .view,
+  .shell > .cloud-toolbar,
+  .shell > .annual-subnav,
+  .shell > #storageWarning { max-width: 100%; }
+}
+
+
+/* v8.6.7 – Danh sách Khoản thu linh hoạt trình bày như Tổng quan. */
+#flex #flexRoomList{min-width:0;max-width:100%}
+#flex #flexRoomList:has(>.flex-status-columns){display:block}
+#flex .flex-status-columns{max-width:100%;align-items:start}
+#flex .flex-status-columns .bill-status-column{
+  min-width:0;background:rgba(255,255,255,.44)!important;
+  border-color:rgba(173,196,186,.58);
+  box-shadow:0 6px 22px rgba(22,64,51,.05)!important;
+  backdrop-filter:blur(2px);
+}
+#flex .flex-room-card{
+  min-width:0;background:rgba(255,255,255,.70)!important;
+  border-color:rgba(176,205,193,.68);
+  box-shadow:0 4px 14px rgba(22,64,51,.05)!important;
+  padding:15px;
+}
+#flex .flex-room-card .item-head{align-items:flex-start}
+#flex .flex-room-card .detail{overflow-wrap:anywhere}
+#flex .flex-room-card .price{margin:4px 0 6px}
+#flex .flex-room-card .flex-room-lines{margin:4px 0 7px;font-size:12px;line-height:1.5}
+#flex .flex-room-card .actions{margin-top:10px;gap:7px}
+#flex .flex-room-card .actions .btn{min-height:39px;padding:9px 11px;font-size:13px}
+#flex .flex-room-card .flex-pending-btn{background:#f4a340!important;border-color:#de8b21!important;color:#492b00!important}
+#flex .flex-room-card .flex-received-btn{background:#17665a!important;border-color:#17665a!important;color:#fff!important}
+#flex .bill-status-column h4{color:#163d34}
+@media(max-width:760px){
+  #flex .flex-status-columns{grid-template-columns:minmax(0,1fr)}
+  #flex .flex-status-columns .bill-status-column{padding:12px;background:rgba(255,255,255,.56)!important}
+  #flex .flex-room-card{background:rgba(255,255,255,.80)!important}
+}
+
 </style>
 </head>
 <body class="cloud-locked">
@@ -723,7 +899,7 @@ body{
 <header class="top"><div class="top-inner">
   <div class="brand">
     <span class="brand-emblem" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 21L24 5l19 16M12 18v20h24V18" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 38V25h8v13M7 43q8-6 17 0 9-6 17 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M15 23h3m12 0h3" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></span>
-    <div><h1>Quý Phi – Quản lý Nhà trọ &amp; Thu chi</h1><div class="subtitle">Phòng trọ · Hóa đơn · Khoản thu khác · Thu chi</div></div>
+    <div><h1>Quý Phi – Quản lý Nhà trọ &amp; Thu chi</h1><div class="subtitle">Phòng trọ · Hóa đơn · Khoản thu linh hoạt · Thu chi</div></div>
   </div>
   <div class="header-controls">
     <div class="month-box"><label for="monthSel">Tháng</label><select id="monthSel"></select><label for="yearSel">Năm</label><select id="yearSel"></select></div>
@@ -741,7 +917,7 @@ body{
     <button class="tab active" data-tab="dashboard">📊 <span class="nav-desktop">Tổng quan</span><span class="nav-mobile">Tổng quan</span></button>
     <button class="tab" data-tab="readings" aria-label="Ghi số và hóa đơn">🧮 <span class="nav-desktop">Ghi số &amp; hóa đơn</span><span class="nav-mobile">Ghi số</span></button>
     <button class="tab" data-tab="annual" aria-controls="annualSubnav" aria-expanded="false">📊 <span class="nav-desktop">Tổng hợp</span><span class="nav-mobile">Tổng hợp</span> <span aria-hidden="true">▾</span></button>
-    <button class="tab" data-tab="flex" aria-label="Khoản thu khác">🧾 <span class="nav-desktop">Khoản thu khác</span><span class="nav-mobile">Khoản thu</span></button>
+    <button class="tab" data-tab="flex" aria-label="Khoản thu linh hoạt">🧾 <span class="nav-desktop">Khoản thu linh hoạt</span><span class="nav-mobile">Khoản thu</span></button>
     <button class="tab" data-tab="finance">💰 Thu chi</button>
     <button class="tab" data-tab="rooms">🏘️ Phòng trọ</button>
     <button class="tab" data-tab="settings">⚙️ Cài đặt</button>
@@ -758,10 +934,10 @@ body{
     <h3>Thu chi theo kỳ hóa đơn <span class="month-title"></span></h3>
     <div id="financeSnapshot" class="finance-kpis"></div>
     <div class="dashboard-visuals">
-      <section class="dashboard-chart" aria-label="Biểu đồ 6 tháng gần đây"><h3>📊 Đã thu 6 tháng gần đây</h3><p class="chart-caption">Theo kỳ hóa đơn, chỉ tính tiền đã nhận thực tế của phòng thường.</p><div id="dashboardMiniBars" class="dashboard-mini-bars"></div></section>
+      <section class="dashboard-chart" aria-label="Biểu đồ 6 tháng gần đây"><h3>📊 Đã thu 6 tháng gần đây</h3><p class="chart-caption">Theo kỳ hóa đơn, chỉ tính tiền đã nhận thực tế của hóa đơn chính.</p><div id="dashboardMiniBars" class="dashboard-mini-bars"></div></section>
       <section class="dashboard-chart" aria-label="Biểu đồ thu chi tháng"><h3>◕ Thu chi trong tháng</h3><p class="chart-caption">Đã thu · điện đã đóng · các khoản chi khác.</p><div id="dashboardMiniDonut" class="dashboard-mini-donut"></div></section>
     </div>
-    <p class="soft-muted">Số dư này chỉ tính phòng thường: <b>đã thu − điện đã đóng − chi khác đã trả</b>. Khoản thu khác và tiền nước tổng theo dõi ở mục Khoản thu khác, không tính trùng.</p>
+    <p class="soft-muted">Số dư này chỉ tính <b>khoản thu chi chính</b>: <b>đã thu − điện đã đóng − chi khác đã trả</b>. Khoản thu linh hoạt và tiền nước tổng được theo dõi riêng, không tính trùng.</p>
     <h3>Hóa đơn đã lập</h3><div id="dashboardBills" class="stack"></div>
   </section>
 <!-- Báo cáo năm chỉ đọc: không can thiệp dữ liệu Supabase hoặc khoản thu chi đang lưu. -->
@@ -770,7 +946,7 @@ body{
     <h2>📊 Tổng hợp thu chi năm <span id="annualMainYearTitle"></span></h2>
     <div class="field annual-year-field"><select id="annualMainYearSel" aria-label="Chọn năm tổng hợp thu chi"></select></div>
   </div>
-  <div class="section-intro">Tổng hợp theo <b>hóa đơn phòng thường</b> và các khoản <b>Thu chi</b>. Chỉ cộng khoản <b>đã thu / đã đóng</b>. <b>Tiền cọc không tính</b> vào doanh thu hay chi phí hoạt động.</div>
+  <div class="section-intro">Tổng hợp theo <b>hóa đơn chính</b> và các khoản <b>Thu chi</b>. Chỉ cộng khoản <b>đã thu / đã đóng</b>. <b>Tiền cọc không tính</b> vào doanh thu hay chi phí hoạt động.</div>
   <h3>🏠 Phòng thường – Tổng kết cả năm</h3>
   <div id="annualMainCards" class="finance-kpis annual-kpis"></div>
   <div id="annualMainDonut" class="annual-donut-panel" aria-label="Biểu đồ tròn tổng hợp thu chi"></div>
@@ -780,8 +956,8 @@ body{
     <h2>🧾 Tổng hợp khác năm <span id="annualOtherYearTitle"></span></h2>
     <div class="field annual-year-field"><select id="annualOtherYearSel" aria-label="Chọn năm tổng hợp khác"></select></div>
   </div>
-  <div class="section-intro">Theo dõi riêng phần <b>Khoản thu khác</b> và <b>tiền nước đã đóng</b>. Phần này tách riêng khỏi phòng thường để tránh cộng trùng.</div>
-  <h3 class="finance-section-title">📎 Khoản thu khác – Theo dõi độc lập</h3>
+  <div class="section-intro">Theo dõi riêng phần <b>Khoản thu linh hoạt</b> và <b>tiền nước đã đóng</b>. Phần này tách riêng khỏi <b>thu chi chính</b> để tránh cộng trùng.</div>
+  <h3 class="finance-section-title">📎 Khoản thu linh hoạt – Theo dõi độc lập</h3>
   <div id="annualFlexCards" class="finance-kpis"></div>
   <div id="annualFlexDonut" class="annual-donut-panel" aria-label="Biểu đồ tròn tổng hợp khác"></div>
 </section>
@@ -794,11 +970,11 @@ body{
     <div id="roomList" class="stack"></div>
   </section>
   <section id="flex" class="view">
-    <div class="section-head"><h2>Phòng thu tiền linh hoạt <span class="month-title"></span></h2><button class="btn" type="button" id="addFlexRoom">+ Thêm phòng khoản thu khác</button></div>
-    <div class="section-intro"><b>Sổ Khoản thu khác – không cộng vào tổng thu chi phòng thường.</b> Mỗi phòng có thể nhập số tiền khác nhau theo tháng. Tiền nước tổng hằng tháng sẽ được trừ <b>chỉ trong sổ Khoản thu khác</b>.</div>
-    <!-- Tiền nước chỉ quản lý trong Khoản thu khác; khoản này không nhập lại tại Thu chi. -->
+    <div class="section-head"><h2>Phòng thu tiền linh hoạt <span class="month-title"></span></h2><button class="btn" type="button" id="addFlexRoom">+ Thêm phòng khoản thu linh hoạt</button></div>
+    <div class="section-intro"><b>Sổ Khoản thu linh hoạt – không cộng vào tổng thu chi chính.</b> Mỗi phòng có thể nhập số tiền khác nhau theo tháng. Tiền nước tổng hằng tháng sẽ được trừ <b>chỉ trong sổ Khoản thu linh hoạt</b>.</div>
+    <!-- Tiền nước chỉ quản lý trong Khoản thu linh hoạt; khoản này không nhập lại tại Thu chi. -->
     <h3 class="finance-section-title">💧 Tiền nước phải đóng hằng tháng</h3>
-    <p class="soft-muted">Nhập <b>tiền nước phải trả</b> cho tháng đang chọn và đánh dấu <b>Đã đóng</b> khi thực tế thanh toán. Khoản này chỉ trừ vào <b>Khoản thu khác</b>, không trừ lần nữa trong <b>Thu chi</b>.</p>
+    <p class="soft-muted">Nhập <b>tiền nước phải trả</b> cho tháng đang chọn và đánh dấu <b>Đã đóng</b> khi thực tế thanh toán. Khoản này chỉ trừ vào <b>Khoản thu linh hoạt</b>, không trừ lần nữa trong <b>khoản thu chi chính</b>.</p>
     <form id="flexWaterForm" class="finance-card">
       <div class="meter-form">
         <div class="field"><label for="flexWaterMonthAmount">Tiền nước phải trả (nghìn đ)</label><input id="flexWaterMonthAmount" type="number" min="0" step="any" placeholder="500" required></div>
@@ -809,31 +985,24 @@ body{
       </div>
       <div id="flexWaterNote" class="status-line" aria-live="polite"></div>
     </form>
-    <h3 class="finance-section-title">🧮 Tổng hợp Khoản thu khác sau khi trừ tiền nước</h3>
+    <h3 class="finance-section-title">🧮 Tổng hợp Khoản thu linh hoạt sau khi trừ tiền nước</h3>
     <div id="flexSummary" class="finance-kpis"></div>
-    <p class="soft-muted">Số dư dự kiến = <b>tổng phiếu Khoản thu khác</b> − <b>tiền nước phải trả</b>. Số dư thực tế = <b>Khoản thu khác đã nhận</b> − <b>tiền nước đã đóng</b>. Tiền nước này không được trừ vào phòng thường.</p>
-    <h3 class="finance-section-title">Danh sách phòng Khoản thu khác</h3>
+    <p class="soft-muted">Số dư dự kiến = <b>tổng phiếu Khoản thu linh hoạt</b> − <b>tiền nước phải trả</b>. Số dư thực tế = <b>Khoản thu linh hoạt đã nhận</b> − <b>tiền nước đã đóng</b>. Tiền nước này không được trừ vào <b>khoản thu chi chính</b>.</p>
+    <h3 class="finance-section-title">Danh sách khoản thu linh hoạt</h3>
     <div id="flexRoomList" class="stack"></div>
   </section>
   <section id="finance" class="view">
-    <div class="section-head"><h2>Sổ thu chi <span class="month-title"></span></h2></div>
-    <div class="section-intro">Báo cáo thu chi chính <b>chỉ tính phòng thường</b>. Các công tơ điện và khoản chi khác được trừ từ phòng thường. Tiền nước tổng được ghi riêng, chỉ trừ vào Khoản thu khác; hai số dư không cộng lẫn.</div>
-    <div id="financeSummary" class="finance-kpis"></div>
-    <h3 class="finance-section-title">🔐 Tiền cọc theo phòng</h3>
-    <div class="deposit-switch" role="group" aria-label="Chế độ xem tiền cọc">
-      <button id="depositCurrentTab" class="deposit-switch-btn active" type="button" aria-pressed="true">🏠 Cọc khách đang ở</button>
+    <!-- Ba mục Thu chi độc lập; không can thiệp dữ liệu cọc hay chi phí. -->
+    <nav class="deposit-switch finance-subnav" aria-label="Các mục trong Thu chi">
+      <button id="financeLedgerTab" class="deposit-switch-btn active" type="button" aria-pressed="true">💰 Sổ thu chi</button>
+      <button id="depositCurrentTab" class="deposit-switch-btn" type="button" aria-pressed="false">🔐 Tiền cọc</button>
       <button id="depositHistoryTab" class="deposit-switch-btn" type="button" aria-pressed="false">📖 Lịch sử hoàn / khấu trừ</button>
-    </div>
-    <div id="depositCurrentPanel">
-      <p class="soft-muted">Chỉ tổng hợp <b>cọc đang giữ của đợt thuê hiện tại</b>, không tính khách cũ. Bảng hiển thị mọi phòng, kể cả phòng trống hoặc chưa nhận cọc (0 đ). Báo cáo là tình trạng <b>hiện tại</b>, không phụ thuộc tháng đang chọn.</p>
-      <div id="depositFinanceSummary" class="finance-kpis"></div>
-      <div id="depositFinanceList" class="finance-card"></div>
-    </div>
-    <div id="depositHistoryPanel" hidden>
-      <p class="soft-muted">Chỉ hiện <b>giao dịch hoàn cọc và khấu trừ cọc</b> của mọi đợt thuê. Các giao dịch <b>nhận thêm / điều chỉnh số dư</b> chỉ xem trong <b>Sổ cọc</b> của từng phòng, tránh nhầm tiền cọc của khách đang ở với khoản đã hoàn. Hoàn cọc không phải chi phí hoạt động.</p>
-      <div id="depositHistorySummary" class="finance-kpis"></div>
-      <div id="depositHistoryList" class="finance-card"></div>
-    </div>
+    </nav>
+    <div id="financeLedgerPanel" class="finance-content">
+
+    <div class="section-head"><h2>Sổ thu chi <span class="month-title"></span></h2></div>
+    <div class="section-intro">Báo cáo thu chi chính <b>chỉ tính hóa đơn chính</b>. Các công tơ điện và khoản chi khác được trừ trong <b>thu chi chính</b>. Tiền nước tổng được ghi riêng, chỉ trừ vào <b>Khoản thu linh hoạt</b>; hai số dư không cộng lẫn.</div>
+    <div id="financeSummary" class="finance-kpis"></div>
     <h3 class="finance-section-title">⚡ Tiền điện phải đóng hằng tháng (<span id="visibleMeterCount">3</span> công tơ)</h3>
     <p class="soft-muted">Tên từng công tơ được khai báo tại <b>Cài đặt → Tên công tơ điện</b>. Mục này chỉ nhập <b>số tiền điện phải đóng</b> hằng tháng và đánh dấu đã đóng. Chỉ khoản đã đóng mới trừ vào tiền còn lại.</p>
     <div id="meterList"></div>
@@ -849,6 +1018,19 @@ body{
       <div class="actions"><button class="btn" type="submit">💾 Lưu khoản chi</button><button class="btn secondary" type="button" id="cancelExpense">Hủy sửa</button></div>
     </form>
     <div id="expenseList" class="stack"></div>
+    </div>
+    <div id="depositCurrentPanel" class="finance-content" hidden>
+      <h2 class="finance-content-heading">🔐 Tiền cọc theo phòng</h2>
+      <p class="soft-muted">Chỉ tổng hợp <b>cọc đang giữ của đợt thuê hiện tại</b>, không tính khách cũ. Bảng hiển thị mọi phòng, kể cả phòng trống hoặc chưa nhận cọc (0 đ). Báo cáo là tình trạng <b>hiện tại</b>, không phụ thuộc tháng đang chọn.</p>
+      <div id="depositFinanceSummary" class="finance-kpis"></div>
+      <div id="depositFinanceList" class="finance-card"></div>
+    </div>
+    <div id="depositHistoryPanel" class="finance-content" hidden>
+      <h2 class="finance-content-heading">📖 Lịch sử hoàn / khấu trừ</h2>
+      <p class="soft-muted">Chỉ hiện <b>giao dịch hoàn cọc và khấu trừ cọc</b> của mọi đợt thuê. Các giao dịch <b>nhận thêm / điều chỉnh số dư</b> chỉ xem trong <b>Sổ cọc</b> của từng phòng, tránh nhầm tiền cọc của khách đang ở với khoản đã hoàn. Hoàn cọc không phải chi phí hoạt động.</p>
+      <div id="depositHistorySummary" class="finance-kpis"></div>
+      <div id="depositHistoryList" class="finance-card"></div>
+    </div>
   </section>
   <section id="settings" class="view"><h2>Cài đặt</h2>
     <div class="panel qp-appearance-panel">
@@ -926,7 +1108,7 @@ body{
     </div>
     <div class="panel" style="border:1px solid #e9b3ad">
       <h3 style="color:#a6352c">🧹 Xóa toàn bộ dữ liệu và bắt đầu lại</h3>
-      <p class="small">Chỉ sử dụng khi bạn muốn <b>khởi tạo dữ liệu hoàn toàn mới</b>. Chức năng sẽ xóa khỏi dữ liệu đang sử dụng: phòng, người thuê, CCCD, hóa đơn, khoản thu khác, chi phí, công tơ đã cấu hình, sổ cọc, quyết toán, ngân hàng và ảnh QR.</p>
+      <p class="small">Chỉ sử dụng khi bạn muốn <b>khởi tạo dữ liệu hoàn toàn mới</b>. Chức năng sẽ xóa khỏi dữ liệu đang sử dụng: phòng, người thuê, CCCD, hóa đơn, khoản thu linh hoạt, chi phí, công tơ đã cấu hình, sổ cọc, quyết toán, ngân hàng và ảnh QR.</p>
       <p class="small muted"><b>Không xóa:</b> Project Supabase, bảng SQL, tài khoản đăng nhập, địa chỉ GitHub Pages. Bản JSON đã tải về máy vẫn được giữ.</p>
       <div class="actions"><button type="button" class="btn secondary" id="resetDownloadBackup">⬇ Bước 1: Xuất bản sao lưu</button></div>
       <label class="small" style="display:flex;align-items:flex-start;gap:9px;margin:14px 0">
@@ -1133,19 +1315,19 @@ body{
   </div><div class="modal-footer"><button class="btn secondary" type="button" data-close="meterHistoryDialog">Đóng</button></div></dialog>
 <!-- Phòng thu linh hoạt: đơn vị nhập nghìn đồng; dữ liệu luôn lưu VND. -->
 <dialog id="flexRoomDialog"><form id="flexRoomForm"><div class="modal-body">
-  <div class="modal-title"><h2 id="flexRoomTitle">Thêm phòng khoản thu khác</h2><button type="button" class="icon-close" data-close="flexRoomDialog">×</button></div>
+  <div class="modal-title"><h2 id="flexRoomTitle">Thêm phòng khoản thu linh hoạt</h2><button type="button" class="icon-close" data-close="flexRoomDialog">×</button></div>
   <input id="flexRoomId" type="hidden">
   <div class="field"><label for="flexRoomName">Tên / số phòng *</label><input id="flexRoomName" maxlength="60" required placeholder="Ví dụ: Phòng 1"></div>
   <div class="field"><label for="flexTenant">Người thuê / người nộp (không bắt buộc)</label><input id="flexTenant" maxlength="100"></div>
   <div class="field"><label for="flexPhone">Điện thoại (không bắt buộc)</label><input id="flexPhone" maxlength="30" type="tel"></div>
-  <div class="section-intro">Phòng này chỉ nằm trong <b>Khoản thu khác</b>, không ảnh hưởng doanh thu, công nợ, thu chi của các phòng thường.</div>
+  <div class="section-intro">Mục này chỉ nằm trong <b>Khoản thu linh hoạt</b>, không ảnh hưởng doanh thu, công nợ, thu chi của <b>hệ thống chính</b>.</div>
 </div><div class="modal-footer"><button class="btn secondary" type="button" data-close="flexRoomDialog">Hủy</button><button class="btn" type="submit">Lưu phòng</button></div></form></dialog>
 <dialog id="flexEntryDialog"><form id="flexEntryForm"><div class="note small">Tiền nhập theo <b>nghìn đồng</b>: nhập 150 sẽ tính thành 150.000 đ.</div><div class="modal-body">
-  <div class="modal-title"><h2 id="flexEntryTitle">Nhập tiền khoản thu khác</h2><button type="button" class="icon-close" data-close="flexEntryDialog">×</button></div>
+  <div class="modal-title"><h2 id="flexEntryTitle">Nhập tiền khoản thu linh hoạt</h2><button type="button" class="icon-close" data-close="flexEntryDialog">×</button></div>
   <input id="flexEntryRoomId" type="hidden">
-  <div class="note">Có thể sửa số tiền tháng sau độc lập với tháng trước. Chỉ lưu trong sổ Khoản thu khác.</div>
+  <div class="note">Có thể sửa số tiền tháng sau độc lập với tháng trước. Chỉ lưu trong sổ Khoản thu linh hoạt.</div>
   <div id="flexItemRows"></div>
-  <button type="button" class="btn secondary" id="addFlexItem">+ Thêm khoản thu khác</button>
+  <button type="button" class="btn secondary" id="addFlexItem">+ Thêm khoản thu linh hoạt</button>
   <label style="display:flex;gap:9px;align-items:center;margin-top:17px"><input type="checkbox" id="flexEntryPaid"> Đã nhận đủ tiền tháng này</label>
   <div class="field"><label for="flexEntryPaidDate">Ngày thực thu</label><input id="flexEntryPaidDate" type="date"></div>
   <div id="flexEntryTotal" class="total-box">Tổng: 0 đ</div>
@@ -1422,7 +1604,7 @@ let auditBaseline=null;
 function auditChanges(before,after){
   if(!before)return [];
   const types=[['bills','hóa đơn'],['billPayments','lần thu tiền'],['meterPayments','tiền điện'],
-    ['expenses','khoản chi'],['flexEntries','Khoản thu khác'],['flexWaterPayments','tiền nước tổng'],
+    ['expenses','khoản chi'],['flexEntries','Khoản thu linh hoạt'],['flexWaterPayments','tiền nước tổng'],
     ['depositTransactions','giao dịch cọc'],['settlements','quyết toán']];
   const keyFor=(kind,x)=>kind==='meterPayments'?x.meterId+'/'+x.month:
     kind==='flexWaterPayments'?x.month:String(x.id);
@@ -1602,7 +1784,7 @@ function validateData(input){
     };
   });
   if(new Set(rooms.map(r=>r.id)).size!==rooms.length || new Set(bills.map(b=>b.id)).size!==bills.length || new Set(bills.map(b=>`${b.roomId}/${b.tenancyId}/${b.month}`)).size!==bills.length) throw Error('Có phòng hoặc hóa đơn bị trùng mã.');
-  // Bổ sung sổ khoản thu khác và sổ chi phí. Các bản sao lưu V1–V3 chưa có phần này
+  // Bổ sung sổ khoản thu linh hoạt và sổ chi phí. Các bản sao lưu V1–V3 chưa có phần này
   // sẽ được khởi tạo rỗng mà không làm thay đổi hóa đơn đã lưu.
   const validMonth=m=>/^\d{4}-(0[1-9]|1[0-2])$/.test(m);
   const boundedArray=(v,label)=>{
@@ -1610,17 +1792,17 @@ function validateData(input){
     if(!Array.isArray(v)||v.length>5000)throw Error(label+' không hợp lệ.');
     return v;
   };
-  const flexRooms=boundedArray(d.flexRooms,'Danh sách phòng khoản thu khác').map(r=>{
-    if(!r||typeof r.id!=='string'||typeof r.name!=='string'||!r.name.trim())throw Error('Thông tin phòng khoản thu khác không hợp lệ.');
+  const flexRooms=boundedArray(d.flexRooms,'Danh sách phòng khoản thu linh hoạt').map(r=>{
+    if(!r||typeof r.id!=='string'||typeof r.name!=='string'||!r.name.trim())throw Error('Thông tin phòng khoản thu linh hoạt không hợp lệ.');
     return {id:r.id,name:r.name.trim().slice(0,60),tenant:String(r.tenant??'').slice(0,100),phone:String(r.phone??'').slice(0,30)};
   });
-  const flexEntries=boundedArray(d.flexEntries,'Phiếu khoản thu khác').map(e=>{
-    if(!e||typeof e.id!=='string'||typeof e.roomId!=='string'||!validMonth(e.month)||!Array.isArray(e.items)||!e.items.length||e.items.length>80)throw Error('Phiếu khoản thu khác không hợp lệ.');
+  const flexEntries=boundedArray(d.flexEntries,'Phiếu khoản thu linh hoạt').map(e=>{
+    if(!e||typeof e.id!=='string'||typeof e.roomId!=='string'||!validMonth(e.month)||!Array.isArray(e.items)||!e.items.length||e.items.length>80)throw Error('Phiếu khoản thu linh hoạt không hợp lệ.');
     const items=e.items.map(x=>{
-      if(!x||typeof x.name!=='string'||!x.name.trim())throw Error('Hạng mục khoản thu khác thiếu tên.');
-      return {name:x.name.trim().slice(0,100),amount:moneyInt(x.amount,'Tiền khoản thu khác')};
+      if(!x||typeof x.name!=='string'||!x.name.trim())throw Error('Hạng mục khoản thu linh hoạt thiếu tên.');
+      return {name:x.name.trim().slice(0,100),amount:moneyInt(x.amount,'Tiền khoản thu linh hoạt')};
     });
-    return {id:e.id,roomId:e.roomId,month:e.month,items,paid:!!e.paid,paidDate:readFinancialDate(e.paidDate,'Ngày thu Khoản thu khác')};
+    return {id:e.id,roomId:e.roomId,month:e.month,items,paid:!!e.paid,paidDate:readFinancialDate(e.paidDate,'Ngày thu Khoản thu linh hoạt')};
   });
   // Giữ toàn bộ ID công tơ để không mất lịch sử khi giảm số lượng trong Cài đặt.
   // Những bản V4/V5 chưa có meterCount: lấy từ số công tơ đã khai báo.
@@ -1645,10 +1827,10 @@ function validateData(input){
     if(!x||typeof x.id!=='string'||!validMonth(x.month)||typeof x.name!=='string'||!x.name.trim())throw Error('Khoản chi không hợp lệ.');
     return {id:x.id,month:x.month,name:x.name.trim().slice(0,100),amount:moneyInt(x.amount,'Tiền chi'),paid:!!x.paid,paidDate:readFinancialDate(x.paidDate,'Ngày thực chi')};
   });
-  // Mỗi tháng chỉ có một hóa đơn nước phải trả; thuộc sổ Khoản thu khác, KHÔNG thuộc expenses.
-  const flexWaterPayments=boundedArray(d.flexWaterPayments,'Tiền nước của Khoản thu khác').map(x=>{
-    if(!x||!validMonth(x.month))throw Error('Tháng tiền nước Khoản thu khác không hợp lệ.');
-    return {month:x.month,amount:moneyInt(x.amount,'Tiền nước Khoản thu khác'),paid:!!x.paid,paidDate:readFinancialDate(x.paidDate,'Ngày đóng nước')};
+  // Mỗi tháng chỉ có một hóa đơn nước phải trả; thuộc sổ Khoản thu linh hoạt, KHÔNG thuộc expenses.
+  const flexWaterPayments=boundedArray(d.flexWaterPayments,'Tiền nước của Khoản thu linh hoạt').map(x=>{
+    if(!x||!validMonth(x.month))throw Error('Tháng tiền nước Khoản thu linh hoạt không hợp lệ.');
+    return {month:x.month,amount:moneyInt(x.amount,'Tiền nước Khoản thu linh hoạt'),paid:!!x.paid,paidDate:readFinancialDate(x.paidDate,'Ngày đóng nước')};
   });
   // Sổ tiền cọc tương thích bản v8.1 trở về trước: thiếu sổ thì khởi tạo rỗng.
   const depositTransactions=boundedArray(d.depositTransactions,'Sổ tiền cọc').map(x=>{
@@ -1754,6 +1936,7 @@ const roomFees=r=>[
   ...state.settings.fees.filter(f=>r.feeIds.includes(f.id)).map(f=>({name:f.name,amount:f.amount}))
 ];
 function switchTab(tab){
+  if(tab==='finance')setDepositView('ledger');
   // Một tab cha Tổng hợp, hai trang con riêng biệt.
   const annual = tab === 'annual' || tab === 'annual-main' || tab === 'annual-other';
   if(tab === 'annual-main' || tab === 'annual-other') annualActiveView = tab;
@@ -1791,7 +1974,7 @@ function dashboardPaymentButton(b){
 function billCard(b){const v=calc(b);return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(b.roomName)}</div><div class="detail">${safe(b.tenant||'Chưa có tên người thuê')} · Tháng ${monthText(b.month)}</div></div><span class="badge ${b.paid||b.settledBy?'paid':'unpaid'}">${b.settledBy?'Đã quyết toán':b.paid?'✓ Đã thanh toán':billPaidAmount(b)>0?'◐ Còn thiếu tiền':'● Chưa thanh toán'}</span></div><div class="price">${money(v.total)}</div>${billPaidAmount(b)>0&&!b.paid?`<div class="detail small">Đã nhận ${money(billPaidAmount(b))} · Còn nợ ${money(billDueAmount(b))}</div>`:''}<div class="detail small">Điện: ${money(v.electric)} · ${b.waterBillingPrior?'Nước kỳ trước':'Nước'}: ${money(v.water)} · Phí khác: ${money(v.other)}</div><div class="actions"><button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem hóa đơn</button>${!b.settledBy&&!state.settlements.some(x=>x.tenancyId===b.tenancyId)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(b.id)}">✏ Sửa tiền/phí</button>`:''}${dashboardPaymentButton(b)}</div></article>`;}
 // v8.3.8: Cọc nhận/hoàn/điều chỉnh luôn gắn với đợt thuê, không nhập chung khách cũ và mới.
 // Màn hình chính là snapshot hiện tại; lịch sử giao dịch xem ở tab riêng.
-let depositView = 'current';
+let depositView = 'ledger';
 function currentDepositRows(){
   return [...state.rooms].sort((a,b)=>a.name.localeCompare(b.name,'vi',{numeric:true})).map(r=>{
     const t=roomOccupancy(r)==='occupied'?activeTenancy(r):null;
@@ -1809,15 +1992,22 @@ function depositStats(){
   const total=type=>tx.filter(x=>x.type===type).reduce((sum,x)=>sum+x.amount,0);
   return {rows,occupied:occupied.length,holding,withDeposit,oldHolding,tx,received:total('receive'),refunded:total('refund'),offset:total('offset')};
 }
+// Ba mục con ở tab Thu chi: chỉ đổi hiển thị, KHÔNG thay đổi dữ liệu.
 function setDepositView(view){
-  depositView=view==='history'?'history':'current';
+  depositView=['ledger','current','history'].includes(view)?view:'ledger';
+  $('financeLedgerPanel').hidden=depositView!=='ledger';
   $('depositCurrentPanel').hidden=depositView!=='current';
   $('depositHistoryPanel').hidden=depositView!=='history';
-  for(const [id,selected] of [['depositCurrentTab',depositView==='current'],['depositHistoryTab',depositView==='history']]){
+  for(const [id,selected] of [
+    ['financeLedgerTab',depositView==='ledger'],
+    ['depositCurrentTab',depositView==='current'],
+    ['depositHistoryTab',depositView==='history']
+  ]){
     $(id).classList.toggle('active',selected);
     $(id).setAttribute('aria-pressed',String(selected));
   }
 }
+$('financeLedgerTab').addEventListener('click',()=>setDepositView('ledger'));
 $('depositCurrentTab').addEventListener('click',()=>setDepositView('current'));
 $('depositHistoryTab').addEventListener('click',()=>setDepositView('history'));
 function renderDeposits(){
@@ -3204,7 +3394,7 @@ $('invoicePaidBtn').addEventListener('click',()=>{if(shownInvoiceId)togglePaid(s
 $('printInvoice').addEventListener('click',()=>window.print());
 
 // ---------------- KHOẢN THU KHÁC / SỔ THU CHI V4 ----------------
-// Khoản thu khác và khoản nước tổng dùng báo cáo riêng, không bao giờ cộng/trừ trong financeTotals().
+// Khoản thu linh hoạt và khoản nước tổng dùng báo cáo riêng, không bao giờ cộng/trừ trong financeTotals().
 function flexTotal(e){return e.items.reduce((s,x)=>s+x.amount,0);}
 function getFlexEntry(roomId){return state.flexEntries.find(x=>x.roomId===roomId&&x.month===selectedMonth);}
 function getFlexWater(month=selectedMonth){return state.flexWaterPayments.find(x=>x.month===month);}
@@ -3246,7 +3436,7 @@ function financeTotals(month=selectedMonth,mode='period'){
   return {invoiced,received,settlementCash,uncollected:invoiced-periodPaid-settledBills,electricityPaid,otherPaid,paidOut:electricityPaid+otherPaid,unpaidExpenses:due,net:received-electricityPaid-otherPaid};
 }
 function financeCards(t){
-  return `<div class="finance-kpi"><span>ĐÃ THU từ phòng thường</span><strong>${money(t.received)}</strong></div>
+  return `<div class="finance-kpi"><span>ĐÃ THU</span><strong>${money(t.received)}</strong></div>
     <div class="finance-kpi negative"><span>ĐÃ CHI (điện + khoản khác)</span><strong>${money(t.paidOut)}</strong></div>
     <div class="finance-kpi net ${t.net<0?'negative':''}"><span>CÒN LẠI THỰC TẾ</span><strong>${money(t.net)}</strong></div>`;
 }
@@ -3338,10 +3528,10 @@ function renderAnnualMain(){
   const report=annualTotals(year,'period'),m=report.main;
   const card=(name,value,mode='')=>`<div class="finance-kpi ${mode}"><span>${name}</span><strong>${money(value)}</strong></div>`;
   $('annualMainCards').innerHTML=
-    card('TỔNG ĐÃ THU – PHÒNG THƯỜNG',m.received)+
+    card('ĐÃ THU',m.received)+
     card('ĐÃ CHI TIỀN ĐIỆN',m.electricityPaid,'negative')+
     card('ĐÃ CHI CÁC KHOẢN KHÁC',m.otherPaid,'negative')+
-    card('CÒN LẠI – PHÒNG THƯỜNG',m.net,`net ${m.net<0?'negative':''}`);
+    card('CÒN LẠI',m.net,`net ${m.net<0?'negative':''}`);
   annualDonutPanel('annualMainDonut',{
     total:m.received,
     centerLabel:'Đã thu trong năm',
@@ -3363,7 +3553,7 @@ function renderAnnualOther(){
   const year=annualOtherYear;
   setAnnualYearSelect('annualOtherYearSel',year);
   $('annualOtherYearTitle').textContent=year;
-  // Báo cáo Khoản thu khác cũng luôn theo tháng ghi sổ.
+  // Báo cáo Khoản thu linh hoạt cũng luôn theo tháng ghi sổ.
   const report=annualTotals(year,'period'),f=report.flex;
   const card=(name,value,mode='')=>`<div class="finance-kpi ${mode}"><span>${name}</span><strong>${money(value)}</strong></div>`;
   $('annualFlexCards').innerHTML=
@@ -3372,13 +3562,13 @@ function renderAnnualOther(){
     card('CÒN LẠI – KHOẢN THU KHÁC',f.netActual,`net ${f.netActual<0?'negative':''}`);
   annualDonutPanel('annualFlexDonut',{
     total:f.received,
-    centerLabel:'Khoản thu khác đã nhận',
+    centerLabel:'Khoản thu linh hoạt đã nhận',
     centerNote:`Năm ${year}`,
     title:'Biểu đồ Tổng hợp khác',
-    description:'Biểu đồ thể hiện phần Khoản thu khác đã nhận, đã dùng để đóng tiền nước và phần thực còn lại.',
+    description:'Biểu đồ thể hiện phần Khoản thu linh hoạt đã nhận, đã dùng để đóng tiền nước và phần thực còn lại.',
     segments:[
-      {label:'Tiền nước đã đóng',value:f.waterPaid,color:'#ee9167',hint:' - Phần đã chi từ Khoản thu khác'},
-      {label:'Còn lại của Khoản thu khác',value:Math.max(0,f.netActual),color:'#7abfaf',hint:' - Phần còn lại sau khi trừ tiền nước'}
+      {label:'Tiền nước đã đóng',value:f.waterPaid,color:'#ee9167',hint:' - Phần đã chi từ Khoản thu linh hoạt'},
+      {label:'Còn lại của Khoản thu linh hoạt',value:Math.max(0,f.netActual),color:'#7abfaf',hint:' - Phần còn lại sau khi trừ tiền nước'}
     ],
     notes:[
       {label:'Đã đóng tiền nước',value:money(f.waterPaid),negative:false},
@@ -3390,7 +3580,7 @@ $('annualMainYearSel').addEventListener('change',e=>{const chosen=String(e.targe
 $('annualOtherYearSel').addEventListener('change',e=>{const chosen=String(e.target.value); if(!/^\d{4}$/.test(chosen))return; annualOtherYear=Number(chosen); renderAnnualOther();});
 
 function renderFlex(){
-  // Khoản nước chỉ có trong tab Khoản thu khác; tính toán vẫn từ flexWaterPayments hiện có.
+  // Khoản nước chỉ có trong tab Khoản thu linh hoạt; giữ nguyên cách tính và dữ liệu.
   const water=getFlexWater();
   $('flexWaterMonthAmount').value=dongToNghin(water?water.amount:'');
   $('flexWaterPaid').checked=!!water?.paid; $('flexWaterPaidDate').value=water?.paidDate||(!water?.paid?localToday():'');
@@ -3398,41 +3588,79 @@ function renderFlex(){
   $('flexWaterNote').textContent=water?`Tháng ${monthText(selectedMonth)}: ${money(water.amount)} · ${water.paid?'Đã đóng'+(water.paidDate?' ngày '+dateText(water.paidDate):' (chưa rõ ngày)'):'Chưa đóng'}`:'Tháng này chưa ghi tiền nước phải trả.';
   const t=flexTotals();
   $('flexSummary').innerHTML=flexCards(t);
-  $('flexRoomList').innerHTML=state.flexRooms.length?state.flexRooms.map(r=>{
+
+  // Cùng nguyên tắc trình bày như Tổng quan: nếu có cả đã nhận và chưa nhận,
+  // chia hai cột; nếu tất cả cùng trạng thái, hiển thị danh sách một cột.
+  // Phòng chưa lập phiếu nằm nhóm Chưa nhận, không tự coi là đã nhận tiền.
+  const rooms=[...state.flexRooms].sort((a,b)=>a.name.localeCompare(b.name,'vi',{numeric:true}));
+  const roomCard=r=>{
     const e=getFlexEntry(r.id),sum=e?flexTotal(e):0;
-    return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(r.name)}</div>
-      <div class="detail">${safe(r.tenant||'Chưa nhập người thuê')}${r.phone?' · '+safe(r.phone):''}</div></div>
-      <span class="report-tag">KHÔNG TÍNH THU CHI</span></div>
-      ${e?`<div class="line-list">${e.items.map(it=>`<div class="line"><span>${safe(it.name)}</span><span class="amount">${money(it.amount)}</span></div>`).join('')}</div>
-        <div class="price">Tổng tháng này: ${money(sum)}</div><span class="badge ${e.paid?'paid':'unpaid'}">${e.paid?'Đã nhận':'Chưa nhận'}</span>`:
-        `<p class="muted">Chưa nhập số tiền tháng ${monthText(selectedMonth)}.</p>`}
+    const paid=!!e?.paid;
+    return `<article class="item flex-room-card">
+      <div class="item-head"><div><div class="item-title">${safe(r.name)}</div>
+        <div class="detail">${safe(r.tenant||'Chưa nhập người thuê')}${r.phone?' · '+safe(r.phone):''} · Tháng ${monthText(selectedMonth)}</div></div>
+        <span class="badge ${paid?'paid':'unpaid'}">${!e?'Chưa nhập phiếu':paid?'✓ Đã nhận':'• Chưa nhận'}</span></div>
+      ${e?`<div class="price">${money(sum)}</div>
+        <div class="detail flex-room-lines">${e.items.map(it=>`${safe(it.name)}: ${money(it.amount)}`).join(' · ')}</div>`:
+        `<p class="muted flex-room-empty">Chưa nhập số tiền tháng ${monthText(selectedMonth)}.</p>`}
       <div class="actions"><button class="btn" data-action="flex-entry" data-id="${safe(r.id)}">${e?'Sửa tiền tháng':'Nhập tiền tháng'}</button>
-      ${e?`<button class="btn soft" data-action="flex-paid" data-id="${safe(e.id)}">${e.paid?'↩ Chưa nhận':'✓ Đã nhận'}</button><button class="btn danger" data-action="flex-delete-entry" data-id="${safe(e.id)}">Xóa phiếu</button>`:''}
+      ${e?`<button class="btn ${paid?'flex-received-btn':'flex-pending-btn'}" data-action="flex-paid" data-id="${safe(e.id)}">${paid?'↩ Chưa nhận':'✓ Đã nhận'}</button><button class="btn danger" data-action="flex-delete-entry" data-id="${safe(e.id)}">Xóa phiếu</button>`:''}
       <button class="btn secondary" data-action="flex-edit-room" data-id="${safe(r.id)}">Sửa thông tin</button>
       <button class="btn danger" data-action="flex-delete-room" data-id="${safe(r.id)}">Xóa phòng</button></div></article>`;
-  }).join(''):empty('Chưa có phòng khoản thu khác. Nhấn "+ Thêm phòng khoản thu khác" để bắt đầu.');
+  };
+  const paidRooms=rooms.filter(r=>!!getFlexEntry(r.id)?.paid)
+    .sort((a,b)=>{
+      const pa=getFlexEntry(a.id),pb=getFlexEntry(b.id);
+      return (Date.parse(pa?.paidDate||'')||0)-(Date.parse(pb?.paidDate||'')||0)
+        ||a.name.localeCompare(b.name,'vi',{numeric:true});
+    });
+  const unpaidRooms=rooms.filter(r=>!getFlexEntry(r.id)?.paid);
+  const subtotal=group=>group.reduce((total,r)=>{
+    const entry=getFlexEntry(r.id);
+    return total+(entry?flexTotal(entry):0);
+  },0);
+  let list='';
+  if(!rooms.length){
+    list=empty('Chưa có phòng khoản thu linh hoạt. Nhấn "+ Thêm phòng khoản thu linh hoạt" để bắt đầu.');
+  }else if(!paidRooms.length||!unpaidRooms.length){
+    list=rooms.map(roomCard).join('');
+  }else{
+    list=`<div class="bill-status-columns flex-status-columns">
+      <section class="bill-status-column" aria-label="Khoản thu linh hoạt chưa nhận">
+        <h4>🟠 Chưa nhận</h4>
+        <p class="bill-status-summary">${unpaidRooms.length} phòng · ${money(subtotal(unpaidRooms))}</p>
+        <div class="stack">${unpaidRooms.map(roomCard).join('')}</div>
+      </section>
+      <section class="bill-status-column" aria-label="Khoản thu linh hoạt đã nhận">
+        <h4>🟢 Đã nhận</h4>
+        <p class="bill-status-summary">${paidRooms.length} phòng · ${money(subtotal(paidRooms))}</p>
+        <div class="stack">${paidRooms.map(roomCard).join('')}</div>
+      </section>
+    </div>`;
+  }
+  $('flexRoomList').innerHTML=list;
 }
 function openFlexRoom(roomId){
   const r=state.flexRooms.find(x=>x.id===roomId);
   $('flexRoomForm').reset();$('flexRoomId').value=r?.id||'';
-  $('flexRoomTitle').textContent=r?'Sửa thông tin phòng khoản thu khác':'Thêm phòng khoản thu khác';
+  $('flexRoomTitle').textContent=r?'Sửa thông tin phòng khoản thu linh hoạt':'Thêm phòng khoản thu linh hoạt';
   $('flexRoomName').value=r?.name||'';$('flexTenant').value=r?.tenant||'';$('flexPhone').value=r?.phone||'';
   $('flexRoomDialog').showModal();
 }
 $('addFlexRoom').addEventListener('click',()=>openFlexRoom());
 $('flexRoomForm').addEventListener('submit',e=>{
   e.preventDefault();const rid=$('flexRoomId').value,name=$('flexRoomName').value.trim();
-  if(!name||state.flexRooms.some(r=>r.id!==rid&&r.name.toLowerCase()===name.toLowerCase())){alert('Tên phòng khoản thu khác bị trùng hoặc để trống.');return;}
+  if(!name||state.flexRooms.some(r=>r.id!==rid&&r.name.toLowerCase()===name.toLowerCase())){alert('Tên phòng khoản thu linh hoạt bị trùng hoặc để trống.');return;}
   const r={id:rid||id(),name,tenant:$('flexTenant').value.trim(),phone:$('flexPhone').value.trim()};
   const old=copy(state);if(rid)state.flexRooms=state.flexRooms.map(x=>x.id===rid?r:x);else state.flexRooms.push(r);
-  if(!save()){state=old;return;}$('flexRoomDialog').close();render();toast('Đã lưu phòng khoản thu khác.');
+  if(!save()){state=old;return;}$('flexRoomDialog').close();render();toast('Đã lưu phòng khoản thu linh hoạt.');
 });
 function deleteFlexRoom(rid){
   const r=state.flexRooms.find(x=>x.id===rid);if(!r)return;
   if(state.flexEntries.some(x=>x.roomId===rid)){alert('Phòng này đã có phiếu thu các tháng. Hãy xóa các phiếu trước nếu thực sự muốn xóa phòng, để tránh mất lịch sử.');return;}
-  if(!confirm(`Xóa phòng khoản thu khác "${r.name}"?`))return;
+  if(!confirm(`Xóa phòng khoản thu linh hoạt "${r.name}"?`))return;
   const old=copy(state);state.flexRooms=state.flexRooms.filter(x=>x.id!==rid);
-  if(!save()){state=old;return;}render();toast('Đã xóa phòng khoản thu khác.');
+  if(!save()){state=old;return;}render();toast('Đã xóa phòng khoản thu linh hoạt.');
 }
 function addFlexLine(x={name:'',amount:''}){
   if($('flexItemRows').children.length>=80){alert('Tối đa 80 khoản thu trong một tháng.');return;}
@@ -3453,7 +3681,7 @@ function updateFlexEntryTotal(){
 function openFlexEntry(rid){
   const r=state.flexRooms.find(x=>x.id===rid);if(!r)return;
   const e=getFlexEntry(rid);$('flexEntryRoomId').value=rid;
-  $('flexEntryTitle').textContent=`Khoản thu khác – ${r.name} – ${monthText(selectedMonth)}`;
+  $('flexEntryTitle').textContent=`Khoản thu linh hoạt – ${r.name} – ${monthText(selectedMonth)}`;
   $('flexItemRows').innerHTML='';(e?.items||[{name:'Tiền phòng',amount:''}]).forEach(addFlexLine);
   $('flexEntryPaid').checked=!!e?.paid;$('flexEntryPaidDate').value=e?.paidDate||(!e?.paid?localToday():'');updateFlexEntryTotal();$('flexEntryDialog').showModal();
 }
@@ -3465,21 +3693,21 @@ $('flexEntryForm').addEventListener('submit',e=>{
   if(date&&!validDate(date)){alert('Ngày thực nhận không hợp lệ.');return;}
   const entry={id:existing?.id||id(),roomId:rid,month:selectedMonth,items,paid,paidDate:paid?(date||existing?.paidDate||''):''};
   const old=copy(state);if(existing)state.flexEntries=state.flexEntries.map(x=>x.id===existing.id?entry:x);else state.flexEntries.push(entry);
-  if(!save()){state=old;return;}$('flexEntryDialog').close();render();toast('Đã lưu phiếu khoản thu khác; không cộng vào sổ thu chi.');
+  if(!save()){state=old;return;}$('flexEntryDialog').close();render();toast('Đã lưu phiếu khoản thu linh hoạt; không cộng vào sổ thu chi.');
 });
 function toggleFlexPaid(fid){
   const entry=state.flexEntries.find(x=>x.id===fid);if(!entry)return;
   const old=copy(state);if(!entry.paid){const date=prompt('Ngày thực nhận (YYYY-MM-DD):',localToday());if(date===null)return;if(!validDate(date.trim())||!date.trim()){alert('Ngày không hợp lệ.');return;}entry.paidDate=date.trim();}else entry.paidDate='';entry.paid=!entry.paid;
-  if(!save()){state=old;return;}render();toast('Đã cập nhật trạng thái phiếu khoản thu khác.');
+  if(!save()){state=old;return;}render();toast('Đã cập nhật trạng thái phiếu khoản thu linh hoạt.');
 }
 function deleteFlexEntry(fid){
-  if(!confirm('Xóa phiếu khoản thu khác tháng này?'))return;
+  if(!confirm('Xóa phiếu khoản thu linh hoạt tháng này?'))return;
   const old=copy(state);state.flexEntries=state.flexEntries.filter(x=>x.id!==fid);
-  if(!save()){state=old;return;}render();toast('Đã xóa phiếu khoản thu khác.');
+  if(!save()){state=old;return;}render();toast('Đã xóa phiếu khoản thu linh hoạt.');
 }
 function renderFinance(){
   const t=financeTotals();$('financeSummary').innerHTML=financeCards(t)+
-    `<div class="finance-kpi"><span>Tổng hóa đơn phòng thường đã lập</span><strong>${money(t.invoiced)}</strong></div>
+    `<div class="finance-kpi"><span>TỔNG HÓA ĐƠN</span><strong>${money(t.invoiced)}</strong></div>
      <div class="finance-kpi"><span>Hóa đơn chưa thu/chưa đối trừ</span><strong>${money(t.uncollected)}</strong></div>
      <div class="finance-kpi"><span>Chi đã ghi nhưng chưa trả</span><strong>${money(t.unpaidExpenses)}</strong></div>`;
   $('visibleMeterCount').textContent=state.settings.meterCount;
@@ -3513,7 +3741,7 @@ $('flexWaterForm').addEventListener('submit',e=>{
   const paidDate=paid?(rawDate||current?.paidDate||''):'';
   if(current)Object.assign(current,{amount,paid,paidDate});
   else state.flexWaterPayments.push({month:selectedMonth,amount,paid,paidDate});
-  if(!save()){state=old;return;}render();toast('Đã lưu tiền nước Khoản thu khác tháng '+monthText(selectedMonth)+'.');
+  if(!save()){state=old;return;}render();toast('Đã lưu tiền nước Khoản thu linh hoạt tháng '+monthText(selectedMonth)+'.');
 });
 $('deleteFlexWater').addEventListener('click',()=>{
   if(!getFlexWater())return;
@@ -3684,7 +3912,7 @@ $('backupFile').addEventListener('change',async e=>{
   let imported;
   try{const parsed=JSON.parse(await file.text());if(parsed.app!=='QuanLyPhongTroOffline'||![1,2,3,4,5,6,7,8].includes(parsed.version))throw Error('Chỉ hỗ trợ file sao lưu phiên bản 1 đến 8 của ứng dụng.');imported=validateData(parsed.data);}
   catch(err){alert('Nhập dữ liệu thất bại: '+err.message);return;}
-  if(!confirm(`File có ${imported.rooms.length} phòng thường, ${imported.flexRooms.length} phòng khoản thu khác và ${imported.bills.length} hóa đơn. Khôi phục sẽ THAY THẾ TOÀN BỘ dữ liệu hiện tại. Bạn đã sao lưu dữ liệu hiện tại chưa?`))return;
+  if(!confirm(`File có ${imported.rooms.length} phòng thường, ${imported.flexRooms.length} phòng khoản thu linh hoạt và ${imported.bills.length} hóa đơn. Khôi phục sẽ THAY THẾ TOÀN BỘ dữ liệu hiện tại. Bạn đã sao lưu dữ liệu hiện tại chưa?`))return;
   const old=copy(state);state=imported;
   if(!save()){state=old;return;}render();toast('Đã khôi phục dữ liệu từ file sao lưu.');
 });
