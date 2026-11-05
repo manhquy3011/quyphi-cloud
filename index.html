@@ -450,6 +450,11 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
 .water-period-confirm label{font-weight:700;display:flex;align-items:center;gap:8px}
 .water-period-confirm input{width:86px;min-height:35px;border:1px solid #a9c6bb;border-radius:8px;padding:6px 8px}
 @media(max-width:490px){.water-period-confirm{align-items:stretch}.water-period-confirm label{width:100%;justify-content:space-between}}
+  /* v8.5.7: Ô tiền phòng và ô người lớn cùng chiếm 1/2 chiều ngang.
+     Không kéo dài ô người lớn hết hàng; giữ ẩn ô trẻ em. */
+  #billRentPeopleGrid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  #billPeopleFields > .grid2 {grid-template-columns:repeat(2,minmax(0,1fr))}
+  #billPeopleFields > .grid2 > .field[hidden] {display:none!important}
 </style>
 </head>
 <body class="cloud-locked">
@@ -858,11 +863,11 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
     <div id="waterSegmentRows"></div>
     <button type="button" class="btn secondary" id="addWaterSegment">+ Thêm giai đoạn nước</button>
   </div>
-  <div class="grid2">
+  <div class="grid2" id="billRentPeopleGrid">
     <div class="field"><label for="billRent">Tiền phòng (nghìn đ) *</label><input id="billRent" type="number" min="0" step="any" required></div>
     <div class="wide" id="billPeopleFields" hidden><div class="grid2">
       <div class="field"><label for="billAdults" id="billAdultsLabel">Người lớn trong tháng đang ghi số</label><input id="billAdults" type="number" min="0" step="1" required></div>
-      <div class="field"><label for="billChildren" id="billChildrenLabel">Trẻ em trong tháng đang ghi số</label><input id="billChildren" type="number" min="0" step="1" required></div>
+      <div class="field" hidden><label for="billChildren" id="billChildrenLabel">Trẻ em trong tháng đang ghi số</label><input id="billChildren" type="number" min="0" step="1" required></div>
     </div></div><input type="hidden" id="billOccupants">
   </div>
   <div class="subheading">Phí phát sinh / Giảm trừ tháng này</div>
