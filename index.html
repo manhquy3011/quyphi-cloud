@@ -528,31 +528,29 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
 /* ===== QUÝ PHI 8.6.1 / THỦY MẶC: chỉ đổi bố cục và giao diện ===== */
 /* Phần điều chỉnh màu nền chỉ thuộc giao diện máy này; không thay dữ liệu Supabase. */
 html{
-  /* TÙY CHỈNH TRANH THỦY MẶC:
-     Nền: ưu tiên ảnh Pixabay lưu cùng thư mục; tiếp đến ảnh từ Pixabay CDN; cuối cùng là tranh cũ.
-     Cường độ: chọn Nhạt / Vừa / Đậm trong Cài đặt.
-  */
-  --qp-ink-wash-bg:.62;
-  --qp-card-alpha:.78;
-  --qp-panel-alpha:.84;
-  --qp-soft-alpha:.72;
-  --qp-header-alpha:.88;
-  --qp-ink-wash:var(--qp-ink-wash-bg);
-  background:#f5f6f3;
-}
+    /* ==== TÙY CHỈNH NHANH GIAO DIỆN ====
+       --qp-ink-wash-bg: độ đậm nền thủy mặc (tăng lên = đậm hơn, giảm xuống = nhạt hơn)
+       --qp-card-alpha: độ trong suốt của khung nội dung (giảm xuống = trong hơn, tăng lên = đặc hơn)
+       --qp-panel-alpha: độ trong suốt của các khối thống kê / form
+       --qp-header-alpha: độ trong suốt của header
+       Bạn chỉ cần sửa các số bên dưới.
+    ================================= */
+    --qp-ink-wash-bg:.18;
+    --qp-card-alpha:.78;
+    --qp-panel-alpha:.84;
+    --qp-soft-alpha:.72;
+    --qp-header-alpha:.88;
+    --qp-ink-wash:var(--qp-ink-wash-bg);
+    background:#f5f6f3
+  }
 body{
-  background-image:
-    linear-gradient(rgba(255,255,255,var(--qp-ink-wash)),rgba(255,255,255,var(--qp-ink-wash))),
-    url('./nen-thuy-mac-pixabay.png'),
-    url('https://cdn.pixabay.com/photo/2025/07/28/15/06/chinese-ink-painting-9740667_1280.png'),
-    url('./nen-thuy-mac-goc.png')!important;
-  background-color:#f5f6f3!important;
-  background-position:center top,center center,center center,center top!important;
-  background-repeat:no-repeat,no-repeat,no-repeat,no-repeat!important;
-  background-size:cover,cover,cover,cover!important;
-  background-attachment:fixed,fixed,fixed,fixed!important;
-  min-height:100vh;
-  color:#173b33;
+ background-image:linear-gradient(rgba(255,255,255,var(--qp-ink-wash)),rgba(255,255,255,var(--qp-ink-wash))),url('./nen-thuy-mac-goc.png')!important;
+ background-color:#f5f6f3!important;
+ background-position:center top,center top!important;
+ background-repeat:no-repeat,no-repeat!important;
+ background-size:100% auto,100% auto!important;
+ background-attachment:fixed,fixed!important;
+ min-height:100vh;color:#173b33;
 }
 .top{position:sticky;top:0;z-index:40;
      background:linear-gradient(115deg,rgba(7,82,69,.92),rgba(16,105,87,.91) 50%,rgba(9,82,71,.93))!important;
@@ -1006,20 +1004,177 @@ body{
 .top .brand-emblem .qp-brand-logo { display:block; width:54px; height:47px; object-fit:contain; background:transparent !important; }
 @media (max-width:760px) { .top .brand-emblem .qp-brand-logo { width:39px; height:35px; } }
 
-/* v8.7.4: giữ chữ đọc rõ trên tranh có nhiều núi và sương */
-.shell .stat,.shell .panel,.shell .finance-kpi,.shell .dashboard-chart,.shell .annual-donut-panel{
-  background:rgba(255,255,255,.80)!important;
-  border-color:rgba(178,196,187,.8)!important;
+/* =======================================================================
+   QUÝ PHI CLOUD v8.7.5 — CHỮ ĐẬM, DỄ ĐỌC TRÊN TRANH THỦY MẶC
+   Chỉ sửa giao diện, không tác động logic, tiền, hóa đơn, hoặc Supabase.
+
+   TÙY CHỈNH NHANH:
+   --qp-readable-card:  .87;  khung sáng (0.82: thấy tranh rõ hơn;
+                               0.93: dễ đọc chữ hơn)
+   --qp-readable-inner: .90;  từng thẻ phòng/hóa đơn
+   --qp-readable-outer: .63;  nền ngoài các cột danh sách
+   --qp-readable-ink:   #163a32; màu chữ chính (xanh đen)
+   ======================================================================= */
+:root {
+  --qp-readable-card: .87;
+  --qp-readable-inner: .90;
+  --qp-readable-outer: .63;
+  --qp-readable-ink: #163a32;
+  --qp-readable-title: #064e41;
+  --qp-readable-secondary: #36584f;
+  --qp-readable-green: #06614f;
+  --qp-readable-red: #b5352d;
 }
-.shell .item,.shell .finance-card{background:rgba(255,255,255,.82)!important;}
-.view h2,.view h3,.finance-kpi strong,.stat strong{
-  text-shadow:0 1px 2px rgba(255,255,255,.65);
+
+/* Chữ nội dung chính: xanh đen đậm, dùng màu thống nhất để nổi trên nền. */
+.shell > .view,
+.shell > .view p,
+.shell > .view li,
+.shell > .view .line {
+  color: var(--qp-readable-ink);
 }
-@media(max-width:760px){
-  body{background-attachment:scroll,scroll,scroll,scroll!important;}
-  .shell .stat,.shell .panel,.shell .finance-kpi,.shell .dashboard-chart{background:rgba(255,255,255,.88)!important;}
+.shell > .view h2,
+.shell > .view h3,
+.shell > .view h4,
+.shell > .view .item-title,
+.shell > .view .annual-donut-title {
+  color: var(--qp-readable-title) !important;
+  font-weight: 850;
+  text-shadow: 0 1px 0 rgba(255,255,255,.88);
 }
-@media print{body{background-image:none!important;background-color:#fff!important;}}
+.shell > .view .detail,
+.shell > .view .soft-muted,
+.shell > .view .muted,
+.shell > .view .chart-caption,
+.shell > .view .stat-label,
+.shell > .view .finance-kpi > span,
+.shell > .view .bill-status-summary,
+.shell > .view .annual-donut-desc,
+.shell > .view .annual-note-card > span,
+.shell > .view .status-line {
+  color: var(--qp-readable-secondary) !important;
+  font-weight: 600;
+  line-height: 1.55;
+}
+.shell > .view .stat strong,
+.shell > .view .finance-kpi strong,
+.shell > .view .price,
+.shell > .view .annual-note-card strong,
+.shell > .view .annual-donut-center strong,
+.shell > .view .mini-donut-legend b {
+  color: var(--qp-readable-green);
+  font-weight: 850;
+  text-shadow: 0 1px 0 rgba(255,255,255,.75);
+}
+.shell > .view .finance-kpi.negative strong,
+.shell > .view .annual-note-card.negative strong {
+  color: var(--qp-readable-red) !important;
+}
+
+/* Nền khung chỉ sáng hơn một chút; tranh vẫn xuyên qua. */
+.shell > .view .stat,
+.shell > .view .panel,
+.shell > .view .item,
+.shell > .view .finance-kpi,
+.shell > .view .finance-card,
+.shell > .view .dashboard-chart,
+.shell > .view .annual-donut-panel,
+.shell > .view .annual-chart-panel,
+.shell > .view .annual-note-card {
+  background: rgba(255,255,255,var(--qp-readable-card)) !important;
+  border-color: rgba(148,184,170,.75) !important;
+}
+.shell > .view .finance-kpi.net {
+  background: rgba(222,246,233,.87) !important;
+}
+.shell > .view .section-intro,
+.shell > .view .note,
+.shell > .view .inline-info,
+.shell > .view .subheading {
+  background: rgba(239,249,243,.90) !important;
+  color: #183e33 !important;
+  font-weight: 550;
+  line-height: 1.6;
+}
+.shell > .view .section-intro b,
+.shell > .view .note b,
+.shell > .view .soft-muted b {
+  font-weight: 850;
+  color: var(--qp-readable-title);
+}
+
+/* Hai nhóm chưa/đã thu hoặc chưa/đã nhận: khung ngoài vẫn thấy tranh;
+   mỗi phiếu được làm sáng riêng để dễ đọc. */
+#dashboard .bill-status-column,
+#flex .flex-status-columns .bill-status-column {
+  background: rgba(255,255,255,var(--qp-readable-outer)) !important;
+  border-color: rgba(148,184,170,.75) !important;
+}
+#dashboard .bill-status-column .item,
+#flex .flex-room-card {
+  background: rgba(255,255,255,var(--qp-readable-inner)) !important;
+}
+#dashboard .bill-status-column h4,
+#flex .bill-status-column h4,
+#flex .flex-room-card .item-title {
+  color: var(--qp-readable-title) !important;
+  font-weight: 850;
+}
+#dashboard .bill-status-column .detail,
+#flex .flex-room-card .detail,
+#flex .flex-room-card .flex-room-lines {
+  color: var(--qp-readable-secondary) !important;
+  font-weight: 600;
+}
+
+/* Sidebar: chữ và nền các mục rõ hơn khi tranh nằm phía sau. */
+@media (min-width:761px) {
+  .tabs .tab:not(.active) {
+    background: rgba(255,255,255,.83) !important;
+    color: #15483c !important;
+    font-weight: 800;
+    border-color: rgba(160,195,183,.82);
+  }
+  .tabs .tab.active {
+    color: #fff !important;
+    font-weight: 850;
+  }
+}
+
+/* Các trường biểu mẫu nhìn rõ nhưng không trắng đặc. */
+.shell > .view .field label {
+  color: #174137;
+  font-weight: 750;
+}
+.shell > .view .field input,
+.shell > .view .field select,
+.shell > .view .field textarea {
+  color: #18372e;
+  font-weight: 550;
+  background-color: rgba(255,255,255,.95);
+}
+
+/* Trên điện thoại cần độ tương phản cao hơn; giữ nguyên cách xếp menu. */
+@media(max-width:760px) {
+  :root {
+    --qp-readable-card: .93;
+    --qp-readable-inner: .95;
+    --qp-readable-outer: .79;
+  }
+}
+
+/* Khi in PDF, tránh in nền tranh và không làm thay đổi bố cục hóa đơn. */
+@media print {
+  .shell > .view .stat,
+  .shell > .view .panel,
+  .shell > .view .item,
+  .shell > .view .finance-kpi,
+  .shell > .view .finance-card {
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+}
+
 </style>
 </head>
 <body class="cloud-locked">
@@ -1533,6 +1688,18 @@ const copy = obj => JSON.parse(JSON.stringify(obj));
 const todayMonth = () => {const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;};
 const dateText = raw => {if(!raw)return '—';const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(raw));return m?`${m[3]}/${m[2]}/${m[1]}`:'—';};
 const nowText = () => new Date().toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
+// Ngày lập là thời điểm LƯU TẠO hóa đơn, không phải ngày đang xem/in.
+// Dữ liệu cũ không có createdAt: hiển thị chưa xác định, tuyệt đối không đoán là hôm nay.
+function billCreatedDateText(b){
+  const raw=String(b?.createdAt||'').trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(raw))return dateText(raw);
+  if(!/^\d{4}-\d{2}-\d{2}T/.test(raw))return 'Chưa xác định';
+  const d=new Date(raw);
+  return Number.isFinite(d.getTime())
+    ? d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'Asia/Ho_Chi_Minh'})
+    : 'Chưa xác định';
+}
+
 const nowLong = () => {const d=new Date(),w=['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'][d.getDay()];
   return `Hôm nay: ${w}, Ngày ${String(d.getDate()).padStart(2,'0')} Tháng ${String(d.getMonth()+1).padStart(2,'0')} Năm ${d.getFullYear()}`;};
 const validDate = d => !d || (/^\d{4}-\d{2}-\d{2}$/.test(d) && !Number.isNaN(new Date(d+'T12:00:00').getTime()) && new Date(d+'T12:00:00').toISOString().slice(0,10)===d);
@@ -2915,7 +3082,7 @@ function billDraft(room,existing,previous,meterPrevious){
     rent:room.rent,adults:room.occupants?room.adults:defaultCount,children:room.occupants?room.children:0,occupants:defaultCount,
     leaseStart:room.leaseStart,leaseEnd:room.leaseEnd,deposit:room.deposit,vehicles:copy(room.vehicles),
     electricRate:room.electricRate,waterRate:room.waterRate,waterPerPerson:room.waterPerPerson,
-    waterBillingPrior,waterPrior,waterPriorAccounting:waterBillingPrior?'current-base-prior-excess':'',waterMode:room.waterMode,waterAllowance:room.waterMode==='person'?quotaForPeople(defaultCount,room.waterAllowance):0,waterExcessRate:room.waterExcessRate??room.waterRate,fees:roomFees(room),extras:[],paid:false,paidAt:null,createdAt:new Date().toISOString(),updatedAt:''};
+    waterBillingPrior,waterPrior,waterPriorAccounting:waterBillingPrior?'current-base-prior-excess':'',waterMode:room.waterMode,waterAllowance:room.waterMode==='person'?quotaForPeople(defaultCount,room.waterAllowance):0,waterExcessRate:room.waterExcessRate??room.waterRate,fees:roomFees(room),extras:[],paid:false,paidAt:null,createdAt:'',updatedAt:''};
 }
 // Giao diện công tơ nâng cao: chỉ thay cho hóa đơn đang mở, không ghi vào hóa đơn cũ.
 let segmentModes={electric:false,water:false};
@@ -3377,8 +3544,13 @@ Chỉ bấm OK khi xác nhận khoản nước đó CHƯA được thu/tính ở
       alert('Có hóa đơn tháng sau, chỉ được chọn Sửa tiền/phí để không thay đổi chuỗi chỉ số.');return;
     }
   }
-  b.updatedAt=new Date().toISOString();const old=copy(state);
-  const i=state.bills.findIndex(x=>x.id===b.id);if(i>=0)state.bills[i]=b;else state.bills.push(b);
+  const old=copy(state);
+  const i=state.bills.findIndex(x=>x.id===b.id);
+  const savedAt=new Date().toISOString();
+  // Tạo hóa đơn: ghi ngày lập đúng lúc bấm Lưu. Sửa hóa đơn: giữ nguyên ngày lập gốc.
+  b.createdAt=i>=0?String(state.bills[i].createdAt||''):savedAt;
+  b.updatedAt=savedAt;
+  if(i>=0)state.bills[i]=b;else state.bills.push(b);
   if(i>=0)updateBillPaidFlag(b);
   if(!historicalMoneyEdit&&$('billKeepWaterMode').checked){
     const room=getRoom(b.roomId),t=activeTenancy(room);
@@ -3524,7 +3696,7 @@ function showInvoice(billId){
 `;
   }
   $('invoiceContent').innerHTML=`<div class="invoice">
-    <div class="invoice-date"><b><i>Ngày lập: ${nowText()}</i></b></div>
+    <div class="invoice-date"><b><i>Ngày lập: ${billCreatedDateText(b)}</i></b></div>
     <div class="invoice-top"><h2>HÓA ĐƠN TIỀN PHÒNG</h2><div class="invoice-subtitle"><b>Tháng ${monthText(b.month)}</b></div></div>
     <div class="invoice-meta"><div><span class="invoice-meta-label">Phòng:</span> <span class="invoice-meta-value">${safe(b.roomName)}</span></div><div><span class="invoice-meta-label">Người thuê:</span> <span class="invoice-meta-value">${safe(b.tenant||'—')}</span></div>
       <div><span class="invoice-meta-label">Điện thoại:</span> <span class="invoice-meta-value">${safe(b.phone||'—')}</span></div>
@@ -4122,7 +4294,7 @@ $('expensePaidDate').value=localToday();
 // Lưu lựa chọn cường độ tranh chỉ trên máy này, không đồng bộ vào dữ liệu nghiệp vụ.
 (function initQpInkStrength(){
   const select=document.getElementById('qpInkStrength');
-  const levels={light:'.79',medium:'.62',dark:'.47'};
+  const levels={light:'.42',medium:'.16',dark:'0'};
   let initial='medium';
   try{const stored=localStorage.getItem('quyphi_ui_ink_strength');if(Object.prototype.hasOwnProperty.call(levels,stored))initial=stored;}catch(_ignored){}
   function apply(value){
