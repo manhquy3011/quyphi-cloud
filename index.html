@@ -31,6 +31,8 @@
   .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
   .btn{background:#17665a;border:1px solid #17665a;color:white;padding:11px 15px;border-radius:10px;font-weight:700;min-height:42px}
   .btn:disabled{opacity:.55;cursor:not-allowed} .btn:hover{filter:brightness(.95)}.btn.secondary{background:white;color:#17665a;border-color:#a8cbc1}.btn.danger{background:white;color:#b33d33;border-color:#e8ada8}.btn.soft{background:#e9f5f1;color:#17665a;border-color:#d4e9e3}
+  /* Chưa thu: nút xác nhận thu màu cam; đã thu: dùng màu xanh mặc định của nút In / Lưu PDF. */
+  #invoicePaidBtn.invoice-pay-pending{background:#f4a340;border-color:#de8b21;color:#492b00;}
   .badge{display:inline-block;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:800}.badge.paid{background:#dff6e9;color:#126e42}.badge.unpaid{background:#fff1d6;color:#985f09}
   .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field{display:flex;flex-direction:column;gap:6px;margin:9px 0}.field label{font-weight:650;font-size:14px}
   .field input,.field select{background:white;border:1px solid #b9cbc5;padding:11px 12px;min-height:43px;border-radius:9px;width:100%;color:#1e3732}
@@ -471,11 +473,35 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
 #auditHistory::-webkit-scrollbar-track { background: #f4f8f6; border-radius: 8px; }
 #auditHistory::-webkit-scrollbar-thumb { background: #b4d1c7; border-radius: 8px; }
 @media (max-width: 600px) {
-    #invoiceDialog{max-width:760px;max-height:none;overflow:visible;}
-  #invoiceDialog .modal-body{overflow:visible;max-height:none;padding-top:12px;}
-  #invoiceDialog .modal-title{display:none;}
   #auditHistory { max-height: 220px; padding: 0 8px; }
 }
+  /* v8.5.14: không hiển thị thanh cuộn trên hóa đơn.
+     Chỉ phần nội dung có thể vuốt/cuộn khi màn hình thấp; giữ nguyên các nút ở đáy.
+     Không áp dụng cho các hộp thoại khác. */
+  #invoiceDialog {max-width:760px;}
+  #invoiceDialog[open] {
+    display:flex;
+    flex-direction:column;
+    max-height:calc(100dvh - 16px);
+    overflow:hidden;
+  }
+  #invoiceDialog .modal-body {
+    flex:1 1 auto;
+    min-height:0;
+    max-height:none;
+    padding-top:12px;
+    overflow-y:auto;
+    overflow-x:hidden;
+    scrollbar-width:none; /* Firefox */
+    -ms-overflow-style:none;
+    overscroll-behavior:contain;
+  }
+  #invoiceDialog .modal-body::-webkit-scrollbar {display:none;width:0;height:0;} /* Chrome/Safari/Edge */
+  #invoiceDialog .modal-footer {flex:0 0 auto;}
+  #invoiceDialog .modal-title {display:none;}
+  @media (min-width:761px) {
+    #invoiceDialog .invoice {padding:16px 22px;}
+  }
 </style>
 </head>
 <body class="cloud-locked">
@@ -917,7 +943,7 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
 </div><div class="modal-footer"><button class="btn secondary" type="button" data-close="flexEntryDialog">Hủy</button><button class="btn" type="submit">💾 Lưu tiền tháng</button></div></form></dialog>
 <!-- Hộp xem / in hóa đơn -->
 <dialog id="invoiceDialog"><div class="modal-body"><div id="invoiceContent"></div></div>
-  <div class="modal-footer"><button class="btn secondary" type="button" data-close="invoiceDialog">Đóng</button><button class="btn secondary" type="button" id="invoicePaidBtn">Đánh dấu đã thu</button><button class="btn" type="button" id="printInvoice">🖨 In / Lưu PDF</button></div>
+  <div class="modal-footer"><button class="btn secondary" type="button" data-close="invoiceDialog">Đóng</button><button class="btn invoice-pay-pending" type="button" id="invoicePaidBtn">✓ Đã thu tiền</button><button class="btn" type="button" id="printInvoice">🖨 In / Lưu PDF</button></div>
 </dialog>
 <!-- v8.4.9: ghi các lần thu tiền thực tế, tách khỏi trạng thái hóa đơn -->
 <dialog id="paymentDialog"><div class="modal-body">
@@ -2919,8 +2945,13 @@ function showInvoice(billId){
     ${billReceipts(b).map(p=>`<div class="detail small">Thu ${dateText(p.date)}: ${money(p.amount)}${p.note?' · '+safe(p.note):''}</div>`).join('')}
     ${transfer}
     <div class="invoice-foot">${b.paid?'Cảm ơn bạn đã thanh toán!':'Vui lòng kiểm tra thông tin và thanh toán trước ngày '+(state.settings.payDay||5)+' hàng tháng.'}</div></div>`;
-  $('invoicePaidBtn').hidden=!!b.settledBy;
-  $('invoicePaidBtn').textContent='✓ Đã thu tiền / Chưa thu';
+  // Nút hóa đơn hiển thị đúng THAO TÁC tiếp theo theo trạng thái thu tiền.
+  // Đã thu -> nút xanh "Chưa thu"; chưa thu -> nút cam "Đã thu tiền".
+  // Giữ nguyên xử lý thanh toán và xác nhận trong openPaymentDialog.
+  const invoicePaidButton=$('invoicePaidBtn');
+  invoicePaidButton.hidden=!!b.settledBy;
+  invoicePaidButton.className=b.paid?'btn':'btn invoice-pay-pending';
+  invoicePaidButton.textContent=b.paid?'↩ Chưa thu':'✓ Đã thu tiền';
   if(!$('invoiceDialog').open)$('invoiceDialog').showModal();
 }
 $('invoicePaidBtn').addEventListener('click',()=>{if(shownInvoiceId)togglePaid(shownInvoiceId);});
