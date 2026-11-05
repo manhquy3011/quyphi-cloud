@@ -506,26 +506,46 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
   }
 
 /* ===== QUÝ PHI 8.6.1 / THỦY MẶC: chỉ đổi bố cục và giao diện ===== */
-html{background:#f5f6f3}
-body{background:#f5f6f3 url('./nen-thuy-mac.svg') center top / cover fixed no-repeat!important;min-height:100vh;color:#1d3b35}
-.top{position:sticky;top:0;z-index:40;background:linear-gradient(115deg,#075245,#106957 50%,#095247)!important;
-     box-shadow:0 5px 20px rgba(16,50,43,.18);padding:17px 32px}
+/* Phần điều chỉnh màu nền chỉ thuộc giao diện máy này; không thay dữ liệu Supabase. */
+html{--qp-ink-wash:.16;background:#f5f6f3}
+body{
+ background-image:linear-gradient(rgba(255,255,255,var(--qp-ink-wash)),rgba(255,255,255,var(--qp-ink-wash))),url('./nen-thuy-mac.svg')!important;
+ background-color:#f5f6f3!important;
+ background-position:center top,center top!important;
+ background-repeat:no-repeat,no-repeat!important;
+ background-size:cover,cover!important;
+ background-attachment:fixed,fixed!important;
+ min-height:100vh;color:#173b33;
+}
+.top{position:sticky;top:0;z-index:40;
+     background:linear-gradient(115deg,rgba(7,82,69,.92),rgba(16,105,87,.91) 50%,rgba(9,82,71,.93))!important;
+     backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+     box-shadow:0 5px 20px rgba(16,50,43,.20);padding:17px 32px}
 .top-inner{max-width:none;gap:24px}
 .top .brand{display:flex;align-items:center;gap:15px;min-width:0}
 .top .brand-emblem{display:flex;align-items:center;justify-content:center;width:49px;height:49px;color:#eef9f4;flex:none}
 .top .brand-emblem svg{width:45px;height:45px}
 .top h1{font-weight:800;letter-spacing:-.3px;font-size:22px}
 .month-box select{background:#f1d681!important;color:#224039!important;box-shadow:0 4px 14px rgba(0,0,0,.08)}
-.shell{max-width:none;width:auto;margin:0 0 0 232px;padding:26px 32px 58px;min-width:0}
-/* Sidebar gọn theo số lượng menu, giữ nền trong suốt để nhìn thấy thủy mặc */
-.tabs{position:sticky;left:16px;top:96px;width:200px;height:fit-content;max-height:calc(100vh - 116px);
-  margin:0;padding:0;display:flex;flex-direction:column;gap:9px;
-  overflow-y:auto;overflow-x:hidden;z-index:20;border:0;
-  border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none}
-.tabs .tab{width:100%;white-space:normal;text-align:left;border:1px solid rgba(215,227,221,.92);border-radius:14px;padding:14px 15px;
-  background:rgba(255,255,255,.55);color:#234a40;box-shadow:0 8px 24px rgba(38,60,52,.05);min-height:51px;font-size:13px;white-space:nowrap;backdrop-filter:blur(4px)}
-.tabs .tab:hover{background:rgba(255,255,255,.75)}
-.tabs .tab.active{background:linear-gradient(120deg,#116e58,#075244);border-color:transparent;color:white;box-shadow:0 5px 14px rgba(20,94,77,.18)}
+/* Tạo vùng chừa riêng cho menu: sidebar KHÔNG nằm trong luồng các hóa đơn. */
+.shell{max-width:none;width:auto;margin:0 0 0 186px;padding:26px 28px 58px;min-width:0}
+.tabs{
+  position:fixed;left:14px;top:94px;bottom:auto;right:auto;
+  width:156px;height:max-content;max-height:calc(100dvh - 108px);
+  margin:0;padding:0;display:flex;flex-direction:column;gap:7px;
+  overflow-y:auto;overflow-x:hidden;z-index:30;
+  border:0;border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none;
+}
+.tabs .tab{
+  width:100%;min-height:45px;padding:10px 11px;
+  text-align:left;white-space:normal;
+  border:1px solid rgba(209,224,216,.85);border-radius:11px;
+  background:rgba(255,255,255,.40);color:#163e35;
+  box-shadow:0 4px 11px rgba(33,72,60,.05);font-size:12px;font-weight:750;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.tabs .tab:hover{background:rgba(255,255,255,.78)}
+.tabs .tab.active{background:linear-gradient(120deg,#116e58,#075244);border-color:transparent;color:#fff;box-shadow:0 5px 14px rgba(20,94,77,.18)}
 .cloud-toolbar,.stat,.panel,.item,.finance-kpi,.finance-card,.bill-status-column,.annual-donut-panel,.dashboard-chart{
   background:rgba(255,255,255,.92);border-color:rgba(211,223,218,.85);
   box-shadow:0 10px 28px rgba(27,61,51,.07);backdrop-filter:blur(6px)}
@@ -574,11 +594,23 @@ body{background:#f5f6f3 url('./nen-thuy-mac.svg') center top / cover fixed no-re
 .btn:not(.secondary):not(.danger):not(.soft):not(.bill-pay-pending){background:#0e6653;border-color:#0e6653}
 .btn.secondary{background:rgba(255,255,255,.96)}
 .field input,.field select,.field textarea{background:#fff}
+/* Tiêu đề và chữ có tương phản tốt hơn trên hoa văn thủy mặc. */
+.section-head h2,.section-head h3,.finance-section-title,.view>h2,.view>h3,
+.welcome-panel h2,.bill-status-column h4{
+  color:#0c4035;text-shadow:0 1px 1px rgba(255,255,255,.90);
+}
+.soft-muted,.muted,.detail,.stat-label{color:#49675f}
+.cloud-toolbar{background:rgba(255,255,255,.95)}
+/* Tùy chọn cường độ tranh trong Cài đặt. */
+.qp-appearance-panel{background:rgba(255,255,255,.91)}
+.qp-appearance-panel .qp-appearance-controls{max-width:430px}
+.qp-appearance-panel .qp-appearance-help{margin:9px 0 0;line-height:1.6}
 .foot{color:#235346;border-top-color:rgba(166,190,177,.7)}
 /* Mobile layout deliberately retains top navigation, instead of shrinking the sidebar. */
 @media(max-width:1050px) and (min-width:761px){
-  .tabs{width:175px;left:9px;top:90px}
-  .shell{margin-left:195px;padding:22px 20px 50px}
+  .tabs{width:145px;left:10px;top:90px}
+  .tabs .tab{font-size:11px;padding:10px 9px}
+  .shell{margin-left:170px;padding:22px 17px 50px}
   .dashboard-visuals{grid-template-columns:1fr}
 }
 @media(max-width:760px){
@@ -589,7 +621,7 @@ body{background:#f5f6f3 url('./nen-thuy-mac.svg') center top / cover fixed no-re
   .top .brand-emblem svg{height:32px;width:32px}
   .top h1{font-size:18px}
   .shell{margin:0;padding:13px 11px 40px}
-  .tabs{position:static;left:auto;top:auto;bottom:auto;width:100%;padding:0;border:0;border-radius:0;
+  .tabs{position:static;left:auto;top:auto;bottom:auto;right:auto;width:100%;height:auto;max-height:none;padding:0;border:0;border-radius:0;
     display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;overflow:visible;background:transparent;box-shadow:none;backdrop-filter:none;margin:4px 0 13px}
   .tabs .tab{text-align:center;min-height:48px;padding:9px 4px;white-space:normal;border:1px solid #d5e5dd;
     background:rgba(255,255,255,.92);box-shadow:0 2px 8px rgba(24,62,49,.06);font-size:12px}
@@ -613,8 +645,49 @@ body{background:#f5f6f3 url('./nen-thuy-mac.svg') center top / cover fixed no-re
   #stats .stat strong,.finance-kpi strong{font-size:clamp(14px,3.7vw,17px);letter-spacing:-.35px}
 }
 @media print{
-  body{background:#fff!important}
+  body{background:#fff!important;background-image:none!important}
   .dashboard-visuals,.welcome-panel{display:none!important}
+}
+
+
+/* ===== V8.6.4: KHU VỰC HÓA ĐƠN ĐÃ LẬP - NỀN TRONG MỜ =====
+   Chỉ điều chỉnh lớp nền; giữ nguyên chữ, nút và nghiệp vụ. */
+#dashboard .bill-status-column {
+  background: rgba(255,255,255,0.44) !important;
+  border: 1px solid rgba(173,196,186,0.58);
+  box-shadow: 0 6px 22px rgba(22,64,51,0.05) !important;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+#dashboard .bill-status-column .item {
+  background: rgba(255,255,255,0.62) !important;
+  border: 1px solid rgba(176,205,193,0.68);
+  box-shadow: 0 4px 14px rgba(22,64,51,0.05) !important;
+  -webkit-backdrop-filter: blur(1px);
+  backdrop-filter: blur(1px);
+}
+#dashboard .bill-status-column h4,
+#dashboard .bill-status-column .item-title {
+  color: #133E35;
+  font-weight: 800;
+}
+#dashboard .bill-status-column .bill-status-summary,
+#dashboard .bill-status-column .detail {
+  color: #49685F;
+}
+@media (max-width: 760px) {
+  /* Trên điện thoại ưu tiên độ tương phản để dễ đọc. */
+  #dashboard .bill-status-column { background: rgba(255,255,255,0.56) !important; }
+  #dashboard .bill-status-column .item { background: rgba(255,255,255,0.76) !important; }
+}
+@media print {
+  #dashboard .bill-status-column,
+  #dashboard .bill-status-column .item {
+    background: #fff !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
 }
 
 </style>
@@ -778,6 +851,18 @@ body{background:#f5f6f3 url('./nen-thuy-mac.svg') center top / cover fixed no-re
     <div id="expenseList" class="stack"></div>
   </section>
   <section id="settings" class="view"><h2>Cài đặt</h2>
+    <div class="panel qp-appearance-panel">
+      <h3>🎨 Giao diện thủy mặc</h3>
+      <div class="field qp-appearance-controls">
+        <label for="qpInkStrength">Độ đậm tranh nền</label>
+        <select id="qpInkStrength" aria-label="Chọn độ đậm tranh thủy mặc">
+          <option value="light">Nhạt — dễ đọc nhất</option>
+          <option value="medium" selected>Vừa — cân đối</option>
+          <option value="dark">Đậm — nổi bật tranh nền</option>
+        </select>
+      </div>
+      <p class="soft-muted qp-appearance-help">Chỉ thay đổi hình nền trên thiết bị đang sử dụng, không sửa dữ liệu phòng trọ, hóa đơn hoặc Supabase.</p>
+    </div>
     <div class="panel"><h3>🛡️ Kiểm tra dữ liệu & nhật ký chỉnh sửa</h3>
       <p class="soft-muted">Kiểm tra mâu thuẫn công tơ, trùng đợt thuê, hóa đơn thu vượt tiền và các khoản chi có khả năng ghi trùng. Chức năng này <b>không tự sửa hoặc xóa dữ liệu</b>.</p>
       <button class="btn secondary" type="button" id="runDataChecks">🔎 Chạy kiểm tra</button>
@@ -3652,6 +3737,24 @@ function pickMonth(){selectedMonth=$('yearSel').value+'-'+String($('monthSel').v
 $('monthSel').addEventListener('change',pickMonth);$('yearSel').addEventListener('change',pickMonth);
 setInterval(()=>{$('currentDate').textContent=nowLong();},60000);
 $('expensePaidDate').value=localToday();
+// Lưu lựa chọn cường độ tranh chỉ trên máy này, không đồng bộ vào dữ liệu nghiệp vụ.
+(function initQpInkStrength(){
+  const select=document.getElementById('qpInkStrength');
+  const levels={light:'.42',medium:'.16',dark:'0'};
+  let initial='medium';
+  try{const stored=localStorage.getItem('quyphi_ui_ink_strength');if(Object.prototype.hasOwnProperty.call(levels,stored))initial=stored;}catch(_ignored){}
+  function apply(value){
+    const v=Object.prototype.hasOwnProperty.call(levels,value)?value:'medium';
+    document.documentElement.style.setProperty('--qp-ink-wash',levels[v]);
+    select.value=v;
+    return v;
+  }
+  apply(initial);
+  select.addEventListener('change',()=>{
+    const v=apply(select.value);
+    try{localStorage.setItem('quyphi_ui_ink_strength',v);}catch(_ignored){}
+  });
+})();
 startCloudApp();
 </script>
 </body>
