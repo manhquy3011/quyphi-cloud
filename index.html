@@ -528,29 +528,31 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
 /* ===== QUÝ PHI 8.6.1 / THỦY MẶC: chỉ đổi bố cục và giao diện ===== */
 /* Phần điều chỉnh màu nền chỉ thuộc giao diện máy này; không thay dữ liệu Supabase. */
 html{
-    /* ==== TÙY CHỈNH NHANH GIAO DIỆN ====
-       --qp-ink-wash-bg: độ đậm nền thủy mặc (tăng lên = đậm hơn, giảm xuống = nhạt hơn)
-       --qp-card-alpha: độ trong suốt của khung nội dung (giảm xuống = trong hơn, tăng lên = đặc hơn)
-       --qp-panel-alpha: độ trong suốt của các khối thống kê / form
-       --qp-header-alpha: độ trong suốt của header
-       Bạn chỉ cần sửa các số bên dưới.
-    ================================= */
-    --qp-ink-wash-bg:.18;
-    --qp-card-alpha:.78;
-    --qp-panel-alpha:.84;
-    --qp-soft-alpha:.72;
-    --qp-header-alpha:.88;
-    --qp-ink-wash:var(--qp-ink-wash-bg);
-    background:#f5f6f3
-  }
+  /* TÙY CHỈNH TRANH THỦY MẶC:
+     Nền: ưu tiên ảnh Pixabay lưu cùng thư mục; tiếp đến ảnh từ Pixabay CDN; cuối cùng là tranh cũ.
+     Cường độ: chọn Nhạt / Vừa / Đậm trong Cài đặt.
+  */
+  --qp-ink-wash-bg:.62;
+  --qp-card-alpha:.78;
+  --qp-panel-alpha:.84;
+  --qp-soft-alpha:.72;
+  --qp-header-alpha:.88;
+  --qp-ink-wash:var(--qp-ink-wash-bg);
+  background:#f5f6f3;
+}
 body{
- background-image:linear-gradient(rgba(255,255,255,var(--qp-ink-wash)),rgba(255,255,255,var(--qp-ink-wash))),url('./nen-thuy-mac-goc.png')!important;
- background-color:#f5f6f3!important;
- background-position:center top,center top!important;
- background-repeat:no-repeat,no-repeat!important;
- background-size:100% auto,100% auto!important;
- background-attachment:fixed,fixed!important;
- min-height:100vh;color:#173b33;
+  background-image:
+    linear-gradient(rgba(255,255,255,var(--qp-ink-wash)),rgba(255,255,255,var(--qp-ink-wash))),
+    url('./nen-thuy-mac-pixabay.png'),
+    url('https://cdn.pixabay.com/photo/2025/07/28/15/06/chinese-ink-painting-9740667_1280.png'),
+    url('./nen-thuy-mac-goc.png')!important;
+  background-color:#f5f6f3!important;
+  background-position:center top,center center,center center,center top!important;
+  background-repeat:no-repeat,no-repeat,no-repeat,no-repeat!important;
+  background-size:cover,cover,cover,cover!important;
+  background-attachment:fixed,fixed,fixed,fixed!important;
+  min-height:100vh;
+  color:#173b33;
 }
 .top{position:sticky;top:0;z-index:40;
      background:linear-gradient(115deg,rgba(7,82,69,.92),rgba(16,105,87,.91) 50%,rgba(9,82,71,.93))!important;
@@ -1003,6 +1005,21 @@ body{
 .top .brand-emblem { background: none !important; box-shadow: none !important; border: 0 !important; overflow: visible; }
 .top .brand-emblem .qp-brand-logo { display:block; width:54px; height:47px; object-fit:contain; background:transparent !important; }
 @media (max-width:760px) { .top .brand-emblem .qp-brand-logo { width:39px; height:35px; } }
+
+/* v8.7.4: giữ chữ đọc rõ trên tranh có nhiều núi và sương */
+.shell .stat,.shell .panel,.shell .finance-kpi,.shell .dashboard-chart,.shell .annual-donut-panel{
+  background:rgba(255,255,255,.80)!important;
+  border-color:rgba(178,196,187,.8)!important;
+}
+.shell .item,.shell .finance-card{background:rgba(255,255,255,.82)!important;}
+.view h2,.view h3,.finance-kpi strong,.stat strong{
+  text-shadow:0 1px 2px rgba(255,255,255,.65);
+}
+@media(max-width:760px){
+  body{background-attachment:scroll,scroll,scroll,scroll!important;}
+  .shell .stat,.shell .panel,.shell .finance-kpi,.shell .dashboard-chart{background:rgba(255,255,255,.88)!important;}
+}
+@media print{body{background-image:none!important;background-color:#fff!important;}}
 </style>
 </head>
 <body class="cloud-locked">
@@ -4105,7 +4122,7 @@ $('expensePaidDate').value=localToday();
 // Lưu lựa chọn cường độ tranh chỉ trên máy này, không đồng bộ vào dữ liệu nghiệp vụ.
 (function initQpInkStrength(){
   const select=document.getElementById('qpInkStrength');
-  const levels={light:'.42',medium:'.16',dark:'0'};
+  const levels={light:'.79',medium:'.62',dark:'.47'};
   let initial='medium';
   try{const stored=localStorage.getItem('quyphi_ui_ink_strength');if(Object.prototype.hasOwnProperty.call(levels,stored))initial=stored;}catch(_ignored){}
   function apply(value){
