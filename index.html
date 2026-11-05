@@ -197,6 +197,17 @@ body.cloud-locked>.foot{display:none!important}
 #closingReconcile{line-height:1.8}
 @media(max-width:600px){.top h1{font-size:20px}.tenancy-archive{font-size:13px}}
 
+  /* Thu nước kỳ trước, giữ rõ khoản thu và khoản chỉ theo dõi. */
+  .water-arrears{padding:13px 14px;margin:14px 0;border:1px solid #b8d9cd;border-radius:13px;box-shadow:none;background:#f9fcfb}
+  .water-arrears-title{font-weight:850;font-size:16px;color:#126354;margin:0 0 10px}
+  .water-arrears-check{display:flex;gap:10px;align-items:flex-start;line-height:1.55;padding:7px 0;color:#234840}
+  .water-arrears-check input{width:19px;height:19px;flex:none;accent-color:#17665a;margin-top:3px}
+  .water-arrears-check small{display:block;font-weight:400;color:#698079;font-size:12px}
+  #billPriorFields[hidden]{display:none!important}
+  #billPriorSource{margin:9px 0;background:#eaf5f0}
+  #billPriorWaterPreview{margin:12px 0 4px;background:#e6f4ed;font-weight:700}
+  .water-current-preview{margin-top:10px;border-left:3px solid #568fbe;background:#edf5fc;padding:11px 12px;border-radius:8px;font-size:13px;line-height:1.65;color:#264d66}
+  @media(max-width:600px){.water-arrears{padding:12px}.water-arrears-title{font-size:15px}}
   /* v8.3.7 – Tiền cọc hiện tại tách riêng khỏi lịch sử hoàn/khấu trừ. */
   .deposit-switch{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
   .deposit-switch-btn{background:#fff;color:#17665a;border:1px solid #b7d6cc;border-radius:10px;padding:10px 13px;min-height:42px;font-weight:750}
@@ -781,15 +792,36 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
     <button type="button" class="btn secondary" id="addElectricSegment">+ Thêm giai đoạn điện</button>
   </div>
   <div class="grid2" id="billWaterPrices">
-    <div class="field wide"><label for="billWaterMode">Cách thu nước áp dụng RIÊNG cho tháng này</label>
+    <div class="field wide"><label for="billWaterMode" id="billWaterModeLabel">Cách tính nước của kỳ đang ghi chỉ số</label>
       <select id="billWaterMode"><option value="meter">Tính theo m³ đồng hồ</option><option value="person">Tính theo đầu người (+ vượt định mức nếu có)</option></select></div>
-    <div class="field" id="billWaterAllowanceField" hidden><label for="billWaterAllowance">Định mức miễn phụ thu (m³/phòng/tháng, 0 = không giới hạn)</label><input id="billWaterAllowance" type="number" min="0" max="10000" step="1" value="0"></div>
+    <div class="field" id="billWaterAllowanceField" hidden><label for="billWaterAllowance" id="billWaterAllowanceLabel">Định mức của tháng đang ghi số (m³/phòng, 0 = không giới hạn)</label><input id="billWaterAllowance" type="number" min="0" max="10000" step="1" value="0"></div>
     <div class="field wide"><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="billKeepWaterMode" style="width:auto;min-height:auto"> Áp dụng cách thu, đơn giá và định mức nước này cho các tháng sau (cập nhật phòng)</label></div>
     <div class="field"><label for="billElectricRate">Đơn giá điện tháng này (nghìn đ/kWh)</label><input id="billElectricRate" type="number" min="0" step="any" required></div>
     <div class="field" id="billMeterRateField"><label for="billWaterRate">Đơn giá nước tháng này (nghìn đ/m³)</label><input id="billWaterRate" type="number" min="0" step="any" required></div>
-    <div class="field" id="billPersonRateField" hidden><label for="billWaterPerPerson">Đơn giá nước tháng này (nghìn đ/người)</label><input id="billWaterPerPerson" type="number" min="0" step="any"></div>
-    <div class="field" id="billExcessRateField" hidden><label for="billExcessWaterRate">Đơn giá nước vượt định mức tháng này (nghìn đ/m³)</label><input id="billExcessWaterRate" type="number" min="0" step="any"></div>
+    <div class="field" id="billPersonRateField" hidden><label for="billWaterPerPerson" id="billWaterPerPersonLabel">Đơn giá nước theo người (nghìn đ/người)</label><input id="billWaterPerPerson" type="number" min="0" step="any"></div>
+    <div class="field" id="billExcessRateField" hidden><label for="billExcessWaterRate" id="billExcessWaterRateLabel">Đơn giá nước vượt định mức (nghìn đ/m³)</label><input id="billExcessWaterRate" type="number" min="0" step="any"></div>
   </div>
+
+  <!-- Nước theo kỳ trước: lưu snapshot riêng, số nước tháng hiện tại chỉ để tính kỳ kế tiếp. -->
+  <section class="water-arrears panel" id="waterArrearsPanel">
+    <div class="water-arrears-title">💧 Nước theo người: tháng này thu cơ bản, tháng trước xét vượt</div>
+    <label class="water-arrears-check"><input type="checkbox" id="billWaterPriorEnabled"> <b>Thu nước cơ bản tháng này + phụ thu vượt định mức tháng trước</b></label>
+    <p class="small muted" id="billPriorHelp">Số công tơ nhập đầu tháng là lượng nước dùng trong THÁNG TRƯỚC. Tiền cơ bản tính theo số người THÁNG NÀY. Định mức tháng này lưu để so với công tơ chốt ĐẦU THÁNG SAU.</p>
+    <div id="billPriorFields" hidden>
+      <div class="inline-info" id="billPriorSource">Chưa có dữ liệu kỳ trước.</div>
+      <div class="grid2">
+        <div class="field"><label for="billPriorWaterMode">Cách thu nước trong tháng trước (để xác định phụ thu)</label><select id="billPriorWaterMode"><option value="person">Theo đầu người</option><option value="meter">Theo đồng hồ m³</option></select></div>
+        <div class="field" id="billPriorPeopleField"><label for="billPriorPeople">Số người sử dụng trong THÁNG TRƯỚC</label><input type="number" min="0" max="60" step="1" id="billPriorPeople"></div>
+        <div class="field"><label for="billPriorUsed">Lượng nước THÁNG TRƯỚC (tự lấy số công tơ dưới, m³)</label><input type="number" min="0" step="any" id="billPriorUsed" placeholder="Tự tính từ số công tơ nước dưới" readonly></div>
+        <div class="field" id="billPriorQuotaField"><label for="billPriorAllowance">Định mức THÁNG TRƯỚC (m³/phòng)</label><input type="number" min="0" max="10000" step="1" id="billPriorAllowance"></div>
+        <div class="field"><label for="billPriorPrice" id="billPriorPriceLabel">Giá nước THÁNG TRƯỚC (chỉ dùng nếu tính theo m³, nghìn đ/m³)</label><input type="number" min="0" step="any" id="billPriorPrice"></div>
+        <div class="field" id="billPriorExcessField"><label for="billPriorExcessRate">Giá nước vượt định mức THÁNG TRƯỚC (nghìn đ/m³)</label><input type="number" min="0" step="any" id="billPriorExcessRate"></div>
+      </div>
+      <label class="water-arrears-check"><input type="checkbox" id="billPriorAlreadyIncluded"> <span><b>Phụ thu tháng trước đã thu rồi – không thu lại</b><small>Chỉ đánh dấu nếu tiền VƯỢT ĐỊNH MỨC kỳ trước đã được thu bằng một khoản riêng.</small></span></label>
+      <div class="inline-info" id="billPriorWaterPreview"></div>
+    </div>
+    <div class="water-current-preview" id="billWaterCurrentPreview">Chỉ số nước chốt đầu tháng dùng để xác định lượng nước THÁNG TRƯỚC.</div>
+  </section>
   <div id="waterMeterFields" class="grid2">
     <div class="field"><label for="oldW">Số nước cũ (m³) *</label><input id="oldW" type="number" min="0" step="any"></div>
     <div class="field"><label for="newW">Số nước mới (m³) *</label><input id="newW" type="number" min="0" step="any"></div>
@@ -805,8 +837,8 @@ button:focus-visible,[role="button"]:focus-visible{outline:3px solid #9dd9c6;out
   <div class="grid2">
     <div class="field"><label for="billRent">Tiền phòng (nghìn đ) *</label><input id="billRent" type="number" min="0" step="any" required></div>
     <div class="wide" id="billPeopleFields" hidden><div class="grid2">
-      <div class="field"><label for="billAdults">Người lớn tính nước</label><input id="billAdults" type="number" min="0" step="1" required></div>
-      <div class="field"><label for="billChildren">Trẻ em tính nước</label><input id="billChildren" type="number" min="0" step="1" required></div>
+      <div class="field"><label for="billAdults" id="billAdultsLabel">Người lớn trong tháng đang ghi số</label><input id="billAdults" type="number" min="0" step="1" required></div>
+      <div class="field"><label for="billChildren" id="billChildrenLabel">Trẻ em trong tháng đang ghi số</label><input id="billChildren" type="number" min="0" step="1" required></div>
     </div></div><input type="hidden" id="billOccupants">
   </div>
   <div class="subheading">Phí phát sinh / Giảm trừ tháng này</div>
@@ -953,6 +985,8 @@ function getBank(){return {bankName:state.settings.bankName||'',bankAccount:stat
 // V8.3.6: Nhiều giai đoạn cho một loại công tơ trong một hóa đơn.
 // legacy: không có segments thì dùng cặp oldE/newE hoặc oldW/newW như trước.
 const meterMonthStart=m=>m+'-01';
+function previousMonthKey(m){const [y,n]=m.split('-').map(Number);const d=new Date(y,n-2,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
+
 function meterMonthEnd(m){const [y,mm]=m.split('-').map(Number);return `${m}-${String(new Date(y,mm,0).getDate()).padStart(2,'0')}`;}
 const meterSegmentsOf=(b,type)=>Array.isArray(b?.[type==='electric'?'electricSegments':'waterSegments'])?b[type==='electric'?'electricSegments':'waterSegments']:[];
 const hasMeterSegments=(b,type)=>meterSegmentsOf(b,type).length>0;
@@ -1245,9 +1279,22 @@ function validateData(input){
     if(occupants<1) throw Error('Số người hóa đơn không hợp lệ.');
     const oldW=b.oldW===null?null:Number(b.oldW),newW=b.newW===null?null:Number(b.newW);
     const waterAllowance=moneyInt(b.waterAllowance??0,'Định mức nước hóa đơn');
-    const trackWater=waterMode==='meter'||(waterMode==='person'&&waterAllowance>0)||waterSegments.length>0;
+    const trackWater=waterMode==='meter'||(waterMode==='person'&&waterAllowance>0)||waterSegments.length>0||b.waterBillingPrior===true;
     if(trackWater && (!Number.isFinite(oldW)||!Number.isFinite(newW)||(!waterSegments.length&&newW<oldW)||oldW<0)) throw Error('Chỉ số nước không hợp lệ.');
     const waterExcessRate=moneyInt(b.waterExcessRate??b.waterRate,'Giá nước vượt hóa đơn');
+    const waterBillingPrior=b.waterBillingPrior===true;
+    let waterPrior=null;
+    if(waterBillingPrior){
+      const p=b.waterPrior;
+      if(!p||p.period!==previousMonthKey(b.month)||!['person','meter'].includes(p.mode))throw Error('Kỳ nước tháng trước của hóa đơn không hợp lệ.');
+      const people=Number(p.people),used=p.used==null?null:Number(p.used),allowance=Number(p.allowance),included=!!p.included;
+      const rate=moneyInt(p.rate,'Đơn giá nước kỳ trước'),excessRate=moneyInt(p.excessRate,'Giá nước vượt kỳ trước');
+      if(!Number.isInteger(people)||people<0||people>60||!Number.isInteger(allowance)||allowance<0||allowance>10000||
+        (used!==null&&(!Number.isFinite(used)||used<0||used>1000000))||
+        (!included&&(p.mode==='meter'?(used===null):(people<1||(allowance>0&&used===null)))))
+        throw Error('Số người, định mức hoặc số khối kỳ trước không hợp lệ.');
+      waterPrior={period:p.period,mode:p.mode,people,used,allowance,rate,excessRate,included,sourceBillId:String(p.sourceBillId||'').slice(0,100)};
+    }
     if(!Array.isArray(b.fees)) throw Error('Các khoản phí hóa đơn không hợp lệ.');
     const billFees=b.fees.map(f=>({name:String(f?.name??'Phí khác').slice(0,60),amount:moneyInt(f?.amount,'Tiền phí hóa đơn')}));
     // Phí phát sinh có thể ÂM (giảm trừ), khác với phí cố định luôn không âm.
@@ -1265,7 +1312,8 @@ function validateData(input){
       leaseStart:String(b.leaseStart??''),leaseEnd:String(b.leaseEnd??''),deposit:b.deposit==null?null:moneyInt(b.deposit,'Tiền cọc hóa đơn'),
       vehicles:cleanVehicles(Array.isArray(b.vehicles)?b.vehicles:[]),
       oldE:Number(b.oldE),newE:Number(b.newE),oldW:trackWater?oldW:null,newW:trackWater?newW:null,
-      electricSegments,waterSegments,waterAllowance,waterExcessRate,
+      electricSegments,waterSegments,waterAllowance,waterExcessRate,waterBillingPrior,waterPrior,
+      waterPriorAccounting:b.waterPriorAccounting==='current-base-prior-excess'?'current-base-prior-excess':'',
       rent:moneyInt(b.rent,'Tiền phòng hóa đơn'),adults,children,occupants,
       electricRate:moneyInt(b.electricRate,'Giá điện hóa đơn'),waterRate:moneyInt(b.waterRate,'Giá nước hóa đơn'),
       waterPerPerson:moneyInt(b.waterPerPerson,'Giá nước người hóa đơn'),waterMode,fees:billFees,extras:billExtras,
@@ -1337,6 +1385,8 @@ function validateData(input){
     const fields=['startE','endE','startW','endW','electricRate','waterRate','electricCharge','waterCharge','extraCharge',
       'unpaidBills','totalDue','depositBefore','offset','refund','cashCollected'];
     const cleaned={};for(const k of fields){cleaned[k]=Number(x[k]);if(!Number.isFinite(cleaned[k])||cleaned[k]<0)throw Error('Số liệu quyết toán không hợp lệ: '+k);}
+    cleaned.waterDeferredCharge=Number(x.waterDeferredCharge??0);
+    if(!Number.isFinite(cleaned.waterDeferredCharge)||cleaned.waterDeferredCharge<0||cleaned.waterDeferredCharge>cleaned.waterCharge)throw Error('Tiền nước chờ thu khi quyết toán không hợp lệ.');
     if(cleaned.endE<cleaned.startE||cleaned.endW<cleaned.startW||cleaned.offset+cleaned.refund!==cleaned.depositBefore||
        cleaned.offset+cleaned.cashCollected!==cleaned.totalDue)throw Error('Phiếu quyết toán không cân đối.');
     const room=rooms.find(r=>r.id===x.roomId);
@@ -1382,13 +1432,33 @@ function calc(b){
   const electric=hasMeterSegments(b,'electric')
     ?meterSegmentsOf(b,'electric').reduce((a,seg)=>a+Math.round(segmentVolume(seg)*(seg.rate??b.electricRate)),0)
     :Math.round((b.newE-b.oldE)*b.electricRate);
-  const basicWater=b.waterMode==='meter'
-    ?hasMeterSegments(b,'water')?meterSegmentsOf(b,'water').reduce((a,seg)=>a+Math.round(segmentVolume(seg)*(seg.rate??b.waterRate)),0)
-      :Math.round((b.newW-b.oldW)*b.waterRate)
-    :Math.round(b.occupants*b.waterPerPerson);
-  const extraVolume=b.waterMode==='person'&&(b.waterAllowance||0)>0
-    ?Math.max(0,totalMeterVolume(b,'water')-b.waterAllowance):0;
-  const excessWater=Math.round(extraVolume*(b.waterExcessRate??b.waterRate));
+  const prior=b.waterBillingPrior&&b.waterPrior?b.waterPrior:null;
+  const newMethod=prior&&b.waterPriorAccounting==='current-base-prior-excess';
+  // Quy tắc mới: hóa đơn N thu nước cơ bản theo người của tháng N,
+  // cộng CHỈ PHỤ THU vượt mức của tháng N-1 (vì đầu N mới chốt được chỉ số).
+  // Hóa đơn đã lưu từ bản cũ không có waterPriorAccounting: giữ nguyên giá trị.
+  let basicWater,extraVolume,excessWater;
+  if(newMethod){
+    basicWater=b.waterMode==='person'
+      ?Math.round(b.occupants*b.waterPerPerson)
+      :Math.round((prior?.used||0)*(b.waterRate||prior.rate));
+    extraVolume=prior.mode==='person'&&!prior.included&&prior.allowance>0
+      ?Math.max(0,(prior.used||0)-prior.allowance):0;
+    excessWater=Math.round(extraVolume*prior.excessRate);
+  }else{
+    const priorIncluded=!!prior?.included;
+    basicWater=prior
+      ?priorIncluded?0:prior.mode==='person'?Math.round(prior.people*prior.rate):Math.round((prior.used||0)*prior.rate)
+      :b.waterMode==='meter'
+        ?hasMeterSegments(b,'water')?meterSegmentsOf(b,'water').reduce((a,seg)=>a+Math.round(segmentVolume(seg)*(seg.rate??b.waterRate)),0)
+          :Math.round((b.newW-b.oldW)*b.waterRate)
+        :Math.round(b.occupants*b.waterPerPerson);
+    extraVolume=prior
+      ?priorIncluded||prior.mode!=='person'||!prior.allowance?0:Math.max(0,(prior.used||0)-prior.allowance)
+      :b.waterMode==='person'&&(b.waterAllowance||0)>0
+        ?Math.max(0,totalMeterVolume(b,'water')-b.waterAllowance):0;
+    excessWater=Math.round(extraVolume*(prior?prior.excessRate:(b.waterExcessRate??b.waterRate)));
+  }
   const water=basicWater+excessWater;
   const other=[...b.fees,...(b.extras||[])].reduce((a,f)=>a+Number(f.amount),0);
   return {electric,water,basicWater,excessWater,extraVolume,other,total:Math.round(b.rent+electric+water+other)};
@@ -1429,7 +1499,7 @@ function render(){
   renderDashboard();renderReadings();renderRooms();renderSettings();renderFlex();renderFinance();renderDeposits();renderAnnualMain();renderAnnualOther();
 }
 function empty(message){return `<div class="empty">${safe(message)}</div>`;}
-function billCard(b){const v=calc(b);return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(b.roomName)}</div><div class="detail">${safe(b.tenant||'Chưa có tên người thuê')} · Tháng ${monthText(b.month)}</div></div><span class="badge ${b.paid||b.settledBy?'paid':'unpaid'}">${b.settledBy?'Đã quyết toán':b.paid?'✓ Đã thanh toán':billPaidAmount(b)>0?'◐ Còn thiếu tiền':'● Chưa thanh toán'}</span></div><div class="price">${money(v.total)}</div>${billPaidAmount(b)>0&&!b.paid?`<div class="detail small">Đã nhận ${money(billPaidAmount(b))} · Còn nợ ${money(billDueAmount(b))}</div>`:''}<div class="detail small">Điện: ${money(v.electric)} · Nước: ${money(v.water)} · Phí khác: ${money(v.other)}</div><div class="actions"><button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem hóa đơn</button>${!b.settledBy&&!state.settlements.some(x=>x.tenancyId===b.tenancyId)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(b.id)}">✏ Sửa tiền/phí</button>`:''}<button class="btn soft" data-action="paid" data-id="${safe(b.id)}">${b.settledBy?'Đã quyết toán':'✓ Đã thu tiền / Chưa thu'}</button></div></article>`;}
+function billCard(b){const v=calc(b);return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(b.roomName)}</div><div class="detail">${safe(b.tenant||'Chưa có tên người thuê')} · Tháng ${monthText(b.month)}</div></div><span class="badge ${b.paid||b.settledBy?'paid':'unpaid'}">${b.settledBy?'Đã quyết toán':b.paid?'✓ Đã thanh toán':billPaidAmount(b)>0?'◐ Còn thiếu tiền':'● Chưa thanh toán'}</span></div><div class="price">${money(v.total)}</div>${billPaidAmount(b)>0&&!b.paid?`<div class="detail small">Đã nhận ${money(billPaidAmount(b))} · Còn nợ ${money(billDueAmount(b))}</div>`:''}<div class="detail small">Điện: ${money(v.electric)} · ${b.waterBillingPrior?'Nước kỳ trước':'Nước'}: ${money(v.water)} · Phí khác: ${money(v.other)}</div><div class="actions"><button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem hóa đơn</button>${!b.settledBy&&!state.settlements.some(x=>x.tenancyId===b.tenancyId)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(b.id)}">✏ Sửa tiền/phí</button>`:''}<button class="btn soft" data-action="paid" data-id="${safe(b.id)}">${b.settledBy?'Đã quyết toán':'✓ Đã thu tiền / Chưa thu'}</button></div></article>`;}
 // v8.3.8: Cọc nhận/hoàn/điều chỉnh luôn gắn với đợt thuê, không nhập chung khách cũ và mới.
 // Màn hình chính là snapshot hiện tại; lịch sử giao dịch xem ở tab riêng.
 let depositView = 'current';
@@ -1935,9 +2005,14 @@ function settlementDraft(room,endedAt,endE,endW,additional=0){
   if(endE<startE||endW<startW)throw Error('Số bàn giao cuối nhỏ hơn số trên hóa đơn cuối/đầu kỳ. Nếu thay công tơ, hãy ghi rõ việc thay công tơ ở đợt thuê tiếp theo; không dùng số mới để chốt khách cũ.');
   const electricCharge=Math.round((endE-startE)*t.electricRate);
   let waterCharge=0;
-  if(t.waterMode==='meter')waterCharge=Math.round((endW-startW)*t.waterRate);
+  const lastUsesCorrectRule=latest?.waterPriorAccounting==='current-base-prior-excess';
+  if(lastUsesCorrectRule){
+    const lastWaterMode=latest.waterMode;
+    const consumedSinceReading=Math.max(0,endW-startW);
+    if(lastWaterMode==='meter')waterCharge=Math.round(consumedSinceReading*latest.waterRate);
+    else waterCharge=Math.round(Math.max(0,consumedSinceReading-(latest.waterAllowance||0))*latest.waterExcessRate);
+  }else if(t.waterMode==='meter')waterCharge=Math.round((endW-startW)*t.waterRate);
   else if(t.waterAllowance>0){
-    // Chỉ phụ thu phần nước vượt chưa được thu; nước cơ bản theo người phải lập hóa đơn tháng cuối.
     const recent=waterBill?.month===endedAt.slice(0,7)?waterBill:null;
     const allowance=t.waterAllowance;
     const usedAlready=recent?Math.max(0,totalMeterVolume(recent,'water')):0;
@@ -1945,10 +2020,17 @@ function settlementDraft(room,endedAt,endE,endW,additional=0){
     const excessAfter=Math.max(0,usedAlready+(endW-startW)-allowance);
     waterCharge=Math.round((excessAfter-excessBefore)*t.waterExcessRate);
   }
+  // Bản mới đã thu nước cơ bản tháng N trong hóa đơn N. Không thu lại khi chốt trả phòng.
+  const deferredWater=lastUsesCorrectRule?0:latest?.waterBillingPrior
+    ? Math.round(latest.waterMode==='meter'
+        ? Math.max(0,totalMeterVolume(latest,'water'))*latest.waterRate
+        :latest.occupants*latest.waterPerPerson+
+          Math.max(0,Math.max(0,totalMeterVolume(latest,'water'))-(latest.waterAllowance||0))*
+          (latest.waterAllowance>0?latest.waterExcessRate:0)) :0;
   const unpaid=bills.filter(b=>billDueAmount(b)>0&&!b.settledBy);
   const unpaidBills=unpaid.reduce((sum,b)=>sum+billDueAmount(b),0);
-  return {room,t,bills,unpaid,startE,startW,endE,endW,electricCharge,waterCharge,additional,unpaidBills,
-    totalDue:unpaidBills+electricCharge+waterCharge+additional,depositBefore:t.depositBalance};
+  return {room,t,bills,unpaid,startE,startW,endE,endW,electricCharge,waterCharge,deferredWater,additional,unpaidBills,
+    totalDue:unpaidBills+electricCharge+waterCharge+deferredWater+additional,depositBefore:t.depositBalance};
 }
 function closingSnapshot(){
   const r=getRoom($('closingRoomId').value);
@@ -1969,6 +2051,7 @@ function updateClosingPreview(autoOffset=false){
     <div class="line"><span>Công nợ hóa đơn chưa thu (${draft.unpaid.length} hóa đơn)</span><b>${money(unpaidBills)}</b></div>
     <div class="line"><span>Điện chốt thêm: ${startE} → ${endE} kWh × ${money(t.electricRate)}</span><b>${money(electricCharge)}</b></div>
     <div class="line"><span>Nước chốt thêm: ${startW} → ${endW} m³ ${t.waterMode==='meter'?'× '+money(t.waterRate):'(chỉ tính phần vượt định mức)'}</span><b>${money(waterCharge)}</b></div>
+    ${draft.deferredWater>0?`<div class="line"><span>Nước kỳ cuối đang theo dõi, chưa thu trên hóa đơn (chốt khi trả phòng)</span><b>${money(draft.deferredWater)}</b></div>`:''}
     <div class="line"><span>Khoản phát sinh khác</span><b>${money(draft.additional)}</b></div>
     <div class="line"><strong>TỔNG CẦN QUYẾT TOÁN</strong><strong>${money(totalDue)}</strong></div>`;
   reconcile.innerHTML=valid?`Cọc khấu trừ: <b>${money(offset)}</b> · Cọc thực hoàn: <b>${money(refund)}</b><br>
@@ -2017,7 +2100,8 @@ $('closeTenancyForm').addEventListener('submit',e=>{
   const old=copy(state),sid=id(),date=settlementDate,refund=d.depositBefore-offset;
   const settlement={id:sid,roomId:r.id,tenancyId:t.id,date,moveOutDate,tenant:t.tenant||'',startE:d.startE,endE:d.endE,startW:d.startW,endW:d.endW,
     electricRate:t.electricRate,waterRate:t.waterMode==='meter'?t.waterRate:t.waterExcessRate,
-    electricCharge:d.electricCharge,waterCharge:d.waterCharge,extraCharge:d.additional,extraNote:otherNote,unpaidBills:d.unpaidBills,
+    electricCharge:d.electricCharge,waterCharge:d.waterCharge+d.deferredWater,waterDeferredCharge:d.deferredWater,
+    extraCharge:d.additional,extraNote:otherNote,unpaidBills:d.unpaidBills,
     invoiceIds:d.unpaid.map(b=>b.id),totalDue:d.totalDue,depositBefore:d.depositBefore,offset,refund,cashCollected:cash,
     meterCode:t.electricMeterCode||''};
   state.settlements.push(settlement);
@@ -2045,7 +2129,8 @@ function showSettlement(sid){
     <table><thead><tr><th>Nội dung quyết toán</th><th>Thành tiền</th></tr></thead><tbody>
     ${line('Hóa đơn cũ chưa thu ('+s.invoiceIds.length+' hóa đơn)',s.unpaidBills)}
     ${line('Điện sử dụng chưa lập hóa đơn',s.electricCharge)}
-    ${line('Nước sử dụng chưa lập hóa đơn',s.waterCharge)}
+    ${line('Nước chốt thêm chưa lập hóa đơn',Math.max(0,s.waterCharge-(s.waterDeferredCharge||0)))}
+    ${(s.waterDeferredCharge||0)>0?line('Nước kỳ cuối chưa thu (chốt khi trả phòng)',s.waterDeferredCharge):''}
     ${line('Phát sinh khác'+(s.extraNote?' – '+safe(s.extraNote):''),s.extraCharge)}
     ${line('Tổng tiền phải quyết toán',s.totalDue)}
     ${line('Cọc trước khi quyết toán',s.depositBefore)}
@@ -2104,10 +2189,25 @@ function correctTenancyEnd(roomId,tid){
   showTenancyHistory(roomId);render();toast('Đã sửa ngày khách thực tế trả phòng. Ngày giao tiền và số tiền quyết toán vẫn giữ nguyên.');
 }
 const latestMeterBefore=(roomId,month,tid=getRoom(roomId)?.activeTenancyId)=>state.bills.filter(b=>b.roomId===roomId&&b.tenancyId===tid&&b.month<month&&Number.isFinite(b.newW)&&Number.isFinite(b.oldW)).sort((a,b)=>b.month.localeCompare(a.month))[0];
+// Số người/định mức kỳ trước lấy từ snapshot hóa đơn tháng trước, không dùng tháng hiện tại.
+function waterPriorDraft(room,tenancy,month,previous){
+  const expected=previousMonthKey(month);
+  const source=previous?.month===expected?previous:null;
+  const mode=source?.waterMode||room.waterMode;
+  // Hóa đơn tháng trước ghi số người, định mức tháng trước. SỐ KHỐI tháng trước
+  // CHỈ ĐƯỢC BIẾT khi đọc công tơ đầu tháng này (oldW -> newW).
+  return {period:expected,mode,people:source?source.occupants:0,used:null,
+    allowance:source?Number(source.waterAllowance||0):0,
+    rate:mode==='person'?(source?.waterPerPerson??room.waterPerPerson):(source?.waterRate??room.waterRate),
+    excessRate:source?.waterExcessRate??room.waterExcessRate??room.waterRate,
+    included:false,sourceBillId:source?.id||''};
+}
 function billDraft(room,existing,previous,meterPrevious){
   if(existing)return copy(existing); // Hóa đơn cũ luôn giữ đúng đơn giá, phí đã áp dụng.
   const tenancy=activeTenancy(room);
   const defaultCount=room.occupants||Math.max(1,tenancy?.residents?.length||1);
+  const waterBillingPrior=room.waterMode==='person'||previous?.waterBillingPrior===true;
+  const waterPrior=waterBillingPrior?waterPriorDraft(room,tenancy,selectedMonth,previous):null;
   return {id:id(),roomId:room.id,tenancyId:tenancy.id,roomName:room.name,tenant:room.tenant||tenancy.tenant,phone:room.phone||tenancy.phone,month:selectedMonth,
     oldE:previous?previous.newE:tenancy.openingE,newE:null,oldW:meterPrevious?meterPrevious.newW:tenancy.openingW,newW:null,
     electricSegments:[],waterSegments:[],
@@ -2115,7 +2215,7 @@ function billDraft(room,existing,previous,meterPrevious){
     rent:room.rent,adults:room.occupants?room.adults:defaultCount,children:room.occupants?room.children:0,occupants:defaultCount,
     leaseStart:room.leaseStart,leaseEnd:room.leaseEnd,deposit:room.deposit,vehicles:copy(room.vehicles),
     electricRate:room.electricRate,waterRate:room.waterRate,waterPerPerson:room.waterPerPerson,
-    waterMode:room.waterMode,waterAllowance:room.waterAllowance??0,waterExcessRate:room.waterExcessRate??room.waterRate,fees:roomFees(room),extras:[],paid:false,paidAt:null,createdAt:new Date().toISOString(),updatedAt:''};
+    waterBillingPrior,waterPrior,waterPriorAccounting:waterBillingPrior?'current-base-prior-excess':'',waterMode:room.waterMode,waterAllowance:room.waterAllowance??0,waterExcessRate:room.waterExcessRate??room.waterRate,fees:roomFees(room),extras:[],paid:false,paidAt:null,createdAt:new Date().toISOString(),updatedAt:''};
 }
 // Giao diện công tơ nâng cao: chỉ thay cho hóa đơn đang mở, không ghi vào hóa đơn cũ.
 let segmentModes={electric:false,water:false};
@@ -2160,7 +2260,7 @@ function toggleMeterSegments(type,on){
     $('electricMeterFields').style.display=on?'none':'grid';
     $('oldE').required=!on;$('newE').required=!on;
   }else{
-    const track=$('billWaterMode').value==='meter'||Number($('billWaterAllowance').value)>0;
+    const track=$('billWaterPriorEnabled').checked||$('billWaterMode').value==='meter'||Number($('billWaterAllowance').value)>0;
     $('waterMeterFields').style.display=on?'none':track?'grid':'none';
     $('oldW').required=track&&!on;$('newW').required=track&&!on;
   }
@@ -2189,6 +2289,46 @@ function setupMeterEditor(type,b){
   $(type==='electric'?'addElectricSegment':'addWaterSegment').disabled=historicalMoneyEdit;
   if(historicalMoneyEdit){meterRows(type).querySelectorAll('input,button').forEach(el=>el.disabled=true);}
 }
+function setWaterPriorFields(b){
+  const r=getRoom(b.roomId),prior=b?.waterPrior||waterPriorDraft(r,activeTenancy(r),b.month,latestBefore(b.roomId,b.month,b.tenancyId));
+  $('billWaterPriorEnabled').checked=!!b.waterBillingPrior;
+  $('billPriorWaterMode').value=prior.mode||'person';
+  $('billPriorPeople').value=prior.people??0;
+  $('billPriorUsed').value=prior.used??'';
+  $('billPriorAllowance').value=prior.allowance??0;
+  $('billPriorPrice').value=dongToNghin(prior.rate||0);
+  $('billPriorExcessRate').value=dongToNghin(prior.excessRate||0);
+  $('billPriorAlreadyIncluded').checked=!!prior.included;
+  $('billPriorFields').hidden=!b.waterBillingPrior;
+  const v2=b.waterPriorAccounting==='current-base-prior-excess';
+  $('billPriorUsed').readOnly=v2;
+  $('billPriorSource').textContent=v2
+    ?(prior.sourceBillId
+       ?`Đã lấy số người/định mức ${monthText(prior.period)} từ hóa đơn kỳ đó. Số nước sử dụng ${monthText(prior.period)} sẽ tính từ công tơ đang chốt ở đây.`
+       :`Chưa có hóa đơn ${monthText(prior.period)}: hãy nhập số người và định mức của tháng trước. Số nước tự tính từ hai chỉ số bên dưới.`)
+    :`Hóa đơn cũ đang sử dụng quy tắc tính đã lưu trước đây; không tự thay đổi số tiền.`;
+  updatePriorWaterUI();
+}
+function updatePriorWaterUI(){
+  const enabled=$('billWaterPriorEnabled').checked;
+  $('billPriorFields').hidden=!enabled;
+  const mode=$('billPriorWaterMode').value;
+  const newer=pendingBill?.waterPriorAccounting==='current-base-prior-excess';
+  $('billPriorPeopleField').style.display=mode==='person'?'flex':'none';
+  $('billPriorQuotaField').style.display=mode==='person'?'flex':'none';
+  $('billPriorExcessField').style.display=mode==='person'?'flex':'none';
+  $('billPriorPriceLabel').textContent=mode==='person'?'Đơn giá cơ bản kỳ trước (chỉ tham khảo)':'Giá nước theo m³ của THÁNG TRƯỚC (nghìn đ/m³)';
+  const b=getFormBill(),p=b?.waterPrior;
+  if(enabled&&p){
+    const v=calc(b);
+    if(newer){
+      $('billPriorWaterPreview').textContent=`HÓA ĐƠN ${monthText(b.month)}: nước cơ bản ${b.occupants} người × ${money(b.waterPerPerson)} = ${money(v.basicWater)}. `+
+        `Nước sử dụng ${monthText(p.period)}: ${p.used===null?'chưa chốt':p.used+' m³'}, định mức ${p.allowance} m³ `+
+        `(số người tháng trước: ${p.people}). Phụ thu vượt kỳ trước: ${money(v.excessWater)}. Tổng tiền nước: ${money(v.water)}.`;
+    }else $('billPriorWaterPreview').textContent=`Hóa đơn theo quy tắc cũ đã lưu: ${money(v.water)}; không tự đổi số tiền.`;
+  }
+}
+
 function billWaterModeUI(){
   const mode=$('billWaterMode').value,person=mode==='person',allowance=Number($('billWaterAllowance').value)||0;
   $('billMeterRateField').style.display=person?'none':'flex';
@@ -2196,9 +2336,16 @@ function billWaterModeUI(){
   $('billWaterAllowanceField').hidden=!person;$('billWaterAllowanceField').style.display=person?'flex':'none';
   $('billExcessRateField').style.display=person&&allowance>0?'flex':'none';
   $('billPeopleFields').style.display=person?'block':'none';
-  const track=!person||allowance>0;
+  const lag=$('billWaterPriorEnabled').checked;
+  const track=lag||!person||allowance>0;
   $('waterMeterFields').style.display=segmentModes.water?'none':track?'grid':'none';
   $('oldW').required=track&&!segmentModes.water;$('newW').required=track&&!segmentModes.water;
+  $('billWaterModeLabel').textContent=lag?'Cách tính nước cơ bản THÁNG NÀY':'Cách tính nước áp dụng cho hóa đơn tháng này';
+  $('billWaterAllowanceLabel').textContent=lag?'Định mức THÁNG NÀY (sẽ xét khi chốt đầu THÁNG SAU)':'Định mức tháng này (m³/phòng, 0 = không giới hạn)';
+  $('billWaterPerPersonLabel').textContent=lag?'Giá nước theo người THÁNG NÀY (thu ngay)':'Giá nước theo người của hóa đơn tháng này';
+  $('billExcessWaterRateLabel').textContent=lag?'Giá vượt định mức THÁNG NÀY (áp dụng khi chốt tháng sau)':'Giá vượt định mức tháng này';
+  $('billAdultsLabel').textContent=lag?'Người lớn THÁNG NÀY (tính nước cơ bản)':'Người lớn tính nước';
+  $('billChildrenLabel').textContent=lag?'Trẻ em THÁNG NÀY (tính nước cơ bản)':'Trẻ em tính nước';
   updateBillPreview();
 }
 for(const type of ['electric','water']){
@@ -2226,6 +2373,10 @@ for(const type of ['electric','water']){
 }
 $('billWaterMode').addEventListener('change',billWaterModeUI);
 $('billWaterAllowance').addEventListener('input',billWaterModeUI);
+$('billWaterPriorEnabled').addEventListener('change',()=>{updatePriorWaterUI();billWaterModeUI();});
+$('billPriorWaterMode').addEventListener('change',()=>{updatePriorWaterUI();updateBillPreview();});
+['billPriorPeople','billPriorUsed','billPriorAllowance','billPriorPrice','billPriorExcessRate'].forEach(id=>$(id).addEventListener('input',()=>{updatePriorWaterUI();updateBillPreview();}));
+$('billPriorAlreadyIncluded').addEventListener('change',()=>{updatePriorWaterUI();updateBillPreview();});
 function openBill(roomId){
   const r=getRoom(roomId);if(!r)return;
   const tenancy=activeTenancy(r);
@@ -2244,7 +2395,7 @@ function openBill(roomId){
   $('billForm').reset();$('billRoomId').value=roomId;
   $('billDialogTitle').textContent=`${existing?'Sửa hóa đơn':'Ghi chỉ số'} – ${r.name} (${monthText(selectedMonth)})`;
   const electricityNote=previous?`Số điện cũ lấy từ tháng ${monthText(previous.month)}.`:'Chưa có hóa đơn trước: dùng chỉ số điện ban đầu (nếu đã nhập).';
-  const trackWater=pendingBill.waterMode==='meter'||(pendingBill.waterMode==='person'&&pendingBill.waterAllowance>0);
+  const trackWater=pendingBill.waterBillingPrior||pendingBill.waterMode==='meter'||(pendingBill.waterMode==='person'&&pendingBill.waterAllowance>0);
   const waterNote=trackWater?(meterPrevious?`Số nước cũ lấy từ hóa đơn đồng hồ tháng ${monthText(meterPrevious.month)}.`:'Chưa có hóa đơn nước theo đồng hồ trước: dùng chỉ số nước ban đầu hoặc tự nhập.'):'Nước tính theo số người, không cần nhập chỉ số nước.';
   $('previousNote').textContent=`${electricityNote} ${waterNote}`;
   $('oldE').value=pendingBill.oldE??'';$('newE').value=pendingBill.newE??'';
@@ -2256,11 +2407,13 @@ function openBill(roomId){
   $('billMeterRateField').hidden=pendingBill.waterMode!=='meter';$('billPersonRateField').hidden=pendingBill.waterMode!=='person';
   $('billExcessRateField').hidden=!(pendingBill.waterMode==='person'&&pendingBill.waterAllowance>0);
   $('billElectricRate').value=dongToNghin(pendingBill.electricRate);
-  $('billWaterMode').value=pendingBill.waterMode;
+  $('billWaterMode').value=pendingBill.waterMode;setWaterPriorFields(pendingBill);
   $('billWaterAllowance').value=pendingBill.waterAllowance??0;
   $('billKeepWaterMode').checked=false;
   $('billKeepWaterMode').disabled=false;
   $('billWaterMode').disabled=false;
+  $('billWaterPriorEnabled').disabled=false;
+  ['billPriorWaterMode','billPriorPeople','billPriorUsed','billPriorAllowance','billPriorAlreadyIncluded'].forEach(id=>$(id).disabled=false);
   $('billWaterAllowance').disabled=false;
   setupMeterEditor('electric',pendingBill);setupMeterEditor('water',pendingBill);
   $('billWaterRate').value=dongToNghin(pendingBill.waterRate);
@@ -2287,7 +2440,7 @@ function openHistoricalMoneyEdit(billId){
   $('previousNote').textContent='Chế độ sửa hóa đơn lịch sử: chỉ được thay tiền phòng, đơn giá điện/nước, số người tính nước và phí phát sinh. Số công tơ cũ/mới được khóa để bảo vệ các tháng tiếp theo. Hóa đơn đã quyết toán không được sửa.';
   $('oldE').value=saved.oldE;$('newE').value=saved.newE;
   $('oldE').readOnly=true;$('newE').readOnly=true;
-  const trackWater=saved.waterMode==='meter'||(saved.waterMode==='person'&&saved.waterAllowance>0);
+  const trackWater=saved.waterBillingPrior||saved.waterMode==='meter'||(saved.waterMode==='person'&&saved.waterAllowance>0);
   $('oldW').value=saved.oldW??'';$('newW').value=saved.newW??'';
   $('oldW').readOnly=true;$('newW').readOnly=true;
   $('waterMeterFields').style.display=trackWater?'grid':'none';
@@ -2295,9 +2448,11 @@ function openHistoricalMoneyEdit(billId){
   $('billPersonRateField').hidden=saved.waterMode!=='person';
   $('billExcessRateField').hidden=!(saved.waterMode==='person'&&saved.waterAllowance>0);
   $('billElectricRate').value=dongToNghin(saved.electricRate);
-  $('billWaterMode').value=saved.waterMode;
+  $('billWaterMode').value=saved.waterMode;setWaterPriorFields(saved);
   $('billWaterAllowance').value=saved.waterAllowance??0;
   $('billWaterMode').disabled=true;
+  $('billWaterPriorEnabled').disabled=true;
+  ['billPriorWaterMode','billPriorPeople','billPriorUsed','billPriorAllowance','billPriorAlreadyIncluded'].forEach(id=>$(id).disabled=true);
   $('billWaterAllowance').disabled=true;
   $('billKeepWaterMode').checked=false;$('billKeepWaterMode').disabled=true;
   setupMeterEditor('electric',saved);setupMeterEditor('water',saved);
@@ -2322,11 +2477,21 @@ function getFormBill(){
   const electricSegments=segmentModes.electric?readMeterEditor('electric'):[];
   const waterSegments=segmentModes.water?readMeterEditor('water'):[];
   const lastE=electricSegments.slice(-1)[0],lastW=waterSegments.slice(-1)[0];
-  const trackWater=waterMode==='meter'||(waterMode==='person'&&waterAllowance>0)||waterSegments.length>0;
+  const waterBillingPrior=$('billWaterPriorEnabled').checked;
+  const derivedUsed=waterSegments.length?waterSegments.reduce((sum,seg)=>sum+(Number(seg.new)-Number(seg.old)),0):
+    ($('oldW').value!==''&&$('newW').value!==''?Number($('newW').value)-Number($('oldW').value):null);
+  const waterPrior=waterBillingPrior?{
+    period:previousMonthKey(pendingBill.month),mode:$('billPriorWaterMode').value,
+    people:num($('billPriorPeople').value),used:pendingBill.waterPriorAccounting==='current-base-prior-excess'?derivedUsed:($('billPriorUsed').value===''?null:num($('billPriorUsed').value)),
+    allowance:num($('billPriorAllowance').value),rate:nghinToDong($('billPriorPrice').value),
+    excessRate:nghinToDong($('billPriorExcessRate').value),included:$('billPriorAlreadyIncluded').checked,
+    sourceBillId:String(pendingBill.waterPrior?.sourceBillId||'')
+  }:null;
+  const trackWater=waterBillingPrior||waterMode==='meter'||(waterMode==='person'&&waterAllowance>0)||waterSegments.length>0;
   return {...pendingBill,oldE:lastE?lastE.old:num($('oldE').value),newE:lastE?lastE.new:num($('newE').value),electricRate:nghinToDong($('billElectricRate').value),electricSegments,
     oldW:lastW?lastW.old:trackWater?num($('oldW').value):null,
     newW:lastW?lastW.new:trackWater?num($('newW').value):null,waterSegments,
-    waterMode,waterAllowance,
+    waterMode,waterAllowance,waterBillingPrior,waterPrior,
     waterRate:nghinToDong($('billWaterRate').value),waterPerPerson:nghinToDong($('billWaterPerPerson').value),
     waterExcessRate:nghinToDong($('billExcessWaterRate').value),
     rent:nghinToDong($('billRent').value),adults,children,occupants,extras:formExtras()};
@@ -2356,6 +2521,16 @@ function billError(b){
   if(segmentModes.electric&&!b.electricSegments.length)return 'Thêm ít nhất 1 giai đoạn điện.';
   if(segmentModes.water&&!b.waterSegments.length)return 'Thêm ít nhất 1 giai đoạn nước.';
   if(b.waterMode==='person'&&(!Number.isSafeInteger(b.waterAllowance)||b.waterAllowance<0))return 'Định mức nước phải là số nguyên không âm.';
+  if(b.waterBillingPrior){
+    const p=b.waterPrior;
+    if(!p||p.period!==previousMonthKey(b.month)||!['person','meter'].includes(p.mode))return 'Thông tin kỳ nước tháng trước không hợp lệ.';
+    if(!Number.isInteger(p.people)||p.people<0||p.people>60||!Number.isSafeInteger(p.allowance)||p.allowance<0||p.allowance>10000||
+      !Number.isSafeInteger(p.rate)||p.rate<0||!Number.isSafeInteger(p.excessRate)||p.excessRate<0)
+      return 'Vui lòng nhập đủ số người, định mức và đơn giá THÁNG TRƯỚC.';
+    if(p.used!==null&&(!Number.isFinite(p.used)||p.used<0||p.used>1000000))return 'Số khối nước THÁNG TRƯỚC không hợp lệ.';
+    if(!p.included&&((p.mode==='person'&&p.people<1)||(p.mode==='meter'&&p.used===null)||(p.mode==='person'&&p.allowance>0&&p.used===null)))
+      return 'Thiếu thông tin nước THÁNG TRƯỚC. Nhập đúng người và số khối của kỳ trước; không lấy số tháng này.';
+  }
   }
   if(b&&(b.extras||[]).some(x=>!x.name||!Number.isSafeInteger(x.amount)))return 'Mỗi khoản phí / giảm trừ cần có tên và số tiền nguyên hợp lệ.';
   // Không để việc giảm trừ làm tổng hóa đơn âm.
@@ -2365,7 +2540,7 @@ function billError(b){
     || !Number.isInteger(b.adults)||!Number.isInteger(b.children)||b.adults<0||b.children<0||b.occupants<1)
     return 'Vui lòng nhập đầy đủ số điện, tiền phòng,\nngười lớn và trẻ em hợp lệ.';
   if(!segmentModes.electric&&b.newE<b.oldE)return '⚠️ Số điện MỚI không được nhỏ hơn số điện CŨ.';
-  if(b.waterMode==='meter'||(b.waterMode==='person'&&b.waterAllowance>0)||segmentModes.water){
+  if(b.waterBillingPrior||b.waterMode==='meter'||(b.waterMode==='person'&&b.waterAllowance>0)||segmentModes.water){
     if(![b.oldW,b.newW].every(Number.isFinite)||b.oldW<0||b.newW<0)return 'Vui lòng nhập đầy đủ chỉ số nước hợp lệ.';
     if(!segmentModes.water&&b.newW<b.oldW)return '⚠️ Số nước MỚI không được nhỏ hơn số nước CŨ.';
   }
@@ -2374,12 +2549,25 @@ function billError(b){
 }
 function updateBillPreview(){
   const b=getFormBill(),error=billError(b);
-  $('billPreview').textContent=error?error:`Tổng tiền: ${money(calc(b).total)}`;
+  if(b?.waterBillingPrior&&b.waterPriorAccounting==='current-base-prior-excess'){
+    $('billPriorUsed').value=b.waterPrior.used??'';
+  }
+  $('billPreview').textContent=error?error:`Tổng tiền: ${money(calc(b).total)}${b.waterBillingPrior?' · Nước: '+money(calc(b).water):''}`;
+  if(b?.waterBillingPrior&&b.waterPriorAccounting==='current-base-prior-excess'){
+    const used=b.waterPrior?.used;
+    $('billWaterCurrentPreview').textContent=used===null||!Number.isFinite(used)
+      ?`Đầu tháng ${monthText(b.month)} chưa chốt đủ số nước của ${monthText(previousMonthKey(b.month))}. Hãy nhập chỉ số công tơ.`
+      :`Công tơ chốt đầu ${monthText(b.month)}: ${Number(used.toFixed(3))} m³ là nước sử dụng THÁNG ${monthText(previousMonthKey(b.month))}. `+
+       `Đã xét mức ${b.waterPrior.allowance} m³ của tháng trước và tính phụ thu vào hóa đơn này. `+
+       `Định mức ${b.waterAllowance} m³ của THÁNG ${monthText(b.month)} chỉ xét khi chốt công tơ ĐẦU THÁNG SAU.`;
+    updatePriorWaterUI();
+  }else if(b?.waterBillingPrior){
+    $('billWaterCurrentPreview').textContent='Hóa đơn cũ: giữ nguyên cách tính và số liệu đã lưu.';
+  }else $('billWaterCurrentPreview').textContent='Chế độ thu nước theo phương thức đang chọn.';
   $('billPreview').style.background=error?'#fff1e5':'#e8f5ef';
-  // Căn giữa thông báo lỗi, giữ tổng tiền căn phải như trước.
   $('billPreview').classList.toggle('is-error',!!error);
 }
-['oldE','newE','oldW','newW','billRent','billAdults','billChildren','billElectricRate','billWaterRate','billWaterPerPerson','billExcessWaterRate'].forEach(k=>$(k).addEventListener('input',updateBillPreview));
+['oldE','newE','oldW','newW','billRent','billAdults','billChildren','billElectricRate','billWaterRate','billWaterPerPerson','billExcessWaterRate'].forEach(k=>$(k).addEventListener('input',()=>{updatePriorWaterUI();updateBillPreview();}));
 function addExtraRow(x={name:'',amount:''}){
   const box=document.createElement('div');box.className='setting-fee';
   box.innerHTML=`<input class="extra-name" maxlength="60" placeholder="VD: Giảm trừ nước 9 m³" aria-label="Tên phí hoặc giảm trừ" value="${safe(x.name||'')}"><input class="extra-amount" type="number" step="any" placeholder="+ thu / - giảm (nghìn đ)" aria-label="Số tiền phí hoặc giảm trừ" value="${dongToNghin(x.amount??'')}"><button class="btn danger remove-extra" type="button">Xóa</button>`;
@@ -2401,7 +2589,12 @@ $('billForm').addEventListener('submit',e=>{
        !Object.is(b.oldW,original.oldW)||!Object.is(b.newW,original.newW)||
        JSON.stringify(b.electricSegments||[])!==JSON.stringify(original.electricSegments||[])||
        JSON.stringify(b.waterSegments||[])!==JSON.stringify(original.waterSegments||[])||
-       b.waterMode!==original.waterMode||b.waterAllowance!==original.waterAllowance){
+       b.waterMode!==original.waterMode||b.waterAllowance!==original.waterAllowance||
+       b.waterBillingPrior!==original.waterBillingPrior||
+       (!!b.waterPrior!==!!original.waterPrior)||
+       (b.waterBillingPrior&&(b.waterPrior.people!==original.waterPrior.people||b.waterPrior.used!==original.waterPrior.used||
+        b.waterPrior.allowance!==original.waterPrior.allowance||b.waterPrior.mode!==original.waterPrior.mode||
+        b.waterPrior.included!==original.waterPrior.included))){
       alert('Chỉ số điện/nước hoặc thông tin đợt thuê đã thay đổi. Hãy mở lại hóa đơn.');return;
     }
     if(billPaidAmount(original)>calc(b).total){alert('Tổng hóa đơn sửa lại không được nhỏ hơn số tiền đã thu.');return;}
@@ -2410,6 +2603,17 @@ $('billForm').addEventListener('submit',e=>{
     if(calc(original).total!==calc(b).total&&!billPaidAmount(original)&&
        !confirm(`Tổng tiền hóa đơn sẽ đổi từ ${money(calc(original).total)} sang ${money(calc(b).total)}. Xác nhận chỉnh sửa lịch sử?`))return;
   }else{
+    const previousPeriodBill=state.bills.find(x=>x.roomId===b.roomId&&x.tenancyId===b.tenancyId&&x.month===previousMonthKey(b.month));
+    if(previousPeriodBill?.waterBillingPrior&&!b.waterBillingPrior){
+      alert('Hóa đơn tháng trước đã ghi nước để THU TRỄ. Vui lòng bật Thu nước tháng trước trong hóa đơn này để không bỏ sót tiền nước chưa thu.');return;
+    }
+    if(b.waterBillingPrior&&b.waterPriorAccounting!=='current-base-prior-excess'&&b.waterPrior?.sourceBillId&&!b.waterPrior.included){
+      const priorSource=state.bills.find(x=>x.id===b.waterPrior.sourceBillId);
+      if(priorSource&&!priorSource.waterBillingPrior&&
+        !confirm(`⚠️ Hóa đơn tháng ${monthText(priorSource.month)} ĐÃ TÍNH nước theo cách cũ.
+Nếu vẫn thu lại tiền nước kỳ đó có thể bị tính TRÙNG.
+Chỉ bấm OK khi xác nhận khoản nước đó CHƯA được thu/tính ở hóa đơn cũ.`))return;
+    }
     const previous=latestBefore(b.roomId,b.month,b.tenancyId),meterPrevious=latestMeterBefore(b.roomId,b.month,b.tenancyId);
     if((!b.electricSegments.length&&previous&&b.oldE!==previous.newE) ||
        (!b.waterSegments.length&&(b.waterMode==='meter'||(b.waterMode==='person'&&b.waterAllowance>0))&&meterPrevious&&b.oldW!==meterPrevious.newW)){
@@ -2506,7 +2710,22 @@ function showInvoice(billId){
   let detail=hasMeterSegments(b,'electric')
     ?meterSegmentsOf(b,'electric').map(seg=>segLine('Tiền điện',seg,'electric',Math.round(segmentVolume(seg)*(seg.rate??b.electricRate)),seg.rate??b.electricRate)).join('')
     :`<tr><td>Tiền điện</td><td class="n">${b.oldE}</td><td class="n">${b.newE}</td><td class="n">${Number((b.newE-b.oldE).toFixed(3))} kWh</td><td class="n">${fmtN(b.electricRate)}</td><td class="n">${money(v.electric)}</td></tr>`;
-  if(b.waterMode==='meter'){
+  if(b.waterBillingPrior&&b.waterPrior&&b.waterPriorAccounting==='current-base-prior-excess'){
+    const p=b.waterPrior;
+    detail+=`<tr><td><b>Tiền nước cơ bản ${monthText(b.month)}</b> – ${b.occupants} người</td><td class="n">–</td><td class="n">–</td><td class="n">${b.occupants} người</td><td class="n">${fmtN(b.waterPerPerson)}/người</td><td class="n">${money(v.basicWater)}</td></tr>`;
+    detail+=`<tr><td>Nước sử dụng ${monthText(p.period)} (chốt đầu ${monthText(b.month)}, định mức ${p.allowance} m³)</td><td class="n">${b.oldW??'–'}</td><td class="n">${b.newW??'–'}</td><td class="n">${p.used??'–'} m³</td><td class="n">–</td><td class="n">Đối chiếu</td></tr>`;
+    if(v.extraVolume>0)detail+=`<tr><td>Phụ thu vượt định mức ${monthText(p.period)} (${v.extraVolume} m³)</td><td class="n">–</td><td class="n">–</td><td class="n">${v.extraVolume} m³</td><td class="n">${fmtN(p.excessRate)}/m³</td><td class="n">${money(v.excessWater)}</td></tr>`;
+  }else if(b.waterBillingPrior&&b.waterPrior){
+    const p=b.waterPrior;
+    const head=`Tiền nước kỳ ${monthText(p.period)}${p.included?' (đã tính trên hóa đơn trước)':''}`;
+    if(p.included){detail+=full(head,0);}
+    else if(p.mode==='person'){
+      detail+=`<tr><td>${safe(head)} · ${p.people} người</td><td class="n">–</td><td class="n">–</td><td class="n">${p.people} người</td><td class="n">${fmtN(p.rate)}/người</td><td class="n">${money(v.basicWater)}</td></tr>`;
+      if(v.extraVolume>0)detail+=`<tr><td>Phụ thu vượt ĐỊNH MỨC KỲ ${monthText(p.period)} (${p.allowance} m³)</td><td class="n">–</td><td class="n">–</td><td class="n">${Number(v.extraVolume.toFixed(3))} m³</td><td class="n">${fmtN(p.excessRate)}</td><td class="n">${money(v.excessWater)}</td></tr>`;
+    }else detail+=`<tr><td>${safe(head)} · theo khối</td><td class="n">–</td><td class="n">–</td><td class="n">${p.used??0} m³</td><td class="n">${fmtN(p.rate)}</td><td class="n">${money(v.water)}</td></tr>`;
+    const used=hasMeterSegments(b,'water')?totalMeterVolume(b,'water'):(Number.isFinite(b.oldW)&&Number.isFinite(b.newW)?b.newW-b.oldW:null);
+    detail+=`<tr><td><b>Theo dõi nước ${monthText(b.month)} – TÍNH TIỀN THÁNG SAU</b></td><td class="n">${b.oldW??'–'}</td><td class="n">${b.newW??'–'}</td><td class="n">${used===null?'–':Number(used.toFixed(3))+' m³'}</td><td class="n">${b.waterMode==='person'?'Định mức '+b.waterAllowance+' m³':'Theo đồng hồ'}</td><td class="n">Chưa thu</td></tr>`;
+  }else if(b.waterMode==='meter'){
     detail+=hasMeterSegments(b,'water')?meterSegmentsOf(b,'water').map(seg=>segLine('Tiền nước',seg,'water',Math.round(segmentVolume(seg)*(seg.rate??b.waterRate)),seg.rate??b.waterRate)).join('')
       :`<tr><td>Tiền nước</td><td class="n">${b.oldW}</td><td class="n">${b.newW}</td><td class="n">${Number((b.newW-b.oldW).toFixed(3))} m³</td><td class="n">${fmtN(b.waterRate)}</td><td class="n">${money(v.water)}</td></tr>`;
   }else{
