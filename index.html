@@ -1369,6 +1369,43 @@ body{
 .qp-side-rail #cloudToolbar[hidden]{display:none!important;}
 @media print {.qp-side-rail {display:none!important}}
 
+
+/* ===== Quý Phi Cloud v8.8.0 — Tab Thông tin khách thuê ===== */
+#rooms [hidden]{display:none!important}
+#rooms .rooms-subnav{display:flex;flex-wrap:wrap;gap:9px;padding-bottom:12px;margin:0 0 21px;border-bottom:1px solid rgba(155,183,171,.50)}
+#rooms .rooms-subnav .deposit-switch-btn{font-size:14px;min-width:150px;border-radius:11px;background:rgba(255,255,255,.85)}
+#rooms .rooms-subnav .deposit-switch-btn.active{background:#116657;color:#fff;border-color:#116657}
+#rooms .guest-toolbar{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:13px;align-items:end;margin-bottom:16px}
+#rooms .guest-toolbar .field{margin:0}
+#rooms .guest-toolbar input,#rooms .guest-toolbar select{background:rgba(255,255,255,.93);color:#153e34}
+#rooms .guest-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:0 0 18px}
+#rooms .guest-stat{background:rgba(255,255,255,.86);border:1px solid rgba(160,192,178,.66);border-radius:13px;padding:13px 15px}
+#rooms .guest-stat span{display:block;color:#47675e;font-size:13px;font-weight:600}
+#rooms .guest-stat strong{display:block;color:#08634f;font-size:21px;margin-top:5px}
+#rooms .guest-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;align-items:start}
+#rooms .guest-grid>.empty{grid-column:1/-1}
+#rooms .guest-card{background:rgba(255,255,255,.87)!important;min-width:0;padding:17px}
+#rooms .guest-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:13px}
+#rooms .guest-card-heading .item-title{font-size:18px;color:#134b3f;font-weight:850;overflow-wrap:anywhere}
+#rooms .guest-room-name{color:#42645b;font-size:13px;font-weight:700;margin-top:5px}
+#rooms .guest-rep{display:inline-block;background:rgba(214,238,226,.95);color:#12634d;border-radius:99px;padding:3px 7px;margin-left:4px;font-size:11px;font-weight:800}
+#rooms .guest-card-data{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px 12px;border-top:1px solid #e3ece8;padding-top:13px}
+#rooms .guest-card-data small{display:block;font-size:12px;font-weight:550;color:#5a736b;margin-bottom:4px}
+#rooms .guest-card-data strong{display:block;font-size:14px;color:#173e34;font-weight:750;overflow-wrap:anywhere}
+#rooms .guest-card .actions{margin-top:16px}
+@media(max-width:1000px){#rooms .guest-grid{grid-template-columns:1fr}}
+@media(max-width:760px){
+  #rooms .rooms-subnav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:14px}
+  #rooms .rooms-subnav .deposit-switch-btn{min-width:0;font-size:12px;padding:9px 7px}
+  #rooms .guest-toolbar{grid-template-columns:1fr}
+  #rooms .guest-stats{gap:7px}
+  #rooms .guest-stat{padding:10px}
+  #rooms .guest-stat span{font-size:11px}
+  #rooms .guest-stat strong{font-size:17px}
+  #rooms .guest-card{padding:14px}
+}
+@media(max-width:390px){#rooms .guest-card-heading{flex-wrap:wrap}}
+
 </style>
 </head>
 <body class="cloud-locked">
@@ -1497,8 +1534,25 @@ body{
       <div id="meterHistoryList" class="stack"></div>
     </div>
   </section>
-  <section id="rooms" class="view"><div class="section-head"><h2>Danh sách phòng trọ</h2><button class="btn" id="addRoom">+ Thêm phòng</button></div>
-    <div id="roomList" class="stack"></div>
+  <section id="rooms" class="view">
+    <nav class="deposit-switch rooms-subnav" aria-label="Mục quản lý phòng và khách thuê">
+      <button type="button" class="deposit-switch-btn active" id="roomsRoomsTab" aria-pressed="true">🏠 Danh sách phòng</button>
+      <button type="button" class="deposit-switch-btn" id="roomsGuestsTab" aria-pressed="false">👥 Thông tin khách thuê</button>
+    </nav>
+    <div id="roomsListPanel">
+      <div class="section-head"><h2>Danh sách phòng trọ</h2><button class="btn" id="addRoom">+ Thêm phòng</button></div>
+      <div id="roomList" class="stack"></div>
+    </div>
+    <div id="roomGuestPanel" hidden>
+      <div class="section-head"><h2>Thông tin khách thuê</h2></div>
+      <div class="section-intro">Danh sách tổng hợp từ <b>các đợt thuê và hồ sơ người ở</b> đã lưu. Khách chuyển đi vẫn còn trong lịch sử; bạn sửa thông tin tại mục <b>Sửa đợt thuê</b> của phòng tương ứng.</div>
+      <div class="guest-toolbar">
+        <div class="field"><label for="guestSearch">Tìm khách / phòng / điện thoại</label><input type="search" id="guestSearch" placeholder="Nhập tên khách, số phòng hoặc số điện thoại" autocomplete="off"></div>
+        <div class="field"><label for="guestStatus">Trạng thái</label><select id="guestStatus"><option value="current">Đang ở</option><option value="left">Đã chuyển đi</option><option value="all">Tất cả</option></select></div>
+      </div>
+      <div id="guestStats" class="guest-stats" aria-live="polite"></div>
+      <div id="guestList" class="guest-grid" aria-live="polite"></div>
+    </div>
   </section>
   <section id="flex" class="view">
     <div class="section-head"><h2>Phòng thu tiền linh hoạt <span class="month-title"></span></h2><button class="btn" type="button" id="addFlexRoom">+ Thêm phòng khoản thu khác</button></div>
@@ -2713,7 +2767,7 @@ function render(){
   buildMonthPicker();
   $('currentDate').textContent=nowLong();
   document.querySelectorAll('.month-title').forEach(n=>n.textContent=monthText(selectedMonth));
-  renderDashboard();renderReadings();renderRooms();renderSettings();renderFlex();renderFinance();renderDeposits();renderAnnualMain();renderAnnualOther();
+  renderDashboard();renderReadings();renderRooms();renderGuests();renderSettings();renderFlex();renderFinance();renderDeposits();renderAnnualMain();renderAnnualOther();
 }
 function empty(message){return `<div class="empty">${safe(message)}</div>`;}
 // v8.5.16: Nút thanh toán tại Tổng quan hiển thị thao tác tiếp theo.
@@ -2956,6 +3010,93 @@ function renderRooms(){
       <button class="btn danger" data-action="delete-room" data-id="${safe(r.id)}">Xóa phòng</button></div></article>`;
   }).join(''):empty('Chưa có phòng. Nhấn “+ Thêm phòng” để tạo phòng.');
 }
+// v8.8.0 — Khách thuê: màn hình CHỈ ĐỌC, tổng hợp từ dữ liệu phòng và đợt thuê hiện có.
+// Không tạo bảng Supabase hoặc mã khách mới; tránh dữ liệu chồng chéo giữa khách cũ và mới.
+let roomDetailsView = 'rooms';
+function setRoomDetailsView(view){
+  roomDetailsView=view==='guests'?'guests':'rooms';
+  $('roomsListPanel').hidden=roomDetailsView!=='rooms';
+  $('roomGuestPanel').hidden=roomDetailsView!=='guests';
+  [['roomsRoomsTab','rooms'],['roomsGuestsTab','guests']].forEach(([id,kind])=>{
+    const selected=kind===roomDetailsView;
+    $(id).classList.toggle('active',selected);
+    $(id).setAttribute('aria-pressed',String(selected));
+  });
+  if(roomDetailsView==='guests')renderGuests();
+}
+$('roomsRoomsTab').addEventListener('click',()=>setRoomDetailsView('rooms'));
+$('roomsGuestsTab').addEventListener('click',()=>setRoomDetailsView('guests'));
+$('guestSearch').addEventListener('input',()=>renderGuests());
+$('guestStatus').addEventListener('change',()=>renderGuests());
+function customerRecords(){
+  const output=[];
+  [...state.rooms].sort((a,b)=>a.name.localeCompare(b.name,'vi',{numeric:true})).forEach(r=>{
+    (r.tenancies||[]).forEach(t=>{
+      const current=t.status==='active'&&r.activeTenancyId===t.id;
+      // Hồ sơ đang ở lấy từ phòng; khách đợt cũ lấy từ snapshot đợt thuê.
+      let people=current&&Array.isArray(r.residents)?r.residents:(Array.isArray(t.residents)?t.residents:[]);
+      if(!people.length&&String(t.tenant||'').trim()){
+        // Hồ sơ đời cũ chưa có danh sách từng người: hiện đại diện một lần,
+        // không đoán thêm tên người ở từ số lượng.
+        people=[{id:t.representativeId||'legacy-'+t.id,name:t.tenant,phone:t.phone||'',cccd:t.cccd||'',type:'adult',joinedAt:'',leftAt:''}];
+      }
+      for(const p of people){
+        const active=current&&!p.leftAt;
+        output.push({room:r,tenancy:t,person:p,isCurrent:active,
+          isRepresentative:p.id===(current?(r.representativeId||t.representativeId):t.representativeId)||
+            (!t.representativeId&&!r.representativeId&&p.name===t.tenant),
+          joinedAt:p.joinedAt||t.startedAt||'',leftAt:p.leftAt||(current?'':t.endedAt||'')});
+      }
+    });
+  });
+  // Đang ở trước, sau đó theo tên phòng và ngày vào.
+  return output.sort((a,b)=>Number(b.isCurrent)-Number(a.isCurrent)||
+    a.room.name.localeCompare(b.room.name,'vi',{numeric:true})||
+    String(b.joinedAt).localeCompare(String(a.joinedAt))||
+    String(a.person.name||'').localeCompare(String(b.person.name||''),'vi'));
+}
+function customerIdMask(value){
+  const cleaned=String(value||'').trim();
+  return cleaned?('•••• '+cleaned.slice(-4)):'Chưa cập nhật';
+}
+function customerSearchNormalize(value){
+  return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'d').toLocaleLowerCase('vi-VN').trim();
+}
+function renderGuests(){
+  const rows=customerRecords();
+  const status=$('guestStatus').value;
+  const term=customerSearchNormalize($('guestSearch').value);
+  const filtered=rows.filter(x=>{
+    if(status==='current'&&!x.isCurrent)return false;
+    if(status==='left'&&x.isCurrent)return false;
+    if(!term)return true;
+    const p=x.person;
+    return customerSearchNormalize([p.name,p.phone,p.cccd,x.room.name,x.tenancy.tenant].join(' ')).includes(term);
+  });
+  const activeCount=rows.filter(x=>x.isCurrent).length;
+  const leftCount=rows.length-activeCount;
+  $('guestStats').innerHTML=[
+    ['Khách đang ở',activeCount],['Đã chuyển đi',leftCount],['Kết quả tìm kiếm',filtered.length]
+  ].map(([label,value])=>`<div class="guest-stat"><span>${safe(label)}</span><strong>${value}</strong></div>`).join('');
+  $('guestList').innerHTML=filtered.length?filtered.map(x=>{
+    const {room:r,tenancy:t,person:p,isCurrent,joinedAt,leftAt,isRepresentative}=x;
+    return `<article class="item guest-card">
+      <div class="guest-card-heading"><div><div class="item-title">${safe(p.name||'Chưa cập nhật họ tên')}</div>
+        <div class="guest-room-name">Phòng ${safe(r.name)} ${isRepresentative?'<span class="guest-rep">Người đại diện</span>':''}</div></div>
+        <span class="occupancy-badge ${isCurrent?'occupied':'vacant'}">${isCurrent?'ĐANG Ở':'ĐÃ CHUYỂN ĐI'}</span></div>
+      <div class="guest-card-data">
+        <div><small>Số điện thoại</small><strong>${safe(p.phone||'Chưa cập nhật')}</strong></div>
+        <div><small>CCCD / CMND</small><strong>${safe(customerIdMask(p.cccd))}</strong></div>
+        <div><small>Ngày vào ở</small><strong>${dateText(joinedAt)}</strong></div>
+        <div><small>${isCurrent?'Vai trò':'Ngày chuyển đi'}</small><strong>${isCurrent?(p.type==='child'?'Trẻ em':'Người lớn'):dateText(leftAt)}</strong></div>
+      </div>
+      <div class="actions">${isCurrent?`<button type="button" class="btn secondary" data-action="edit-room" data-id="${safe(r.id)}">✏ Sửa thông tin</button>`:''}
+        <button type="button" class="btn secondary" data-action="tenancy-history" data-id="${safe(r.id)}">📖 Lịch sử thuê</button>
+      </div>
+    </article>`;
+  }).join(''):empty(rows.length?'Không tìm thấy khách phù hợp với bộ lọc.':'Chưa có hồ sơ khách thuê. Hãy thêm thông tin người ở trong từng phòng.');
+}
+
 function inspectFinancialData(){
   const problems=[];
   const warn=(message)=>{if(problems.length<80)problems.push(message);};
