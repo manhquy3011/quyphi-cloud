@@ -1559,6 +1559,14 @@ body{
     <div id="meterInvoicePane" hidden>
       <div class="note">Chọn phòng để lập hóa đơn. <b>Chỉ số đã chốt</b> ở mục Ghi số điện &amp; nước sẽ được đưa vào biểu mẫu. Tiền nước theo người và phụ thu vượt định mức vẫn tính theo quy tắc đang dùng; lưu hóa đơn không làm mất lịch sử ghi số.</div>
       <div class="note">Đã có hóa đơn tháng sau? Chọn <b>Sửa tiền/phí</b> để điều chỉnh đơn giá và khoản thu mà không đổi chỉ số điện nước. Hóa đơn thuộc đợt thuê đã quyết toán chỉ được xem/in.</div>
+      <div class="panel" id="bulkInvoiceExportPanel" style="padding:14px;margin:12px 0">
+        <b>📦 Xuất ảnh hóa đơn hàng loạt</b>
+        <div class="small muted" style="margin:6px 0 10px">Xuất tất cả hóa đơn đã lưu của tháng đang chọn; giữ nguyên thông tin, trạng thái thu tiền và mã QR chuyển khoản. Tải về dưới dạng một tệp ZIP.</div>
+        <div class="actions" style="margin-top:0">
+          <button type="button" class="btn" data-bulk-invoice-format="png">⬇ Tải tất cả hóa đơn PNG (ZIP)</button>
+        </div>
+        <div id="bulkInvoiceExportStatus" class="small muted" role="status" aria-live="polite" style="margin-top:8px">Chưa xuất ảnh.</div>
+      </div>
       <div id="readingList" class="stack"></div>
     </div>
     <div id="meterHistoryPane" hidden>
@@ -4257,7 +4265,7 @@ function addReceiptDate(pid){
   if(!save()){state=old;return;}render();updatePaymentDialog();if(b&&$('invoiceDialog').open&&shownInvoiceId===b.id)showInvoice(b.id);toast('Đã sửa ngày thanh toán.');
 }
 function togglePaid(billId){openPaymentDialog(billId);}
-function showInvoice(billId){
+function showInvoice(billId,options={}){
   const b=state.bills.find(x=>x.id===billId);if(!b)return;
   const v=calc(b);shownInvoiceId=b.id;
   const bank=getBank();
@@ -4346,10 +4354,103 @@ function showInvoice(billId){
   invoicePaidButton.hidden=!!b.settledBy;
   invoicePaidButton.className=b.paid?'btn':'btn invoice-pay-pending';
   invoicePaidButton.textContent=b.paid?'↩ Chưa thu':'✓ Đã thu tiền';
-  if(!$('invoiceDialog').open)$('invoiceDialog').showModal();
+  if(!options.silent&&!$('invoiceDialog').open)$('invoiceDialog').showModal();
 }
 $('invoicePaidBtn').addEventListener('click',()=>{if(shownInvoiceId)togglePaid(shownInvoiceId);});
 $('printInvoice').addEventListener('click',()=>window.print());
+
+// Xuất ảnh hàng loạt từ đúng biểu mẫu HTML hiện tại, không can thiệp dữ liệu lưu/Cloud.
+// Chỉ nạp thư viện đồ họa/ZIP khi người dùng thực sự bấm xuất.
+let bulkInvoiceExportBusy=false;
+function bulkInvoiceLoadScript(url){
+  return new Promise((resolve,reject)=>{
+    const script=document.createElement('script');script.src=url;script.async=true;
+    script.onload=resolve;script.onerror=()=>{script.remove();reject(new Error('Không tải được thư viện từ '+url));};
+    document.head.appendChild(script);
+  });
+}
+async function bulkInvoiceEnsureLibraries(){
+  if(typeof window.html2canvas!=='function'){
+    try{await bulkInvoiceLoadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');}
+    catch(_){await bulkInvoiceLoadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');}
+  }
+  if(typeof window.JSZip!=='function'){
+    try{await bulkInvoiceLoadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');}
+    catch(_){await bulkInvoiceLoadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');}
+  }
+  if(typeof window.html2canvas!=='function'||typeof window.JSZip!=='function')throw new Error('Không khởi tạo được chức năng xuất ảnh.');
+}
+function bulkInvoiceSafeName(value){
+  return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D')
+    .replace(/[^a-zA-Z0-9_-]+/g,'_').replace(/^_+|_+$/g,'').slice(0,60)||'phong';
+}
+function bulkInvoiceCanvasBlob(canvas,type,quality){
+  return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Không tạo được ảnh '+type)),type,quality));
+}
+async function bulkInvoiceRun(){
+  if(bulkInvoiceExportBusy)return;
+  const status=document.getElementById('bulkInvoiceExportStatus');
+  const buttons=[...document.querySelectorAll('[data-bulk-invoice-format]')];
+  const targetMonth=selectedMonth;
+  const bills=state.bills.filter(b=>b.month===targetMonth).sort((a,b)=>String(a.roomName).localeCompare(String(b.roomName),'vi',{numeric:true}));
+  if(!bills.length){if(status)status.textContent='Tháng '+monthText(targetMonth)+' chưa có hóa đơn đã lưu để xuất.';return;}
+  bulkInvoiceExportBusy=true;buttons.forEach(btn=>btn.disabled=true);
+  const originalContent=$('invoiceContent').innerHTML;
+  const originalShownId=shownInvoiceId;
+  const previousScrollX=window.scrollX,previousScrollY=window.scrollY;
+  let captureRoot=null;
+  try{
+    status.textContent='Đang chuẩn bị xuất '+bills.length+' hóa đơn PNG…';
+    await bulkInvoiceEnsureLibraries();
+    await document.fonts?.ready;
+    const zip=new window.JSZip();
+    captureRoot=document.createElement('div');
+    captureRoot.id='bulkInvoiceCaptureRoot';
+    captureRoot.style.cssText='position:fixed;left:0;top:0;width:760px;max-width:none;z-index:-1;pointer-events:none;background:#fff;overflow:visible;';
+    document.body.appendChild(captureRoot);
+    const usedNames=new Set();
+    for(let i=0;i<bills.length;i++){
+      const bill=bills[i];
+      status.textContent='Đang tạo ảnh PNG '+(i+1)+'/'+bills.length+': phòng '+bill.roomName+'…';
+      showInvoice(bill.id,{silent:true});
+      captureRoot.innerHTML='';
+      const source=$('invoiceContent').querySelector('.invoice');
+      if(!source)throw new Error('Không tìm thấy nội dung hóa đơn phòng '+bill.roomName);
+      const clone=source.cloneNode(true);
+      clone.style.cssText+=';width:760px;max-width:none;box-sizing:border-box;background:#fff;';
+      captureRoot.appendChild(clone);
+      const images=[...clone.querySelectorAll('img')];
+      await Promise.all(images.map(img=>{
+        if(img.complete&&img.naturalWidth>0)return Promise.resolve();
+        return new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('Không đọc được mã QR/ảnh trên hóa đơn phòng '+bill.roomName));});
+      }));
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      const canvas=await window.html2canvas(clone,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false,scrollX:0,scrollY:0,windowWidth:Math.max(900,window.innerWidth)});
+      let base='Hoa_don_'+bulkInvoiceSafeName(bill.roomName)+'_'+targetMonth.replace('-','_');
+      if(usedNames.has(base))base+='_'+bulkInvoiceSafeName(bill.id).slice(0,12);
+      usedNames.add(base);
+      zip.file('PNG/'+base+'.png',await bulkInvoiceCanvasBlob(canvas,'image/png'));
+    }
+    status.textContent='Đang đóng gói ZIP…';
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:5}});
+    const filename='Hoa_don_'+targetMonth.replace('-','_')+'_PNG.zip';
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+    status.textContent='Đã tạo '+bills.length+' hóa đơn PNG. Nếu chưa thấy file, hãy cho phép trình duyệt tải xuống.';
+  }catch(err){
+    console.error('Lỗi xuất ảnh hóa đơn:',err);
+    status.textContent='Không xuất được ảnh: '+(err?.message||err)+'. Hãy kiểm tra kết nối Internet và thử lại.';
+  }finally{
+    captureRoot?.remove();
+    $('invoiceContent').innerHTML=originalContent;
+    shownInvoiceId=originalShownId;
+    window.scrollTo(previousScrollX,previousScrollY);
+    bulkInvoiceExportBusy=false;buttons.forEach(btn=>btn.disabled=false);
+  }
+}
+document.querySelectorAll('[data-bulk-invoice-format]').forEach(btn=>btn.addEventListener('click',()=>bulkInvoiceRun()));
+
 
 // ---------------- KHOẢN THU KHÁC / SỔ THU CHI V4 ----------------
 // Khoản thu khác và khoản nước tổng dùng báo cáo riêng, không bao giờ cộng/trừ trong financeTotals().
