@@ -1178,7 +1178,7 @@ body{
 
 /* ===== V8.7.7 – Ghi số điện và nước tập trung ===== */
 .meter-subnav{max-width:1060px;margin:0 auto 16px;padding-bottom:12px;border-bottom:1px solid rgba(139,176,161,.50)}
-#readings > .meter-entry-pane,#readings > #meterInvoicePane,#readings > #meterHistoryPane{max-width:1060px;margin:0 auto}
+#readings > .meter-entry-pane,#readings > #meterInvoicePane,#readings > #meterHistoryPane,#readings > #meterComparePane{max-width:1060px;margin:0 auto}
 #readings [hidden]{display:none!important}
 .meter-entry-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:14px 0}
 .meter-quick-card{background:rgba(255,255,255,.86)!important}
@@ -1436,6 +1436,54 @@ body{
     left: max(12px, calc((100% - var(--qp-layout-width)) / 2));
   }
 }
+/* Nâng cấp lịch sử công tơ: chỉ thêm bảng đọc dữ liệu, giữ nguyên giao diện chung. */
+.qp-compare-scroll{width:100%;overflow-x:auto;border:1px solid #dce9e3;border-radius:10px}
+.qp-compare-table{width:100%;min-width:550px;border-collapse:collapse;background:#ffffffc9;font-size:13px}
+.qp-compare-table th,.qp-compare-table td{padding:10px 11px;border-bottom:1px solid #dce9e3;text-align:left;white-space:nowrap}
+.qp-compare-table thead{background:#eaf5f0;color:#154b40}
+.qp-compare-table tr:last-child td{border-bottom:0}
+.qp-compare-bad{color:#a93b26;font-weight:800}
+.qp-meter-alert{color:#a45315;font-size:12px;font-weight:750;margin-top:5px;line-height:1.55}
+
+/* v8.9 – Cố định thanh tab cấp 2 bên dưới tiêu đề khi cuộn.
+   Chỉ sửa hiển thị; không tác động dữ liệu và đồng bộ Cloud. */
+:root { --qp-sticky-subnav-top: 82px; }
+@media screen {
+  #readings > .meter-subnav,
+  #finance > .finance-subnav,
+  #rooms > .rooms-subnav,
+  #annual > #annualPanelHeader {
+    position: sticky !important;
+    top: var(--qp-sticky-subnav-top) !important;
+    z-index: 35;
+    background: rgba(248, 251, 249, .96) !important;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(175, 204, 192, .65);
+    border-radius: 12px;
+    box-shadow: 0 5px 16px rgba(19, 71, 55, .09);
+  }
+  #readings > .meter-subnav,
+  #finance > .finance-subnav,
+  #rooms > .rooms-subnav {
+    padding: 9px 10px !important;
+    margin-top: 0;
+  }
+  #annual > #annualPanelHeader {
+    margin-top: 0;
+    margin-bottom: 15px;
+  }
+}
+@media print {
+  #readings > .meter-subnav,
+  #finance > .finance-subnav,
+  #rooms > .rooms-subnav,
+  #annual > #annualPanelHeader {
+    position: static !important;
+    box-shadow: none !important;
+  }
+}
+
 </style>
 </head>
 <body class="cloud-locked">
@@ -1546,6 +1594,7 @@ body{
       <button id="meterEntryTab" class="deposit-switch-btn active" type="button" data-reading-view="meter" aria-pressed="true">⚡💧 Ghi số điện &amp; nước</button>
       <button id="meterBillTab" class="deposit-switch-btn" type="button" data-reading-view="bills" aria-pressed="false">🧾 Lập hóa đơn</button>
       <button id="meterHistoryTab" class="deposit-switch-btn" type="button" data-reading-view="history" aria-pressed="false">🕒 Lịch sử ghi số</button>
+      <button id="meterCompareTab" class="deposit-switch-btn" type="button" data-reading-view="compare" aria-pressed="false">📊 Đối chiếu điện nước</button>
     </nav>
     <div id="meterEntryPane" class="meter-entry-pane">
       <div class="note">Chốt số vào <b>đầu tháng <span class="month-title"></span></b> để tính điện và lượng nước đã sử dụng <b>tháng trước</b>. Nếu thu nước theo người, chỉ số chốt đầu tháng này dùng xét vượt định mức <b>tháng trước</b>; nước cơ bản vẫn theo số người của <b>tháng lập hóa đơn</b>.</div>
@@ -1555,7 +1604,7 @@ body{
     </div>
     <div id="meterInvoicePane" hidden>
       <div class="note">Chọn phòng để lập hóa đơn. <b>Chỉ số đã chốt</b> ở mục Ghi số điện &amp; nước sẽ được đưa vào biểu mẫu. Tiền nước theo người và phụ thu vượt định mức vẫn tính theo quy tắc đang dùng; lưu hóa đơn không làm mất lịch sử ghi số.</div>
-      <div class="note">Đã có hóa đơn tháng sau? Chọn <b>Sửa tiền/phí</b> để điều chỉnh đơn giá và khoản thu mà không đổi chỉ số điện nước. Hóa đơn thuộc đợt thuê đã quyết toán chỉ được xem/in.</div>
+      <div class="note">Đã có hóa đơn tháng sau? Chỉ hóa đơn <b>chưa thu tiền</b> mới có thể chọn <b>Sửa tiền/phí</b> mà không đổi chỉ số điện nước. Hóa đơn đã thu tiền hoặc đã quyết toán chỉ được xem/in.</div>
       <div class="panel" id="bulkInvoiceExportPanel" style="padding:14px;margin:12px 0">
         <b>📦 Xuất ảnh hóa đơn hàng loạt</b>
         <div class="small muted" style="margin:6px 0 10px">Xuất tất cả hóa đơn đã lưu của tháng đang chọn; giữ nguyên thông tin, trạng thái thu tiền và mã QR chuyển khoản. Tải về dưới dạng một tệp ZIP.</div>
@@ -1575,6 +1624,14 @@ body{
       </div>
       <p class="meter-history-status" id="meterHistoryStatus" aria-live="polite"></p>
       <div id="meterHistoryList" class="stack"></div>
+    </div>
+    <div id="meterComparePane" hidden>
+      <div class="panel qp-compare-panel">
+        <div class="section-head"><div><h3>📊 Đối chiếu điện nước giữa các tháng</h3><div class="small muted">Dựa vào phiếu chốt hoặc hóa đơn đã lưu; không tạo dữ liệu mới.</div></div></div>
+        <div class="field" style="max-width:330px"><label for="meterCompareRoom">Chọn phòng đối chiếu</label><select id="meterCompareRoom"><option value="">Tất cả phòng</option></select></div>
+        <div class="qp-compare-scroll"><table class="qp-compare-table"><thead><tr><th>Tháng</th><th>Phòng</th><th>Điện (kWh)</th><th>Nước (m³)</th><th>So với kỳ trước</th></tr></thead><tbody id="meterCompareBody"></tbody></table></div>
+        <p id="meterCompareNote" class="small muted" style="margin:8px 0 0"></p>
+      </div>
     </div>
   </section>
   <section id="rooms" class="view">
@@ -1678,6 +1735,7 @@ body{
       <button class="btn secondary" type="button" id="runDataChecks">🔎 Chạy kiểm tra</button>
       <div id="dataCheckResults" class="data-check-results" aria-live="polite"></div>
       <h3 class="finance-section-title">Lịch sử thao tác tài chính gần đây</h3>
+      <div class="small muted" style="margin:4px 0 10px">Nhật ký ghi các thao tác có lưu dữ liệu, giữ tối đa 300 mục gần nhất trên bản dữ liệu hiện tại. Không phải nhật ký kiểm toán chống chỉnh sửa.</div>
       <div id="auditHistory" class="line-list"></div>
       <p class="soft-muted">Đây là nhật ký thao tác trong dữ liệu ứng dụng, không phải bản ghi bảo mật bất biến. Hãy xuất JSON định kỳ để lưu trữ độc lập.</p>
     </div>
@@ -2248,7 +2306,7 @@ function auditChanges(before,after){
   if(!before)return [];
   const types=[['meterReadings','chốt công tơ'],['bills','hóa đơn'],['billPayments','lần thu tiền'],['meterPayments','tiền điện'],
     ['expenses','khoản chi'],['flexEntries','Khoản thu khác'],['flexWaterPayments','tiền nước tổng'],
-    ['depositTransactions','giao dịch cọc'],['settlements','quyết toán']];
+    ['depositTransactions','giao dịch cọc'],['settlements','quyết toán'],['rooms','thông tin phòng']];
   const keyFor=(kind,x)=>kind==='meterReadings'?x.roomId+'/'+x.tenancyId+'/'+x.month:kind==='meterPayments'?x.meterId+'/'+x.month:
     kind==='flexWaterPayments'?x.month:String(x.id);
   const describe=(kind,x)=>{
@@ -2262,6 +2320,7 @@ function auditChanges(before,after){
     if(kind==='flexWaterPayments')return x.month+' '+money(x.amount);
     if(kind==='depositTransactions')return x.roomName+' '+x.type+' '+money(x.amount);
     if(kind==='settlements')return x.tenant+' '+money(x.totalDue);
+    if(kind==='rooms')return 'phòng '+x.name;
     return '';
   };
   const result=[];
@@ -2280,6 +2339,33 @@ function auditChanges(before,after){
   return result;
 }
 function save(){
+  // Bảo vệ lịch sử đã quyết toán tại điểm ghi dữ liệu, kể cả khi một nút cũ còn xuất hiện.
+  if(auditBaseline){
+    const oldSettlements=new Map((auditBaseline.settlements||[]).map(x=>[x.id,x]));
+    for(const x of oldSettlements.values()){
+      const current=(state.settlements||[]).find(z=>z.id===x.id);
+      if(!current||JSON.stringify(current)!==JSON.stringify(x)){
+        alert('Không thể thay đổi phiếu quyết toán đã lưu. Hãy đối chiếu và lập chứng từ điều chỉnh riêng.');return false;
+      }
+      const beforeBills=(auditBaseline.bills||[]).filter(b=>b.tenancyId===x.tenancyId);
+      for(const b of beforeBills){
+        const now=(state.bills||[]).find(z=>z.id===b.id);
+        if(!now||JSON.stringify(now)!==JSON.stringify(b)){
+          alert('Kỳ hóa đơn thuộc đợt thuê đã quyết toán đang bị thay đổi. Đã chặn lưu để bảo toàn dữ liệu.');return false;
+        }
+      }
+      const oldReceipts=(auditBaseline.billPayments||[]).filter(p=>beforeBills.some(b=>b.id===p.billId));
+      const newReceipts=(state.billPayments||[]).filter(p=>beforeBills.some(b=>b.id===p.billId));
+      if(JSON.stringify(oldReceipts)!==JSON.stringify(newReceipts)){
+        alert('Không thể sửa lịch sử thu tiền của đợt thuê đã quyết toán.');return false;
+      }
+      const oldReadings=(auditBaseline.meterReadings||[]).filter(r=>r.tenancyId===x.tenancyId);
+      const newReadings=(state.meterReadings||[]).filter(r=>r.tenancyId===x.tenancyId);
+      if(JSON.stringify(oldReadings)!==JSON.stringify(newReadings)){
+        alert('Không thể sửa chỉ số thuộc đợt thuê đã quyết toán.');return false;
+      }
+    }
+  }
   const prevLog=copy(state.auditLog||[]);
   const changes=auditChanges(auditBaseline,state);
   if(changes.length){
@@ -2618,8 +2704,8 @@ function meterDataForRoom(r,t,month){
     newW:saved?.newW??exactBill?.newW??null};
 }
 function setReadingsView(view){
-  readingsActiveView=['meter','bills','history'].includes(view)?view:'meter';
-  for(const [name,pane,tab] of [['meter','meterEntryPane','meterEntryTab'],['bills','meterInvoicePane','meterBillTab'],['history','meterHistoryPane','meterHistoryTab']]){
+  readingsActiveView=['meter','bills','history','compare'].includes(view)?view:'meter';
+  for(const [name,pane,tab] of [['meter','meterEntryPane','meterEntryTab'],['bills','meterInvoicePane','meterBillTab'],['history','meterHistoryPane','meterHistoryTab'],['compare','meterComparePane','meterCompareTab']]){
     $(pane).hidden=readingsActiveView!==name;
     $(tab).classList.toggle('active',readingsActiveView===name);
     $(tab).setAttribute('aria-pressed',String(readingsActiveView===name));
@@ -2673,6 +2759,11 @@ function updateMeterRowVolume(row){
     el.textContent='Tiêu thụ: '+(amt===null?'—':amt<0?'⚠️ Chỉ số giảm':Number(amt.toFixed(3))+' '+unit);
     el.classList.toggle('bad',amt!==null&&amt<0);
   }
+  let warning=row.querySelector('.qp-meter-alert');
+  if(!warning){warning=document.createElement('div');warning.className='qp-meter-alert';row.querySelector('.meter-quick-bottom')?.before(warning);}
+  const v2=meterRowInputs(row);
+  const alerts=qpMeterAlerts(row.dataset.meterRoom,row.dataset.meterTenancy,selectedMonth,v2);
+  warning.textContent=alerts.length?'⚠️ '+alerts.join(' '):'';
 }
 function changedMeterInputs(saved,values){return !saved||['oldE','newE','oldW','newW'].some(k=>Number(saved[k])!==values[k]);}
 function persistMeterRows(rows){
@@ -2693,6 +2784,8 @@ function persistMeterRows(rows){
     updates.push({r,t,saved,values});
   }
   if(!updates.length){toast('Không có chỉ số mới cần lưu.');return;}
+  const warnings=updates.flatMap(x=>qpMeterAlerts(x.r.id,x.t.id,selectedMonth,x.values).map(msg=>'Phòng '+x.r.name+': '+msg));
+  if(warnings.length&&!confirm('⚠️ PHÁT HIỆN MỨC TIÊU THỤ BẤT THƯỜNG\n\n'+warnings.slice(0,10).join('\n')+'\n\nBạn đã kiểm tra công tơ và vẫn muốn lưu các chỉ số này?'))return;
   const previousState=copy(state),at=new Date().toISOString();
   for(const {r,t,saved,values} of updates){
     const payload={id:saved?.id||id(),roomId:r.id,tenancyId:t.id,roomName:r.name,month:selectedMonth,...values,
@@ -2713,6 +2806,52 @@ function allMeterHistoryRecords(){
   return records.sort((a,b)=>String(b.month).localeCompare(String(a.month))
     ||String(a.roomName||'').localeCompare(String(b.roomName||''),'vi',{numeric:true}));
 }
+// Một bản ghi / phòng / đợt thuê / tháng: sổ chốt riêng được ưu tiên hơn hóa đơn.
+function qpReadingUsage(x,kind){
+  const old=x[kind==='electric'?'oldE':'oldW'],now=x[kind==='electric'?'newE':'newW'];
+  if(x.source==='bill'&&hasMeterSegments(x,kind)){
+    return meterSegmentsOf(x,kind).reduce((v,seg)=>v+segmentVolume(seg),0);
+  }
+  return Number.isFinite(Number(old))&&Number.isFinite(Number(now))&&old!==null&&now!==null?Number(now)-Number(old):null;
+}
+function qpPreviousUsage(roomId,tenancyId,month,kind){
+  const prev=allMeterHistoryRecords().filter(x=>x.roomId===roomId&&x.tenancyId===tenancyId&&x.month<month)
+    .sort((a,b)=>b.month.localeCompare(a.month))[0];
+  return prev?{month:prev.month,value:qpReadingUsage(prev,kind)}:null;
+}
+function qpMeterAlerts(roomId,tenancyId,month,values){
+  const result=[];
+  for(const [kind,a,b,unit,name] of [['electric','oldE','newE','kWh','điện'],['water','oldW','newW','m³','nước']]){
+    if(!Number.isFinite(values[a])||!Number.isFinite(values[b]))continue;
+    const used=values[b]-values[a],prev=qpPreviousUsage(roomId,tenancyId,month,kind);
+    if(used<0){result.push('Chỉ số '+name+' mới nhỏ hơn số cũ; cần kiểm tra thay công tơ.');continue;}
+    if(prev&&Number.isFinite(prev.value)&&prev.value>0&&used>=2*prev.value&&used-prev.value>=(kind==='electric'?30:5)){
+      result.push('Tiêu thụ '+name+' '+used+' '+unit+' cao hơn ít nhất 2 lần kỳ '+monthText(prev.month)+' ('+prev.value+' '+unit+').');
+    }
+  }
+  return result;
+}
+function renderMeterComparison(){
+  const select=$('meterCompareRoom'),body=$('meterCompareBody'),note=$('meterCompareNote');
+  const roomId=select.value;
+  const rooms=[...state.rooms].sort((a,b)=>a.name.localeCompare(b.name,'vi',{numeric:true}));
+  select.innerHTML='<option value="">Tất cả phòng</option>'+rooms.map(r=>`<option value="${safe(r.id)}">Phòng ${safe(r.name)}</option>`).join('');
+  if(rooms.some(r=>r.id===roomId))select.value=roomId;
+  const records=allMeterHistoryRecords().filter(x=>!select.value||x.roomId===select.value);
+  // Hiển thị tối đa 12 tháng mới nhất để tránh bảng dài; chỉ đọc dữ liệu hiện có.
+  const months=[...new Set(records.map(x=>x.month))].sort().reverse().slice(0,12);
+  const rows=records.filter(x=>months.includes(x.month)).sort((a,b)=>b.month.localeCompare(a.month)||String(a.roomName).localeCompare(String(b.roomName),'vi',{numeric:true}));
+  body.innerHTML=rows.length?rows.map(x=>{
+    const e=qpReadingUsage(x,'electric'),w=qpReadingUsage(x,'water');
+    const alerts=qpMeterAlerts(x.roomId,x.tenancyId,x.month,{oldE:x.oldE,newE:x.newE,oldW:x.oldW,newW:x.newW});
+    const prevE=qpPreviousUsage(x.roomId,x.tenancyId,x.month,'electric');
+    const prevW=qpPreviousUsage(x.roomId,x.tenancyId,x.month,'water');
+    const diff=(v,p)=>Number.isFinite(v)&&p&&Number.isFinite(p.value)?(v-p.value>0?'+':'')+Number((v-p.value).toFixed(2)):'—';
+    return `<tr><td>${safe(monthText(x.month))}</td><td>${safe(x.roomName)}</td><td>${Number.isFinite(e)?safe(e):'—'}</td><td>${Number.isFinite(w)?safe(w):'—'}</td><td class="${alerts.length?'qp-compare-bad':''}">⚡ ${diff(e,prevE)} · 💧 ${diff(w,prevW)}${alerts.length?' · ⚠️':''}</td></tr>`;
+  }).join(''):'<tr><td colspan="5">Chưa có dữ liệu chỉ số để đối chiếu.</td></tr>';
+  note.textContent='Hiển thị tối đa 12 tháng có dữ liệu gần nhất; mức tăng từ 2 lần chỉ là cảnh báo kiểm tra, không phải sai số đã xác nhận. Giai đoạn thay công tơ được cộng theo từng đoạn.';
+}
+$('meterCompareRoom').addEventListener('change',renderMeterComparison);
 function renderMeterReadingHistory(){
   const records=allMeterHistoryRecords();
   const counts=new Map();
@@ -2759,7 +2898,7 @@ $('meterHistoryShowAll').addEventListener('click',()=>{
 });
 
 function renderReadings(){
-  renderMeterEntry();renderInvoiceReadings();renderMeterReadingHistory();setReadingsView(readingsActiveView);
+  renderMeterEntry();renderInvoiceReadings();renderMeterReadingHistory();renderMeterComparison();setReadingsView(readingsActiveView);
 }
 $('meterEntryList').addEventListener('input',e=>{const row=e.target.closest('[data-meter-room]');if(row)updateMeterRowVolume(row);});
 $('meterEntryList').addEventListener('click',e=>{
@@ -2771,13 +2910,26 @@ $('meterSaveAll').addEventListener('click',()=>{
   try{persistMeterRows([...$('meterEntryList').querySelectorAll('[data-meter-room]')].filter(row=>!row.querySelector('[data-reading-field="newE"]').disabled));}
   catch(err){alert(err.message);}
 });
-document.querySelectorAll('[data-reading-view]').forEach(button=>button.addEventListener('click',()=>setReadingsView(button.dataset.readingView)));
+document.querySelectorAll('[data-reading-view]').forEach(button=>button.addEventListener('click',()=>{setReadingsView(button.dataset.readingView);qpScrollTopAfterNavigation();}));
 
 const roomFees=r=>[
   ...(r.trashFee>0?[{name:'Tiền rác',amount:r.trashFee}]:[]),
   ...(r.internetFee>0?[{name:'Tiền mạng',amount:r.internetFee}]:[]),
   ...state.settings.fees.filter(f=>r.feeIds.includes(f.id)).map(f=>({name:f.name,amount:f.amount}))
 ];
+// UI only: khi chuyển menu/tab, đặt lại vị trí cuộn trang về đầu.
+// Dùng requestAnimationFrame để chờ phần nội dung mới hiển thị rồi mới cuộn.
+let qpNavScrollFrame=0;
+function qpScrollTopAfterNavigation(){
+  if(qpNavScrollFrame)cancelAnimationFrame(qpNavScrollFrame);
+  qpNavScrollFrame=requestAnimationFrame(()=>{
+    qpNavScrollFrame=requestAnimationFrame(()=>{
+      qpNavScrollFrame=0;
+      window.scrollTo({top:0,left:0,behavior:'instant'});
+      if(document.scrollingElement)document.scrollingElement.scrollTop=0;
+    });
+  });
+}
 function switchTab(tab){
   if(tab==='readings')setReadingsView('meter');
   if(tab==='finance')setDepositView('ledger');
@@ -2809,6 +2961,7 @@ function switchTab(tab){
     b.classList.toggle('active',active);
     b.setAttribute('aria-pressed',String(active));
   });
+  qpScrollTopAfterNavigation();
 }
 function render(){
   auditBaseline=copy(state);
@@ -2826,7 +2979,8 @@ function dashboardPaymentButton(b){
   return '<button type="button" class="btn '+cls+'" data-action="paid" data-id="'+safe(b.id)+'"'
     +(locked?' disabled':'')+'>'+label+'</button>';
 }
-function billCard(b){const v=calc(b);return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(b.roomName)}</div><div class="detail">${safe(b.tenant||'Chưa có tên người thuê')} · Tháng ${monthText(b.month)}</div></div><span class="badge ${b.paid||b.settledBy?'paid':'unpaid'}">${b.settledBy?'Đã quyết toán':b.paid?'✓ Đã thanh toán':billPaidAmount(b)>0?'◐ Còn thiếu tiền':'● Chưa thanh toán'}</span></div><div class="price">${money(v.total)}</div>${billPaidAmount(b)>0&&!b.paid?`<div class="detail small">Đã nhận ${money(billPaidAmount(b))} · Còn nợ ${money(billDueAmount(b))}</div>`:''}<div class="detail small">Điện: ${money(v.electric)} · ${b.waterBillingPrior?'Nước kỳ trước':'Nước'}: ${money(v.water)} · Phí khác: ${money(v.other)}</div><div class="actions"><button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem hóa đơn</button>${!b.settledBy&&!state.settlements.some(x=>x.tenancyId===b.tenancyId)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(b.id)}">✏ Sửa tiền/phí</button>`:''}${dashboardPaymentButton(b)}</div></article>`;}
+function billIsEditLocked(b){return !!(b&&(b.paid||billPaidAmount(b)>0||b.settledBy||state.settlements.some(x=>x.tenancyId===b.tenancyId)));}
+function billCard(b){const v=calc(b);return `<article class="item"><div class="item-head"><div><div class="item-title">${safe(b.roomName)}</div><div class="detail">${safe(b.tenant||'Chưa có tên người thuê')} · Tháng ${monthText(b.month)}</div></div><span class="badge ${b.paid||b.settledBy?'paid':'unpaid'}">${b.settledBy?'Đã quyết toán':b.paid?'✓ Đã thanh toán':billPaidAmount(b)>0?'◐ Còn thiếu tiền':'● Chưa thanh toán'}</span></div><div class="price">${money(v.total)}</div>${billPaidAmount(b)>0&&!b.paid?`<div class="detail small">Đã nhận ${money(billPaidAmount(b))} · Còn nợ ${money(billDueAmount(b))}</div>`:''}<div class="detail small">Điện: ${money(v.electric)} · ${b.waterBillingPrior?'Nước kỳ trước':'Nước'}: ${money(v.water)} · Phí khác: ${money(v.other)}</div><div class="actions"><button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem hóa đơn</button>${!billIsEditLocked(b)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(b.id)}">✏ Sửa tiền/phí</button>`:''}${dashboardPaymentButton(b)}</div></article>`;}
 // v8.3.8: Cọc nhận/hoàn/điều chỉnh luôn gắn với đợt thuê, không nhập chung khách cũ và mới.
 // Màn hình chính là snapshot hiện tại; lịch sử giao dịch xem ở tab riêng.
 let depositView = 'ledger';
@@ -2862,9 +3016,9 @@ function setDepositView(view){
     $(id).setAttribute('aria-pressed',String(selected));
   }
 }
-$('financeLedgerTab').addEventListener('click',()=>setDepositView('ledger'));
-$('depositCurrentTab').addEventListener('click',()=>setDepositView('current'));
-$('depositHistoryTab').addEventListener('click',()=>setDepositView('history'));
+$('financeLedgerTab').addEventListener('click',()=>{setDepositView('ledger');qpScrollTopAfterNavigation();});
+$('depositCurrentTab').addEventListener('click',()=>{setDepositView('current');qpScrollTopAfterNavigation();});
+$('depositHistoryTab').addEventListener('click',()=>{setDepositView('history');qpScrollTopAfterNavigation();});
 function renderDeposits(){
   const v=depositStats();
   $('depositFinanceSummary').innerHTML=`
@@ -3032,10 +3186,10 @@ function renderInvoiceReadings(){
     const t=activeTenancy(r),canBill=!!t&&tenancyValidInMonth(t,selectedMonth);
     const b=canBill?getBill(r.id):null,v=b?calc(b):null;
     const previousBills=state.bills.filter(x=>x.roomId===r.id&&x.month===selectedMonth&&(!b||x.id!==b.id));
-    const oldLinks=previousBills.map(x=>`<div class="detail small">Đợt thuê cũ · ${safe(x.tenant||'Không rõ tên')} · ${money(calc(x).total)} <button class="btn secondary" data-action="invoice" data-id="${safe(x.id)}">Xem hóa đơn</button> ${!x.settledBy&&!state.settlements.some(q=>q.tenancyId===x.tenancyId)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(x.id)}">✏ Sửa tiền/phí</button>`:''} ${dashboardPaymentButton(x)}</div>`).join('');
+    const oldLinks=previousBills.map(x=>`<div class="detail small">Đợt thuê cũ · ${safe(x.tenant||'Không rõ tên')} · ${money(calc(x).total)} <button class="btn secondary" data-action="invoice" data-id="${safe(x.id)}">Xem hóa đơn</button> ${!billIsEditLocked(x)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(x.id)}">✏ Sửa tiền/phí</button>`:''} ${dashboardPaymentButton(x)}</div>`).join('');
     return `<article class="item"><div class="item-head"><div><div class="item-title">Phòng ${safe(r.name)}</div><div class="detail">${t?safe(r.tenant||'(Chờ cập nhật tên)'):'Phòng trống'} · Tiền thuê: ${money(r.rent)}</div></div><span class="occupancy-badge ${roomOccupancy(r)}">${roomOccupancy(r)==='vacant'?'PHÒNG TRỐNG':roomOccupancy(r)==='pending'?'CHỜ CHỐT THUÊ':'CÓ KHÁCH'}</span></div>
       ${b?`<div class="detail">Điện: ${hasMeterSegments(b,'electric')?meterSegmentsOf(b,'electric').length+' giai đoạn · '+Number(totalMeterVolume(b,'electric').toFixed(3))+' kWh':b.oldE+' → '+b.newE+' kWh'} ${b.waterMode==='meter'||b.waterAllowance>0||hasMeterSegments(b,'water')?`· Nước: ${hasMeterSegments(b,'water')?meterSegmentsOf(b,'water').length+' giai đoạn · '+Number(totalMeterVolume(b,'water').toFixed(3))+' m³':b.oldW+' → '+b.newW+' m³'}`:'· Nước theo người'}</div><div class="price">${money(v.total)}</div>`:''}
-      <div class="actions">${canBill?b?.settledBy||state.settlements.some(x=>x.tenancyId===t?.id)?'<span class="muted small">Đợt thuê đã quyết toán: chỉ xem lịch sử.</span>':b&&earliestAfter(r.id,selectedMonth,b.tenancyId)?`<button class="btn" data-action="edit-bill-money" data-id="${safe(b.id)}">✏ Sửa tiền/phí</button>`:`<button class="btn" data-action="bill" data-id="${safe(r.id)}">${b?'Sửa hóa đơn':'✏ Nhập chỉ số'}</button>`:'<span class="muted small">Không có đợt thuê đang hoạt động trong tháng được chọn.</span>'}${b?`<button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem / In</button>${dashboardPaymentButton(b)}<button class="btn danger" data-action="delete-bill" data-id="${safe(b.id)}">Xóa hóa đơn</button>`:''}</div>
+      <div class="actions">${canBill?b?.settledBy||state.settlements.some(x=>x.tenancyId===t?.id)?'<span class="muted small">Đợt thuê đã quyết toán: chỉ xem lịch sử.</span>':b&&billIsEditLocked(b)?'':b&&earliestAfter(r.id,selectedMonth,b.tenancyId)?`<button class="btn" data-action="edit-bill-money" data-id="${safe(b.id)}">✏ Sửa tiền/phí</button>`:`<button class="btn" data-action="bill" data-id="${safe(r.id)}">${b?'Sửa hóa đơn':'✏ Nhập chỉ số'}</button>`:'<span class="muted small">Không có đợt thuê đang hoạt động trong tháng được chọn.</span>'}${b?`<button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem / In</button>${dashboardPaymentButton(b)}<button class="btn danger" data-action="delete-bill" data-id="${safe(b.id)}">Xóa hóa đơn</button>`:''}</div>
       ${oldLinks?`<hr class="divider"><b>Hóa đơn các đợt thuê khác trong cùng tháng</b>${oldLinks}`:''}</article>`;
   }).join(''):empty('Chưa có phòng. Hãy vào mục “Phòng trọ” để thêm phòng.');
 }
@@ -3072,8 +3226,8 @@ function setRoomDetailsView(view){
   });
   if(roomDetailsView==='guests')renderGuests();
 }
-$('roomsRoomsTab').addEventListener('click',()=>setRoomDetailsView('rooms'));
-$('roomsGuestsTab').addEventListener('click',()=>setRoomDetailsView('guests'));
+$('roomsRoomsTab').addEventListener('click',()=>{setRoomDetailsView('rooms');qpScrollTopAfterNavigation();});
+$('roomsGuestsTab').addEventListener('click',()=>{setRoomDetailsView('guests');qpScrollTopAfterNavigation();});
 $('guestSearch').addEventListener('input',()=>renderGuests());
 $('guestStatus').addEventListener('change',()=>renderGuests());
 function customerRecords(){
@@ -3607,7 +3761,7 @@ function showTenancyHistory(roomId){
       ${t.status==='closed'&&t.depositBalance>0?`<button class="btn secondary" data-action="deposit-tenancy" data-id="${safe(r.id)}" data-tenancy="${safe(t.id)}">Quyết toán cọc khách cũ</button>`:''}
       ${t.status==='closed'?`<button class="btn secondary" data-action="correct-tenancy-end" data-id="${safe(r.id)}" data-tenancy="${safe(t.id)}">✏ Sửa ngày trả thực tế</button>`:''}
       ${t.dateCorrections?.length?`<div class="small muted">Đã điều chỉnh ngày trả ${t.dateCorrections.length} lần; không thay đổi ngày giao dịch tiền.</div>`:''}
-      ${bills.length?`<hr class="divider"><b>Hóa đơn đợt thuê này</b>${bills.slice().sort((a,b)=>b.month.localeCompare(a.month)).map(b=>`<div class="detail small">Tháng ${monthText(b.month)} · ${money(calc(b).total)} <button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem</button> ${!b.settledBy&&!state.settlements.some(z=>z.tenancyId===t.id)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(b.id)}">Sửa tiền/phí</button>`:''}</div>`).join('')}`:''}</div>`;
+      ${bills.length?`<hr class="divider"><b>Hóa đơn đợt thuê này</b>${bills.slice().sort((a,b)=>b.month.localeCompare(a.month)).map(b=>`<div class="detail small">Tháng ${monthText(b.month)} · ${money(calc(b).total)} <button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem</button> ${!billIsEditLocked(b)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(b.id)}">Sửa tiền/phí</button>`:''}</div>`).join('')}`:''}</div>`;
   }).join(''):'<p class="muted">Phòng chưa có đợt thuê nào.</p>';
   $('tenancyHistoryDialog').showModal();
 }
@@ -3882,6 +4036,9 @@ function openBill(roomId){
   const tenancy=activeTenancy(r);
   if(!tenancy||!tenancyValidInMonth(tenancy,selectedMonth)){alert('Không có đợt thuê đang hoạt động thuộc tháng được chọn. Xem hóa đơn cũ ở lịch sử.');return;}
   const existing=getBill(roomId);
+  if(existing&&billIsEditLocked(existing)){
+    alert('Hóa đơn đã thu tiền hoặc đã quyết toán: không thể chỉnh sửa. Vui lòng xem/in hóa đơn; nếu cần điều chỉnh phải xử lý lịch sử thu tiền trước.');return;
+  }
   if(existing?.settledBy||state.settlements.some(x=>x.tenancyId===tenancy.id)){
     alert('Đợt thuê đã được quyết toán. Hóa đơn chỉ được xem/in để giữ nguyên sổ cọc.');return;
   }
@@ -3932,6 +4089,9 @@ function openBill(roomId){
 function openHistoricalMoneyEdit(billId){
   const saved=state.bills.find(b=>b.id===billId);
   if(!saved)return;
+  if(billIsEditLocked(saved)){
+    alert('Hóa đơn đã có tiền thu hoặc đã quyết toán: không thể sửa tiền/phí.');return;
+  }
   if(saved.settledBy||state.settlements.some(x=>x.tenancyId===saved.tenancyId)){
     alert('Hóa đơn của đợt thuê đã quyết toán không được sửa tiền để tránh lệch sổ cọc.');return;
   }
@@ -4126,7 +4286,7 @@ $('billForm').addEventListener('submit',e=>{
   e.preventDefault();const b=getFormBill(),error=billError(b);if(error){alert(error);return;}
   if(historicalMoneyEdit){
     const original=state.bills.find(x=>x.id===b.id);
-    if(!original||original.settledBy||state.settlements.some(x=>x.tenancyId===original.tenancyId)){
+    if(!original||billIsEditLocked(original)){
       alert('Không thể sửa: hóa đơn đã được quyết toán hoặc không còn tồn tại.');return;
     }
     if(b.roomId!==original.roomId||b.tenancyId!==original.tenancyId||b.month!==original.month||
@@ -4148,6 +4308,10 @@ $('billForm').addEventListener('submit',e=>{
     if(calc(original).total!==calc(b).total&&!billPaidAmount(original)&&
        !confirm(`Tổng tiền hóa đơn sẽ đổi từ ${money(calc(original).total)} sang ${money(calc(b).total)}. Xác nhận chỉnh sửa lịch sử?`))return;
   }else{
+    const originalBill=state.bills.find(x=>x.id===b.id);
+    if(originalBill&&billIsEditLocked(originalBill)){
+      alert('Hóa đơn đã thu hoặc đã quyết toán không được sửa.');return;
+    }
     const fixedReading=meterRecord(b.roomId,b.tenancyId,b.month);
     if(fixedReading&&!historicalMoneyEdit){
       if(hasMeterSegments(b,'electric')||hasMeterSegments(b,'water')||
@@ -4194,7 +4358,7 @@ Chỉ bấm OK khi xác nhận khoản nước đó CHƯA được thu/tính ở
 });
 function deleteBill(billId){
   const b=state.bills.find(x=>x.id===billId);if(!b)return;
-  if(b.settledBy){alert('Hóa đơn đã được đối trừ trong phiếu quyết toán, không thể xóa.');return;}
+  if(b.settledBy||state.settlements.some(x=>x.tenancyId===b.tenancyId)){alert('Đợt thuê đã quyết toán, không thể xóa hóa đơn.');return;}
   if(billPaidAmount(b)>0){alert('Hóa đơn đã có tiền thực nhận. Hãy kiểm tra và xử lý từng lần thu trước khi xóa.');return;}
   if(b.tenancyId!==getRoom(b.roomId)?.activeTenancyId){alert('Hóa đơn đợt thuê cũ đã khóa để bảo toàn lịch sử. Vẫn có thể xem và đánh dấu thanh toán.');return;}
   if(earliestAfter(b.roomId,b.month,b.tenancyId)){alert('Hãy xóa hóa đơn các tháng mới hơn của đợt thuê này trước.');return;}
@@ -5035,5 +5199,35 @@ $('expensePaidDate').value=localToday();
 })();
 startCloudApp();
 </script>
+
+<script>
+/* Canh tab con sat duoi header co dinh; thich ung desktop va mobile. */
+(function () {
+  function updateStickySubnavOffset() {
+    const header = document.querySelector('header.top');
+    if (!header) return;
+    const h = Math.ceil(header.getBoundingClientRect().height);
+    document.documentElement.style.setProperty('--qp-sticky-subnav-top', (h + 8) + 'px');
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateStickySubnavOffset, { once: true });
+  } else {
+    updateStickySubnavOffset();
+  }
+  window.addEventListener('resize', updateStickySubnavOffset, { passive: true });
+  if (typeof ResizeObserver !== 'undefined') {
+    const observeHeader = () => {
+      const header = document.querySelector('header.top');
+      if (header) new ResizeObserver(updateStickySubnavOffset).observe(header);
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', observeHeader, { once: true });
+    } else {
+      observeHeader();
+    }
+  }
+})();
+</script>
+
 </body>
 </html>
