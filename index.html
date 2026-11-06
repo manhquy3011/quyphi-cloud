@@ -1209,11 +1209,8 @@ body{
 #meterHistoryPane .meter-history-toolbar label{
   font-weight:800;color:#164e41;font-size:14px;
 }
-#meterHistoryMonthFilter{
-  appearance:auto;max-width:100%;min-width:215px;
-  padding:9px 12px;border:1px solid #93bcae;border-radius:9px;
-  background:rgba(255,255,255,.96);color:#16483d;font-weight:750;
-}
+#meterHistoryShowAll{min-height:37px;padding:7px 12px;font-size:13px}
+#meterHistoryPeriodLabel{font-weight:750;color:#164e41}
 #meterHistoryPane .meter-history-status{
   color:#1c5548;font-weight:750;font-size:14px;
   margin:12px 0 14px;
@@ -1225,7 +1222,7 @@ body{
 }
 @media(max-width:620px){
  #meterHistoryPane .meter-history-toolbar{align-items:stretch;gap:7px}
- #meterHistoryMonthFilter{width:100%;min-width:0}
+ #meterHistoryShowAll{width:100%}
 }
 
 
@@ -1571,10 +1568,10 @@ body{
     </div>
     <div id="meterHistoryPane" hidden>
       <h3>Nhật ký chỉ số đã chốt</h3>
-      <p class="small muted">Hiển thị chỉ số theo <b>tháng bạn chọn</b>; có thể chuyển sang xem tất cả các tháng. Dữ liệu từ phiếu ghi số riêng hoặc hóa đơn đã lưu, không tự tạo dữ liệu cho các tháng chưa có.</p>
+      <p class="small muted">Lịch sử mặc định theo <b>tháng/năm ở góc trên bên phải</b>. Dữ liệu từ phiếu ghi số riêng hoặc hóa đơn đã lưu, không tự tạo chỉ số của tháng chưa có.</p>
       <div class="meter-history-toolbar">
-        <label for="meterHistoryMonthFilter">Chọn kỳ xem lịch sử</label>
-        <select id="meterHistoryMonthFilter" aria-label="Chọn kỳ xem lịch sử công tơ"></select>
+        <span class="small" id="meterHistoryPeriodLabel">Đang xem tháng đã chọn</span>
+        <button type="button" id="meterHistoryShowAll" class="btn secondary" aria-pressed="false">Xem tất cả các tháng</button>
       </div>
       <p class="meter-history-status" id="meterHistoryStatus" aria-live="polite"></p>
       <div id="meterHistoryList" class="stack"></div>
@@ -2721,17 +2718,16 @@ function renderMeterReadingHistory(){
   const counts=new Map();
   for(const rec of records)counts.set(rec.month,(counts.get(rec.month)||0)+1);
   const months=[...counts.keys()].filter(m=>/^\d{4}-(0[1-9]|1[0-2])$/.test(m)).sort().reverse();
-  const selector=$('meterHistoryMonthFilter');
-  const currentOptions=months.includes(selectedMonth)?months:[selectedMonth,...months].sort().reverse();
-  selector.innerHTML=`<option value="all">Tất cả các tháng (${records.length} bản ghi)</option>`+
-    currentOptions.map(m=>`<option value="${safe(m)}">Tháng ${safe(monthText(m))} (${counts.get(m)||0} bản ghi)</option>`).join('');
-  selector.value=meterHistoryScope==='all'?'all':selectedMonth;
+  $('meterHistoryPeriodLabel').textContent=meterHistoryScope==='all'?'Đang xem tất cả các tháng':'Đang xem tháng '+monthText(selectedMonth);
+  const allButton=$('meterHistoryShowAll');
+  allButton.textContent=meterHistoryScope==='all'?'Chỉ xem tháng đang chọn':'Xem tất cả các tháng';
+  allButton.setAttribute('aria-pressed',String(meterHistoryScope==='all'));
   const filtered=meterHistoryScope==='all'?records:records.filter(x=>x.month===selectedMonth);
   const context=meterHistoryScope==='all'?'Tất cả các kỳ':('Tháng '+monthText(selectedMonth));
   $('meterHistoryStatus').textContent=`${context}: ${filtered.length} bản ghi từ ${new Set(filtered.map(x=>x.roomId)).size} phòng.`;
   if(!filtered.length){
     const otherMonths=months.length?` Các tháng đã có dữ liệu: ${months.map(monthText).join(', ')}.`:'';
-    $('meterHistoryList').innerHTML=empty('Không có phiếu ghi số hoặc hóa đơn đã lưu trong tháng '+monthText(selectedMonth)+'.'+otherMonths+' Hãy chọn kỳ khác hoặc “Tất cả các tháng”.');
+    $('meterHistoryList').innerHTML=empty('Không có phiếu ghi số hoặc hóa đơn đã lưu trong tháng '+monthText(selectedMonth)+'.'+otherMonths+' Hãy đổi tháng/năm trên thanh tiêu đề hoặc chọn “Xem tất cả các tháng”.');
     return;
   }
   const renderCard=x=>{
@@ -2755,16 +2751,11 @@ function renderMeterReadingHistory(){
       ?`<h4 class="meter-history-month-heading">Tháng ${safe(monthText(x.month))} · ${counts.get(x.month)||0} bản ghi</h4>`:'';
     lastMonth=x.month;
     return heading+renderCard(x);
-  }).join('')+(filtered.length>displayed.length?`<p class="small muted">Đang hiển thị ${displayed.length} bản ghi mới nhất; chọn tháng cụ thể để xem các bản ghi cũ hơn.</p>`:'');
+  }).join('')+(filtered.length>displayed.length?`<p class="small muted">Đang hiển thị ${displayed.length} bản ghi mới nhất; chọn tháng/năm trên thanh tiêu đề để xem kỳ cụ thể.</p>`:'');
 }
-$('meterHistoryMonthFilter').addEventListener('change',e=>{
-  const chosen=e.target.value;
-  if(chosen==='all'){meterHistoryScope='all';renderMeterReadingHistory();return;}
-  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(chosen))return;
-  meterHistoryScope='month';
-  selectedMonth=chosen;
-  resetExpenseForm();
-  render();
+$('meterHistoryShowAll').addEventListener('click',()=>{
+  meterHistoryScope=meterHistoryScope==='all'?'month':'all';
+  renderMeterReadingHistory();
 });
 
 function renderReadings(){
@@ -3041,10 +3032,10 @@ function renderInvoiceReadings(){
     const t=activeTenancy(r),canBill=!!t&&tenancyValidInMonth(t,selectedMonth);
     const b=canBill?getBill(r.id):null,v=b?calc(b):null;
     const previousBills=state.bills.filter(x=>x.roomId===r.id&&x.month===selectedMonth&&(!b||x.id!==b.id));
-    const oldLinks=previousBills.map(x=>`<div class="detail small">Đợt thuê cũ · ${safe(x.tenant||'Không rõ tên')} · ${money(calc(x).total)} <button class="btn secondary" data-action="invoice" data-id="${safe(x.id)}">Xem hóa đơn</button> ${!x.settledBy&&!state.settlements.some(q=>q.tenancyId===x.tenancyId)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(x.id)}">✏ Sửa tiền/phí</button>`:''} <button class="btn soft" data-action="paid" data-id="${safe(x.id)}">${x.settledBy?'Đã quyết toán':x.paid?'↩ Chưa thu':'✓ Đã thu'}</button></div>`).join('');
+    const oldLinks=previousBills.map(x=>`<div class="detail small">Đợt thuê cũ · ${safe(x.tenant||'Không rõ tên')} · ${money(calc(x).total)} <button class="btn secondary" data-action="invoice" data-id="${safe(x.id)}">Xem hóa đơn</button> ${!x.settledBy&&!state.settlements.some(q=>q.tenancyId===x.tenancyId)?`<button class="btn secondary" data-action="edit-bill-money" data-id="${safe(x.id)}">✏ Sửa tiền/phí</button>`:''} ${dashboardPaymentButton(x)}</div>`).join('');
     return `<article class="item"><div class="item-head"><div><div class="item-title">Phòng ${safe(r.name)}</div><div class="detail">${t?safe(r.tenant||'(Chờ cập nhật tên)'):'Phòng trống'} · Tiền thuê: ${money(r.rent)}</div></div><span class="occupancy-badge ${roomOccupancy(r)}">${roomOccupancy(r)==='vacant'?'PHÒNG TRỐNG':roomOccupancy(r)==='pending'?'CHỜ CHỐT THUÊ':'CÓ KHÁCH'}</span></div>
       ${b?`<div class="detail">Điện: ${hasMeterSegments(b,'electric')?meterSegmentsOf(b,'electric').length+' giai đoạn · '+Number(totalMeterVolume(b,'electric').toFixed(3))+' kWh':b.oldE+' → '+b.newE+' kWh'} ${b.waterMode==='meter'||b.waterAllowance>0||hasMeterSegments(b,'water')?`· Nước: ${hasMeterSegments(b,'water')?meterSegmentsOf(b,'water').length+' giai đoạn · '+Number(totalMeterVolume(b,'water').toFixed(3))+' m³':b.oldW+' → '+b.newW+' m³'}`:'· Nước theo người'}</div><div class="price">${money(v.total)}</div>`:''}
-      <div class="actions">${canBill?b?.settledBy||state.settlements.some(x=>x.tenancyId===t?.id)?'<span class="muted small">Đợt thuê đã quyết toán: chỉ xem lịch sử.</span>':b&&earliestAfter(r.id,selectedMonth,b.tenancyId)?`<button class="btn" data-action="edit-bill-money" data-id="${safe(b.id)}">✏ Sửa tiền/phí</button>`:`<button class="btn" data-action="bill" data-id="${safe(r.id)}">${b?'Sửa hóa đơn':'✏ Nhập chỉ số'}</button>`:'<span class="muted small">Không có đợt thuê đang hoạt động trong tháng được chọn.</span>'}${b?`<button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem / In</button><button class="btn soft" data-action="paid" data-id="${safe(b.id)}">${b.settledBy?'Đã quyết toán':'✓ Đã thu / Chưa thu'}</button><button class="btn danger" data-action="delete-bill" data-id="${safe(b.id)}">Xóa hóa đơn</button>`:''}</div>
+      <div class="actions">${canBill?b?.settledBy||state.settlements.some(x=>x.tenancyId===t?.id)?'<span class="muted small">Đợt thuê đã quyết toán: chỉ xem lịch sử.</span>':b&&earliestAfter(r.id,selectedMonth,b.tenancyId)?`<button class="btn" data-action="edit-bill-money" data-id="${safe(b.id)}">✏ Sửa tiền/phí</button>`:`<button class="btn" data-action="bill" data-id="${safe(r.id)}">${b?'Sửa hóa đơn':'✏ Nhập chỉ số'}</button>`:'<span class="muted small">Không có đợt thuê đang hoạt động trong tháng được chọn.</span>'}${b?`<button class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem / In</button>${dashboardPaymentButton(b)}<button class="btn danger" data-action="delete-bill" data-id="${safe(b.id)}">Xóa hóa đơn</button>`:''}</div>
       ${oldLinks?`<hr class="divider"><b>Hóa đơn các đợt thuê khác trong cùng tháng</b>${oldLinks}`:''}</article>`;
   }).join(''):empty('Chưa có phòng. Hãy vào mục “Phòng trọ” để thêm phòng.');
 }
