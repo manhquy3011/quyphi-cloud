@@ -1421,6 +1421,24 @@ body{
 .annual-content-header .annual-subtab.active{background:#17665a;color:white;border-color:#17665a;box-shadow:0 3px 10px rgba(12,83,66,.14)}
 @media(max-width:600px){.annual-content-header{padding:13px 11px;margin:8px 0 15px}.annual-content-header .annual-subnav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.annual-content-header .annual-subtab{min-width:0;font-size:12px;padding:10px 5px}.annual-content-heading{font-size:18px!important}}
 @media print{#annualPanelHeader{display:none!important}}
+
+/* v8.8.0 – Ổn định chiều rộng khi đổi trang ngắn/dài.
+   Chrome/Edge bỏ thanh cuộn ở trang ngắn khiến viewport đổi kích thước.
+   Giữ chỗ cho scrollbar xuyên suốt, đồng thời căn sidebar theo
+   khung nội dung thực (không dùng 100vw gồm cả bề rộng scrollbar). */
+@media screen and (min-width: 761px) {
+  html {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+  }
+  .qp-side-rail {
+    left: max(12px, calc((100% - var(--qp-layout-width)) / 2));
+  }
+  /* Phòng khi sidebar không nằm trong rail ở các trạng thái ban đầu. */
+  .tabs:not(.qp-side-rail > .tabs) {
+    left: max(12px, calc((100% - var(--qp-layout-width)) / 2));
+  }
+}
 </style>
 </head>
 <body class="cloud-locked">
