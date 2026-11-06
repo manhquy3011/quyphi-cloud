@@ -1406,6 +1406,17 @@ body{
 }
 @media(max-width:390px){#rooms .guest-card-heading{flex-wrap:wrap}}
 
+
+/* v8.8 — Phân cấp rõ menu Tổng hợp và báo cáo con; chỉ sửa giao diện/điều hướng. */
+#annualPanelHeader[hidden]{display:none!important}
+.annual-content-header{margin:12px 0 22px;padding:17px 18px 12px;background:rgba(255,255,255,.72);border:1px solid rgba(172,198,187,.72);border-radius:16px;backdrop-filter:blur(4px)}
+.annual-content-heading{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 15px!important;color:#0c5244;font-size:20px!important}
+.annual-content-heading-note{font-size:12px;color:#637c72;font-weight:600}
+.annual-content-header .annual-subnav{display:flex;gap:10px;flex-wrap:wrap;margin:0;padding:0;border:0}
+.annual-content-header .annual-subtab{min-width:165px;border-radius:10px;text-align:center;background:rgba(255,255,255,.85)}
+.annual-content-header .annual-subtab.active{background:#17665a;color:white;border-color:#17665a;box-shadow:0 3px 10px rgba(12,83,66,.14)}
+@media(max-width:600px){.annual-content-header{padding:13px 11px;margin:8px 0 15px}.annual-content-header .annual-subnav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.annual-content-header .annual-subtab{min-width:0;font-size:12px;padding:10px 5px}.annual-content-heading{font-size:18px!important}}
+@media print{#annualPanelHeader{display:none!important}}
 </style>
 </head>
 <body class="cloud-locked">
@@ -1453,7 +1464,7 @@ body{
   <nav class="tabs" aria-label="Chức năng">
     <button class="tab active" data-tab="dashboard">📊 <span class="nav-desktop">Tổng quan</span><span class="nav-mobile">Tổng quan</span></button>
     <button class="tab" data-tab="readings" aria-label="Ghi số và hóa đơn">🧮 <span class="nav-desktop">Ghi số &amp; hóa đơn</span><span class="nav-mobile">Ghi số</span></button>
-    <button class="tab" data-tab="annual" aria-controls="annualSubnav" aria-expanded="false">📊 <span class="nav-desktop">Tổng hợp</span><span class="nav-mobile">Tổng hợp</span> <span aria-hidden="true">▾</span></button>
+    <button class="tab" data-tab="annual" aria-controls="annualSubnav" aria-expanded="false">📊 <span class="nav-desktop">Tổng hợp</span><span class="nav-mobile">Tổng hợp</span></button>
     <button class="tab" data-tab="flex" aria-label="Khoản thu khác">🧾 <span class="nav-desktop">Khoản thu khác</span><span class="nav-mobile">Khoản thu</span></button>
     <button class="tab" data-tab="finance">💰 Thu chi</button>
     <button class="tab" data-tab="rooms">🏘️ Phòng trọ</button>
@@ -1466,11 +1477,6 @@ body{
     <div class="cloud-actions"><button class="btn secondary" id="cloudRefreshBtn" type="button">↻ Tải dữ liệu mới</button><button class="btn secondary" id="cloudLogoutBtn" type="button">Đăng xuất</button></div>
   </div>
   </aside>
-  <!-- Menu cấp 2 chỉ xuất hiện khi chọn tab Tổng hợp. -->
-  <nav id="annualSubnav" class="annual-subnav" aria-label="Các mục tổng hợp" hidden>
-    <button type="button" class="annual-subtab active" data-annual-view="annual-main" aria-pressed="true">📊 Tổng hợp thu chi</button>
-    <button type="button" class="annual-subtab" data-annual-view="annual-other" aria-pressed="false">🧾 Tổng hợp khác</button>
-  </nav>
   <section id="dashboard" class="view active">
     <div class="welcome-panel"><h2>Xin chào, Chủ nhà!</h2><p>Tổng quan tình hình nhà trọ tháng <span class="month-title"></span></p></div>
     <div class="section-head"><h2>Tổng quan <span class="month-title"></span></h2></div>
@@ -1484,6 +1490,14 @@ body{
     <p class="soft-muted">Số dư này chỉ tính <b>khoản thu chi chính</b>: <b>đã thu − điện đã đóng − chi khác đã trả</b>. Khoản thu khác và tiền nước tổng được theo dõi riêng, không tính trùng.</p>
     <h3>Hóa đơn đã lập</h3><div id="dashboardBills" class="stack"></div>
   </section>
+  <!-- Điều hướng cấp 2 nằm TRONG khu vực nội dung của Tổng hợp, không lẫn với menu chính. -->
+  <div id="annualPanelHeader" class="annual-content-header" hidden>
+    <h2 class="annual-content-heading">📊 Tổng hợp <span class="annual-content-heading-note">Báo cáo theo năm</span></h2>
+    <nav id="annualSubnav" class="annual-subnav" aria-label="Chọn báo cáo tổng hợp">
+      <button type="button" class="annual-subtab active" data-annual-view="annual-main" aria-pressed="true">📊 Tổng hợp thu chi</button>
+      <button type="button" class="annual-subtab" data-annual-view="annual-other" aria-pressed="false">🧾 Tổng hợp khác</button>
+    </nav>
+  </div>
 <!-- Báo cáo năm chỉ đọc: không can thiệp dữ liệu Supabase hoặc khoản thu chi đang lưu. -->
 <section id="annual-main" class="view" aria-label="Báo cáo tổng hợp thu chi theo năm">
   <div class="section-head annual-header split-annual-header">
@@ -2746,6 +2760,7 @@ function switchTab(tab){
   if(tab==='finance')setDepositView('ledger');
   // Một tab cha Tổng hợp, hai trang con riêng biệt.
   const annual = tab === 'annual' || tab === 'annual-main' || tab === 'annual-other';
+  if(tab === 'annual') annualActiveView = 'annual-main';
   if(tab === 'annual-main' || tab === 'annual-other') annualActiveView = tab;
   const visibleTab = annual ? 'annual' : tab;
   document.querySelectorAll('.tab').forEach(b=>{
@@ -2753,7 +2768,7 @@ function switchTab(tab){
     b.classList.toggle('active',active);
     if(b.dataset.tab === 'annual')b.setAttribute('aria-expanded',String(annual));
   });
-  $('annualSubnav').hidden = !annual;
+  $('annualPanelHeader').hidden = !annual;
   document.querySelectorAll('[data-annual-view]').forEach(b=>{
     const active = b.dataset.annualView === annualActiveView;
     b.classList.toggle('active',active);
