@@ -1790,6 +1790,15 @@ body{
       <p class="muted">Dữ liệu được đồng bộ qua Supabase khi ứng dụng báo Đã đồng bộ. Bạn vẫn nên xuất bản sao lưu JSON trước khi nâng cấp.</p>
       <div class="actions"><button class="btn" id="exportBackup">⬇ Xuất dữ liệu (.json)</button><button class="btn secondary" id="importBackup">⬆ Nhập dữ liệu (.json)</button></div>
       <input type="file" id="backupFile" accept=".json,application/json" hidden>
+      <div class="qp-backup-check" style="margin-top:15px;padding:14px;border:1px solid #c6dfd5;border-radius:12px;background:rgba(240,248,244,.85)">
+        <h3 style="margin:0 0 8px">🛡️ Kiểm tra bản sao lưu trước khi khôi phục</h3>
+        <p class="small muted">Chọn file JSON đã tải để kiểm tra định dạng, tính toàn vẹn cấu trúc và xem số lượng dữ liệu. <b>Chỉ đọc, không nhập lên Cloud.</b> Có thể sử dụng để kiểm tra các bản sao lưu theo ngày.</p>
+        <div class="actions"><button type="button" class="btn secondary" id="qpVerifyBackupButton">🔍 Chọn file và kiểm tra</button><button type="button" class="btn secondary" id="qpSafetyCheckButton">☁️ Kiểm tra tình trạng hiện tại</button></div>
+        <input id="qpVerifyBackupFile" type="file" accept=".json,application/json" hidden>
+        <div id="qpBackupVerifyResult" class="inline-info" role="status" aria-live="polite" style="margin-top:12px">Chưa kiểm tra file sao lưu.</div>
+        <div id="qpSafetySummary" class="small muted" aria-live="polite" style="margin-top:9px"></div>
+      </div>
+
       <p class="small muted">Nên xuất bản sao lưu sau mỗi lần thu tiền. Nhập file sao lưu sẽ <b>thay thế toàn bộ dữ liệu hiện có</b>.</p>
     </div>
     <div class="panel" style="border:1px solid #e9b3ad">
@@ -5116,6 +5125,42 @@ function exportBackup(){
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);toast('Đã tạo file sao lưu JSON.');
 }
 $('exportBackup').addEventListener('click',exportBackup);
+
+// Giai đoạn 1: xác minh sao lưu ở phía trình duyệt, chỉ đọc và không ghi Cloud.
+// Không ghi file sao lưu vào localStorage vì chứa dữ liệu cá nhân của khách thuê.
+(function initQpBackupSafety(){
+  const btn=$('qpVerifyBackupButton'),input=$('qpVerifyBackupFile');
+  const result=$('qpBackupVerifyResult'),summary=$('qpSafetySummary');
+  const sizes=d=>({phong:d.rooms.length,hoaDon:d.bills.length,thuTien:d.billPayments.length,
+    chotCongTo:d.meterReadings.length,quyetToan:d.settlements.length,nhatKy:d.auditLog.length});
+  const formatSizes=x=>`Phòng: ${x.phong} · Hóa đơn: ${x.hoaDon} · Lần thu tiền: ${x.thuTien} · Phiếu chốt: ${x.chotCongTo} · Quyết toán: ${x.quyetToan} · Nhật ký: ${x.nhatKy}`;
+  btn.addEventListener('click',()=>input.click());
+  input.addEventListener('change',async()=>{
+    const file=input.files&&input.files[0];input.value='';if(!file)return;
+    if(file.size>10*1024*1024){result.textContent='⚠️ File vượt 10 MB, không thể kiểm tra bằng công cụ hiện tại.';return;}
+    result.textContent='Đang kiểm tra file trên thiết bị, không tải lên máy chủ…';
+    try{
+      const raw=await file.text(),payload=JSON.parse(raw);
+      if(payload?.app!=='QuanLyPhongTroOffline'||![1,2,3,4,5,6,7,8].includes(payload.version))
+        throw Error('Không phải file sao lưu JSON Quý Phi phiên bản 1–8.');
+      const valid=validateData(payload.data);
+      let digest='Không có (trình duyệt không hỗ trợ SHA-256)';
+      if(window.crypto?.subtle){
+        const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(raw));
+        digest=[...new Uint8Array(hash)].map(n=>n.toString(16).padStart(2,'0')).join('');
+      }
+      const stamp=payload.exportedAt&&Number.isFinite(Date.parse(payload.exportedAt))?new Date(payload.exportedAt).toLocaleString('vi-VN'):'Không có thời gian xuất';
+      result.textContent=`✓ File hợp lệ theo bộ quy tắc dữ liệu hiện tại. Tên: ${file.name}. Ngày xuất: ${stamp}. ${formatSizes(sizes(valid))}. SHA-256: ${digest}. Kiểm tra này không đảm bảo dữ liệu khớp Cloud hoặc không bị chỉnh sửa trước khi băm.`;
+    }catch(err){result.textContent='⚠️ File không đạt kiểm tra: '+(err?.message||String(err))+'. Chưa có dữ liệu nào bị thay đổi.';}
+  });
+  $('qpSafetyCheckButton').addEventListener('click',()=>{
+    const problems=inspectFinancialData();
+    const syncText=($('cloudSyncStatus')?.textContent||'Không có trạng thái đồng bộ').trim();
+    const counts=sizes(state);
+    summary.textContent=`Đang xem dữ liệu hiện tại trong ứng dụng. ${formatSizes(counts)}. Kiểm tra nghiệp vụ: ${problems.length?problems.length+' cảnh báo':'chưa thấy cảnh báo theo quy tắc hiện có'}. Trạng thái Cloud do ứng dụng báo: ${syncText}. Lưu ý: đây không phải phép xác minh trực tiếp phiên bản trên máy chủ; hãy chờ trạng thái Đã đồng bộ trước khi xuất JSON.`;
+  });
+})();
+
 // Khởi tạo dữ liệu sạch chỉ qua cơ chế Cloud có kiểm tra xung đột.
 $('resetDownloadBackup').addEventListener('click',exportBackup);
 $('resetAllCloud').addEventListener('click',()=>{void cloudResetAllData();});
