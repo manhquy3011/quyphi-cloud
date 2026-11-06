@@ -1407,6 +1407,10 @@ body{
 @media(max-width:390px){#rooms .guest-card-heading{flex-wrap:wrap}}
 
 
+/* v8.8.1: gom trang báo cáo vào menu cha, chống lộ nội dung khi đổi menu. */
+.shell > .view[hidden], #annual > .view[hidden]{display:none!important}
+#annual > .view{width:100%;max-width:100%;min-width:0}
+#annualPanelHeader{width:100%;max-width:100%;box-sizing:border-box}
 /* v8.8 — Phân cấp rõ menu Tổng hợp và báo cáo con; chỉ sửa giao diện/điều hướng. */
 #annualPanelHeader[hidden]{display:none!important}
 .annual-content-header{margin:12px 0 22px;padding:17px 18px 12px;background:rgba(255,255,255,.72);border:1px solid rgba(172,198,187,.72);border-radius:16px;backdrop-filter:blur(4px)}
@@ -1491,7 +1495,8 @@ body{
     <h3>Hóa đơn đã lập</h3><div id="dashboardBills" class="stack"></div>
   </section>
   <!-- Điều hướng cấp 2 nằm TRONG khu vực nội dung của Tổng hợp, không lẫn với menu chính. -->
-  <div id="annualPanelHeader" class="annual-content-header" hidden>
+  <section id="annual" class="view" hidden aria-label="Tổng hợp báo cáo năm">
+  <div id="annualPanelHeader" class="annual-content-header">
     <h2 class="annual-content-heading">📊 Tổng hợp <span class="annual-content-heading-note">Báo cáo theo năm</span></h2>
     <nav id="annualSubnav" class="annual-subnav" aria-label="Chọn báo cáo tổng hợp">
       <button type="button" class="annual-subtab active" data-annual-view="annual-main" aria-pressed="true">📊 Tổng hợp thu chi</button>
@@ -1499,7 +1504,7 @@ body{
     </nav>
   </div>
 <!-- Báo cáo năm chỉ đọc: không can thiệp dữ liệu Supabase hoặc khoản thu chi đang lưu. -->
-<section id="annual-main" class="view" aria-label="Báo cáo tổng hợp thu chi theo năm">
+<section id="annual-main" class="view active" aria-label="Báo cáo tổng hợp thu chi theo năm">
   <div class="section-head annual-header split-annual-header">
     <h2>📊 Tổng hợp thu chi năm <span id="annualMainYearTitle"></span></h2>
     <div class="field annual-year-field"><select id="annualMainYearSel" aria-label="Chọn năm tổng hợp thu chi"></select></div>
@@ -1509,7 +1514,7 @@ body{
   <div id="annualMainCards" class="finance-kpis annual-kpis"></div>
   <div id="annualMainDonut" class="annual-donut-panel" aria-label="Biểu đồ tròn tổng hợp thu chi"></div>
 </section>
-<section id="annual-other" class="view" aria-label="Báo cáo tổng hợp khác theo năm">
+<section id="annual-other" class="view" hidden aria-label="Báo cáo tổng hợp khác theo năm">
   <div class="section-head annual-header split-annual-header">
     <h2>🧾 Tổng hợp khác năm <span id="annualOtherYearTitle"></span></h2>
     <div class="field annual-year-field"><select id="annualOtherYearSel" aria-label="Chọn năm tổng hợp khác"></select></div>
@@ -1519,6 +1524,7 @@ body{
   <div id="annualFlexCards" class="finance-kpis"></div>
   <div id="annualFlexDonut" class="annual-donut-panel" aria-label="Biểu đồ tròn tổng hợp khác"></div>
 </section>
+  </section><!-- kết thúc trang cha Tổng hợp -->
 <section id="readings" class="view">
     <div class="section-head"><h2>Ghi số &amp; hóa đơn tháng <span class="month-title"></span></h2></div>
     <nav class="deposit-switch meter-subnav" aria-label="Các mục ghi số và hóa đơn">
@@ -2758,24 +2764,34 @@ const roomFees=r=>[
 function switchTab(tab){
   if(tab==='readings')setReadingsView('meter');
   if(tab==='finance')setDepositView('ledger');
-  // Một tab cha Tổng hợp, hai trang con riêng biệt.
-  const annual = tab === 'annual' || tab === 'annual-main' || tab === 'annual-other';
-  if(tab === 'annual') annualActiveView = 'annual-main';
-  if(tab === 'annual-main' || tab === 'annual-other') annualActiveView = tab;
-  const visibleTab = annual ? 'annual' : tab;
-  document.querySelectorAll('.tab').forEach(b=>{
-    const active = b.dataset.tab === visibleTab;
+  // Chỉ có MỘT trang cha Tổng hợp. Các báo cáo con được bật bên trong
+  // nên không thể bị hiển thị lệch khi đổi qua các menu khác.
+  const annual = tab==='annual' || tab==='annual-main' || tab==='annual-other';
+  if(tab==='annual') annualActiveView='annual-main';
+  else if(tab==='annual-main'||tab==='annual-other') annualActiveView=tab;
+  const visibleTab=annual?'annual':tab;
+  document.querySelectorAll('.tabs [data-tab]').forEach(b=>{
+    const active=b.dataset.tab===visibleTab;
     b.classList.toggle('active',active);
-    if(b.dataset.tab === 'annual')b.setAttribute('aria-expanded',String(annual));
+    b.setAttribute('aria-current',active?'page':'false');
+    if(b.dataset.tab==='annual')b.setAttribute('aria-expanded',String(annual));
   });
-  $('annualPanelHeader').hidden = !annual;
-  document.querySelectorAll('[data-annual-view]').forEach(b=>{
-    const active = b.dataset.annualView === annualActiveView;
+  // Chuyển tab cha TRƯỚC, rồi chọn báo cáo con theo một trạng thái duy nhất.
+  document.querySelectorAll('.shell > .view').forEach(v=>{
+    const active=v.id===visibleTab;
+    v.classList.toggle('active',active);
+    v.hidden=!active;
+  });
+  document.querySelectorAll('#annual > .view').forEach(v=>{
+    const active=annual && v.id===annualActiveView;
+    v.classList.toggle('active',active);
+    v.hidden=!active;
+  });
+  document.querySelectorAll('#annualSubnav [data-annual-view]').forEach(b=>{
+    const active=b.dataset.annualView===annualActiveView;
     b.classList.toggle('active',active);
     b.setAttribute('aria-pressed',String(active));
   });
-  const view = annual ? annualActiveView : tab;
-  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id === view));
 }
 function render(){
   auditBaseline=copy(state);
