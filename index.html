@@ -1484,6 +1484,46 @@ body{
   }
 }
 
+
+/* Giai đoạn 2: Bảng công nợ và bộ lọc chỉ đọc, tương thích bố cục Quý Phi. */
+.qp-debt-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0}
+.qp-debt-tools input,.qp-debt-tools select{border:1px solid #b9cbc5;border-radius:9px;padding:10px 12px;background:#fff;color:#174b40;min-height:42px;max-width:100%}
+.qp-debt-tools input{flex:1 1 190px;min-width:140px}
+.qp-debt-tools select{flex:0 1 210px}
+.qp-debt-table-wrap{max-width:100%;overflow-x:auto;border:1px solid #dce9e3;border-radius:12px;background:rgba(255,255,255,.90)}
+.qp-debt-table{width:100%;border-collapse:collapse;min-width:640px;font-size:13px}
+.qp-debt-table th,.qp-debt-table td{padding:12px 10px;border-bottom:1px solid #deebe5;text-align:left}
+.qp-debt-table th{background:#eaf4ef;color:#174b40;font-weight:800}
+.qp-debt-table td:nth-child(n+4),.qp-debt-table th:nth-child(n+4){text-align:right;font-variant-numeric:tabular-nums}
+.qp-debt-table td:last-child,.qp-debt-table th:last-child{text-align:center}
+.qp-debt-table tbody tr:last-child td{border-bottom:0}
+.qp-debt-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}
+.qp-debt-kpi{background:rgba(255,255,255,.88);border:1px solid #c9dfd6;padding:12px;border-radius:12px}
+.qp-debt-kpi span{font-size:12px;color:#546f66;display:block}
+.qp-debt-kpi strong{display:block;font-size:20px;color:#17665a;margin-top:5px}
+.qp-debt-kpi.warn strong{color:#ad5134}
+@media(max-width:650px){.qp-debt-kpis{grid-template-columns:1fr}.qp-debt-tools input,.qp-debt-tools select{flex-basis:100%}}
+
+
+/* Giai đoạn 2b: tra cứu và xuất báo cáo, chỉ đọc dữ liệu hiện hành. */
+.qp-query-tools{display:grid;grid-template-columns:minmax(180px,1.4fr) minmax(130px,.8fr);gap:10px;align-items:end;margin:12px 0}
+.qp-query-tools input,.qp-query-tools select,.qp-export-tools select{width:100%;min-height:42px;padding:9px 11px;border:1px solid #bfd2c9;border-radius:9px;background:#fff;color:#1d4339}
+.qp-global-results{display:grid;gap:8px;max-height:390px;overflow:auto}
+.qp-global-result{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px;border:1px solid #dbe8e1;border-radius:10px;background:rgba(255,255,255,.82)}
+.qp-global-result>div{min-width:0;overflow-wrap:anywhere}
+.qp-global-result small{display:block;color:#5b766c;font-size:12px;margin-top:4px}
+.qp-export-tools{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:12px 0}
+.qp-export-tools .field{flex:1 1 170px;margin:0}
+.qp-export-tools .btn{min-height:42px}
+.qp-report-note{font-size:12px;line-height:1.6;color:#596f66}
+@media(max-width:600px){.qp-query-tools{grid-template-columns:1fr}.qp-global-result{align-items:flex-start}.qp-export-tools .btn{width:100%}}
+
+
+/* Giai đoạn 3: tab hợp đồng cùng kiểu các tab con cũ. */
+#roomContractPanel .finance-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+#roomContractPanel .badge{white-space:normal;text-align:center;max-width:180px}
+@media(max-width:760px){#roomContractPanel .finance-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){#roomContractPanel .qp-contract-filters{grid-template-columns:1fr}}
 </style>
 </head>
 <body class="cloud-locked">
@@ -1555,6 +1595,36 @@ body{
       <section class="dashboard-chart" aria-label="Biểu đồ thu chi tháng"><h3>◕ Thu chi trong tháng</h3><p class="chart-caption">Đã thu · điện đã đóng · các khoản chi khác.</p><div id="dashboardMiniDonut" class="dashboard-mini-donut"></div></section>
     </div>
     <p class="soft-muted">Số dư này chỉ tính <b>khoản thu chi chính</b>: <b>đã thu − điện đã đóng − chi khác đã trả</b>. Khoản thu khác và tiền nước tổng được theo dõi riêng, không tính trùng.</p>
+    <section id="qpQuickTools" class="panel" aria-label="Tra cứu và xuất báo cáo">
+      <h3>🔎 Tra cứu nhanh</h3>
+      <p class="small muted">Tìm trong dữ liệu phòng, khách thuê, hóa đơn, sổ ghi số và khoản chi. Không thay đổi dữ liệu đã lưu.</p>
+      <div class="qp-query-tools">
+        <input type="search" id="qpGlobalSearch" placeholder="Nhập tên khách, phòng, số điện thoại, kỳ hóa đơn…" aria-label="Tìm trên toàn ứng dụng">
+        <select id="qpGlobalType" aria-label="Loại dữ liệu tra cứu"><option value="all">Tất cả loại dữ liệu</option><option value="room">Phòng trọ</option><option value="guest">Khách thuê</option><option value="bill">Hóa đơn</option><option value="meter">Ghi số điện nước</option><option value="expense">Khoản chi</option><option value="flex">Khoản thu khác</option></select>
+      </div>
+      <div id="qpGlobalResults" class="qp-global-results" role="status" aria-live="polite"><div class="small muted">Nhập từ khóa để bắt đầu tra cứu.</div></div>
+      <hr class="divider">
+      <h3>📥 Xuất báo cáo chi tiết (Excel/CSV)</h3>
+      <div class="qp-export-tools">
+        <div class="field"><label for="qpReportType">Loại báo cáo</label><select id="qpReportType"><option value="bills">Hóa đơn & công nợ</option><option value="meter">Chỉ số điện nước</option><option value="expenses">Sổ chi phí</option><option value="flex">Khoản thu khác</option><option value="summary">Tổng hợp thu chi từng tháng</option></select></div>
+        <div class="field"><label for="qpReportScope">Khoảng thời gian</label><select id="qpReportScope"><option value="month">Tháng đang chọn</option><option value="year">Cả năm đang chọn</option></select></div>
+        <button id="qpReportDownload" type="button" class="btn secondary">⬇ Xuất CSV</button>
+      </div>
+      <div class="qp-report-note">CSV mở được bằng Excel; tên cột bằng tiếng Việt, tiền theo đơn vị đồng. Báo cáo chỉ phản ánh dữ liệu hiện có, không tự sửa số liệu Cloud. Tiền cọc không tính vào thu chi hoạt động.</div>
+      <div id="qpReportFeedback" class="small muted" role="status" aria-live="polite" style="margin-top:8px"></div>
+    </section>
+    <section id="qpDebtPanel" class="panel" aria-label="Bảng theo dõi công nợ hóa đơn">
+      <h3>📋 Công nợ hóa đơn</h3>
+      <p class="small muted">Theo kỳ hóa đơn; không cộng tiền cọc hoặc khoản thu khác. Hóa đơn đã chuyển quyết toán không được coi là công nợ đang thu trực tiếp.</p>
+      <div class="qp-debt-tools">
+        <input id="qpDebtSearch" type="search" placeholder="Tìm phòng hoặc tên khách" aria-label="Tìm phòng hoặc khách có công nợ">
+        <select id="qpDebtScope" aria-label="Chọn khoảng kỳ hóa đơn"><option value="month">Tháng đang chọn</option><option value="all">Tất cả các tháng</option></select>
+        <select id="qpDebtStatus" aria-label="Lọc tình trạng hóa đơn"><option value="owing">Còn phải thu</option><option value="all">Tất cả tình trạng</option><option value="paid">Đã thu đủ</option><option value="settled">Đã chuyển quyết toán</option></select>
+        <button type="button" id="qpDebtExport" class="btn secondary">⬇ Xuất CSV (Excel)</button>
+      </div>
+      <div id="qpDebtKpis" class="qp-debt-kpis" aria-live="polite"></div>
+      <div id="qpDebtResults" class="qp-debt-table-wrap" aria-live="polite"></div>
+    </section>
     <h3>Hóa đơn đã lập</h3><div id="dashboardBills" class="stack"></div>
   </section>
   <!-- Điều hướng cấp 2 nằm TRONG khu vực nội dung của Tổng hợp, không lẫn với menu chính. -->
@@ -1638,10 +1708,22 @@ body{
     <nav class="deposit-switch rooms-subnav" aria-label="Mục quản lý phòng và khách thuê">
       <button type="button" class="deposit-switch-btn active" id="roomsRoomsTab" aria-pressed="true">🏠 Danh sách phòng</button>
       <button type="button" class="deposit-switch-btn" id="roomsGuestsTab" aria-pressed="false">👥 Thông tin khách thuê</button>
+      <button type="button" class="deposit-switch-btn" id="roomsContractsTab" aria-pressed="false">📑 Hợp đồng & hạn thuê</button>
     </nav>
     <div id="roomsListPanel">
       <div class="section-head"><h2>Danh sách phòng trọ</h2><button class="btn" id="addRoom">+ Thêm phòng</button></div>
       <div id="roomList" class="stack"></div>
+    </div>
+    <div id="roomContractPanel" hidden>
+      <div class="section-head"><h2>Hợp đồng & hạn thuê</h2></div>
+      <div class="section-intro">Theo dõi ngày thuê đã nhập trong hồ sơ phòng. Chức năng chỉ đọc; cập nhật ngày kết thúc qua <b>Sửa đợt thuê</b>. Cảnh báo không tự gia hạn và không tự gửi tin.</div>
+      <div id="qpContractKpis" class="finance-kpis" aria-live="polite"></div>
+      <div class="grid2 qp-contract-filters">
+        <div class="field"><label for="qpContractSearch">Tìm phòng / khách thuê</label><input type="search" id="qpContractSearch" placeholder="Số phòng hoặc tên người đại diện"></div>
+        <div class="field"><label for="qpContractFilter">Trạng thái hợp đồng</label><select id="qpContractFilter"><option value="all">Tất cả phòng đang thuê</option><option value="urgent">Đã hết hạn / sắp hết hạn (30 ngày)</option><option value="expired">Đã hết hạn</option><option value="soon">Sắp hết hạn (30 ngày)</option><option value="active">Còn hạn trên 30 ngày</option><option value="missing">Chưa nhập ngày kết thúc</option></select></div>
+      </div>
+      <div id="qpContractList" class="stack" aria-live="polite"></div>
+      <p class="small muted" style="margin-top:12px">Ngày hết hạn là thông tin quản lý, không tự động kết thúc đợt thuê hoặc khóa hóa đơn. Cần xác nhận thực tế với khách trước khi gia hạn.</p>
     </div>
     <div id="roomGuestPanel" hidden>
       <div class="section-head"><h2>Thông tin khách thuê</h2></div>
@@ -2977,7 +3059,7 @@ function render(){
   buildMonthPicker();
   $('currentDate').textContent=nowLong();
   document.querySelectorAll('.month-title').forEach(n=>n.textContent=monthText(selectedMonth));
-  renderDashboard();renderReadings();renderRooms();renderGuests();renderSettings();renderFlex();renderFinance();renderDeposits();renderAnnualMain();renderAnnualOther();
+  renderDashboard();renderReadings();renderRooms();renderGuests();qpRenderContracts();renderSettings();renderFlex();renderFinance();renderDeposits();renderAnnualMain();renderAnnualOther();
 }
 function empty(message){return `<div class="empty">${safe(message)}</div>`;}
 // v8.5.16: Nút thanh toán tại Tổng quan hiển thị thao tác tiếp theo.
@@ -3115,6 +3197,130 @@ $('depositForm').addEventListener('submit',e=>{
   if(!save()){state=old;return;}
   $('depositDialog').close();render();toast('Đã cập nhật sổ cọc theo đúng đợt thuê. Kiểm tra trạng thái đồng bộ Cloud.');
 });
+/* Giai đoạn 2b – Tra cứu đa phân hệ và xuất CSV, chỉ đọc state, không gọi save(). */
+function qpSearchNormalize(value){
+  return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLocaleLowerCase('vi');
+}
+function qpSearchData(){
+  const results=[];
+  for(const r of state.rooms){
+    results.push({type:'room',title:'Phòng '+r.name,subtitle:(r.tenant||'Chưa có khách')+' · '+(r.phone||''),lookup:[r.name,r.tenant,r.phone,r.cccd],nav:'rooms'});
+    for(const t of (r.tenancies||[])){
+      if(t.tenant)results.push({type:'guest',title:t.tenant,subtitle:'Phòng '+r.name+' · '+(t.status==='active'?'Đang thuê':'Đã kết thúc'),lookup:[t.tenant,t.phone,r.name],nav:'guests'});
+      for(const p of (t.residents||[]))if(p.name)results.push({type:'guest',title:p.name,subtitle:'Khách phòng '+r.name+' · '+(p.phone||''),lookup:[p.name,p.phone,r.name],nav:'guests'});
+    }
+  }
+  for(const b of state.bills)results.push({type:'bill',title:'Hóa đơn phòng '+b.roomName,subtitle:'Kỳ '+b.month+' · '+money(calc(b).total),lookup:[b.roomName,b.tenant,b.month,b.id],nav:'dashboard',billId:b.id,month:b.month});
+  for(const r of state.meterReadings)results.push({type:'meter',title:'Ghi số phòng '+r.roomName,subtitle:'Kỳ '+r.month+' · Điện '+(r.newE-r.oldE)+' · Nước '+(r.newW-r.oldW),lookup:[r.roomName,r.month],nav:'readings',month:r.month});
+  for(const x of state.expenses)results.push({type:'expense',title:x.name,subtitle:'Chi '+money(x.amount)+' · '+x.month,lookup:[x.name,x.month],nav:'finance',month:x.month});
+  for(const x of state.flexEntries){
+    const r=state.flexRooms.find(v=>v.id===x.roomId);
+    results.push({type:'flex',title:'Khoản thu khác · '+(r?.name||'Phòng'),subtitle:'Kỳ '+x.month+' · '+money((x.items||[]).reduce((n,v)=>n+Number(v.amount||0),0)),lookup:[r?.name,x.month,...(x.items||[]).map(v=>v.name)],nav:'flex',month:x.month});
+  }
+  return results;
+}
+let qpSearchCurrent=[];
+function qpRenderGlobalSearch(){
+  const out=document.getElementById('qpGlobalResults');if(!out)return;
+  const term=qpSearchNormalize(document.getElementById('qpGlobalSearch').value.trim());
+  const type=document.getElementById('qpGlobalType').value;
+  if(!term){qpSearchCurrent=[];out.innerHTML='<div class="small muted">Nhập từ khóa để bắt đầu tra cứu.</div>';return;}
+  const matches=qpSearchData().filter(x=>(type==='all'||x.type===type)&&x.lookup.some(v=>qpSearchNormalize(v).includes(term)));
+  qpSearchCurrent=matches.slice(0,60);
+  out.innerHTML=matches.length?qpSearchCurrent.map((x,i)=>`<div class="qp-global-result"><div><b>${safe(x.title)}</b><small>${safe(x.subtitle)}</small></div><button type="button" class="btn secondary" data-qp-found="${i}">Mở</button></div>`).join('')+ (matches.length>60?`<div class="small muted">Hiển thị 60/${matches.length} kết quả. Hãy nhập cụ thể hơn.</div>`:''):'<div class="empty">Không tìm thấy kết quả phù hợp.</div>';
+}
+['qpGlobalSearch','qpGlobalType'].forEach(id=>document.getElementById(id)?.addEventListener(id==='qpGlobalSearch'?'input':'change',qpRenderGlobalSearch));
+document.getElementById('qpGlobalResults')?.addEventListener('click',event=>{
+  const button=event.target.closest('[data-qp-found]');if(!button)return;
+  const x=qpSearchCurrent[Number(button.dataset.qpFound)];if(!x)return;
+  // Không tự đổi kỳ hóa đơn toàn cục: việc tra cứu chỉ dẫn đến đúng phân hệ.
+  if(x.billId){showInvoice(x.billId);return;}
+  switchTab(x.nav);
+  if(x.nav==='readings')setReadingsView('history');
+});
+function qpCsvCell(value){
+  const raw=String(value??'');
+  // Chặn công thức nhập từ dữ liệu khách khi mở trong Excel/LibreOffice.
+  const protectedText=(/^[\s\u0000-\u001f]*[=+@-]/.test(raw)&&!(typeof value==='number'&&Number.isFinite(value)))?"'"+raw:raw;
+  return '"'+protectedText.replace(/"/g,'""')+'"';
+}
+function qpDownloadCsv(name,headers,rows){
+  if(!rows.length){document.getElementById('qpReportFeedback').textContent='Không có dữ liệu phù hợp kỳ đã chọn.';return;}
+  const csv='\uFEFF'+[headers,...rows].map(row=>row.map(qpCsvCell).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=name;a.hidden=true;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  document.getElementById('qpReportFeedback').textContent='Đã tạo báo cáo '+rows.length+' dòng. Nếu chưa tải được, hãy kiểm tra quyền tải tệp của trình duyệt.';
+}
+function qpExportDetailedReport(){
+  const type=document.getElementById('qpReportType').value,scope=document.getElementById('qpReportScope').value;
+  const period=scope==='year'?selectedMonth.slice(0,4):selectedMonth;
+  const accepts=m=>typeof m==='string'&&(scope==='year'?m.slice(0,4)===period:m===period);
+  let headers=[],rows=[];
+  if(type==='bills'){
+    headers=['Kỳ','Phòng','Khách thuê','Tổng hóa đơn (đ)','Đã thu trực tiếp (đ)','Còn phải thu trực tiếp (đ)','Trạng thái'];
+    rows=state.bills.filter(b=>accepts(b.month)).map(b=>{const total=calc(b).total,received=billPaidAmount(b),settled=!!b.settledBy;return [b.month,b.roomName,b.tenant||'',total,received,settled?0:Math.max(0,total-received),settled?'Đã chuyển quyết toán':total<=received?'Đã thu đủ':received>0?'Đã thu một phần':'Chưa thu'];});
+  }else if(type==='meter'){
+    headers=['Kỳ','Phòng','Điện đầu','Điện cuối','Điện tiêu thụ','Nước đầu','Nước cuối','Nước tiêu thụ'];
+    rows=allMeterHistoryRecords().filter(x=>accepts(x.month)).map(x=>[x.month,x.roomName,x.oldE,x.newE,qpReadingUsage(x,'electric'),x.oldW,x.newW,qpReadingUsage(x,'water')]);
+  }else if(type==='expenses'){
+    headers=['Kỳ','Tên khoản chi','Số tiền (đ)','Trạng thái','Ngày thanh toán'];
+    rows=state.expenses.filter(x=>accepts(x.month)).map(x=>[x.month,x.name,x.amount,x.paid?'Đã chi':'Chưa chi',x.paidDate||'']);
+    for(const m of state.meterPayments.filter(x=>accepts(x.month))){const meter=state.meterAccounts.find(v=>v.id===m.meterId);rows.push([m.month,'Điện: '+(meter?.name||m.meterId),m.amount,m.paid?'Đã đóng':'Chưa đóng',m.paidDate||'']);}
+  }else if(type==='flex'){
+    headers=['Kỳ','Phòng','Khoản thu','Số tiền (đ)','Trạng thái','Ngày thu'];
+    for(const e of state.flexEntries.filter(x=>accepts(x.month))){const room=state.flexRooms.find(r=>r.id===e.roomId);for(const item of e.items||[])rows.push([e.month,room?.name||'',item.name,item.amount,e.paid?'Đã thu':'Chưa thu',e.paidDate||'']);}
+  }else if(type==='summary'){
+    headers=['Kỳ','Tổng hóa đơn (đ)','Đã nhận theo kỳ (đ)','Chưa thu/chưa quyết toán (đ)','Đã đóng điện (đ)','Đã chi khác (đ)','Còn lại thực tế theo kỳ (đ)'];
+    const months=scope==='month'?[selectedMonth]:Array.from({length:12},(_,i)=>period+'-'+String(i+1).padStart(2,'0'));
+    rows=months.map(m=>{const t=financeTotals(m);return [m,t.invoiced,t.received,t.uncollected,t.electricityPaid,t.otherPaid,t.net];});
+  }
+  rows.sort((a,b)=>String(a[0]).localeCompare(String(b[0])));
+  qpDownloadCsv('Quy_Phi_'+type+'_'+period+'.csv',headers,rows);
+}
+document.getElementById('qpReportDownload')?.addEventListener('click',qpExportDetailedReport);
+
+/* Giai đoạn 2 – chỉ tổng hợp từ hóa đơn và giao dịch đã có, không ghi state/Cloud. */
+function qpDebtRows(){
+  const scope=document.getElementById('qpDebtScope')?.value||'month';
+  const status=document.getElementById('qpDebtStatus')?.value||'owing';
+  const keyword=(document.getElementById('qpDebtSearch')?.value||'').trim().toLocaleLowerCase('vi');
+  return state.bills.filter(b=>scope==='all'||b.month===selectedMonth).map(b=>{
+    const total=calc(b).total;
+    const received=billPaidAmount(b);
+    const settled=!!b.settledBy;
+    // Khoản quyết toán không phải nợ hóa đơn chính đang thu trực tiếp.
+    const outstanding=settled?0:Math.max(0,total-received);
+    const stateLabel=settled?'Đã quyết toán':outstanding>0?(received>0?'Đã thu một phần':'Chưa thu'):'Đã thu đủ';
+    return {b,total,received,outstanding,settled,stateLabel};
+  }).filter(x=>{
+    if(status==='owing'&&x.outstanding<=0)return false;
+    if(status==='paid'&&(x.settled||x.outstanding>0))return false;
+    if(status==='settled'&&!x.settled)return false;
+    return !keyword||String(x.b.roomName||'').toLocaleLowerCase('vi').includes(keyword)||String(x.b.tenant||'').toLocaleLowerCase('vi').includes(keyword);
+  }).sort((a,b)=>b.b.month.localeCompare(a.b.month)||String(a.b.roomName).localeCompare(String(b.b.roomName),'vi',{numeric:true}));
+}
+function qpRenderDebts(){
+  const target=document.getElementById('qpDebtResults'),kpi=document.getElementById('qpDebtKpis');
+  if(!target||!kpi)return;
+  const rows=qpDebtRows(),total=rows.reduce((n,x)=>n+x.outstanding,0),received=rows.reduce((n,x)=>n+x.received,0);
+  kpi.innerHTML=`<div class="qp-debt-kpi"><span>Hóa đơn theo bộ lọc</span><strong>${rows.length}</strong></div><div class="qp-debt-kpi"><span>Tiền đã nhận</span><strong>${money(received)}</strong></div><div class="qp-debt-kpi warn"><span>Còn phải thu trực tiếp</span><strong>${money(total)}</strong></div>`;
+  if(!rows.length){target.innerHTML='<div class="empty">Không có hóa đơn phù hợp bộ lọc.</div>';return;}
+  target.innerHTML=`<table class="qp-debt-table"><thead><tr><th>Kỳ</th><th>Phòng</th><th>Khách thuê</th><th>Hóa đơn</th><th>Đã thu</th><th>Còn thu</th><th>Trạng thái</th><th>Chi tiết</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${safe(x.b.month)}</td><td>${safe(x.b.roomName)}</td><td>${safe(x.b.tenant||'—')}</td><td>${money(x.total)}</td><td>${money(x.received)}</td><td><b>${money(x.outstanding)}</b></td><td>${safe(x.stateLabel)}</td><td><button type="button" class="btn secondary" data-action="invoice" data-id="${safe(x.b.id)}">Xem</button></td></tr>`).join('')}</tbody></table>`;
+}
+function qpExportDebtsCsv(){
+  const rows=qpDebtRows();
+  if(!rows.length){alert('Không có hóa đơn phù hợp bộ lọc để xuất.');return;}
+  const csvCell=x=>'"'+String(x??'').replace(/"/g,'""').replace(/^[=+@-]/,v=>"'"+v)+'"';
+  const data=[['Kỳ hóa đơn','Phòng','Tên khách','Tổng tiền','Đã thu','Còn thu trực tiếp','Trạng thái'],...rows.map(x=>[x.b.month,x.b.roomName,x.b.tenant||'',x.total,x.received,x.outstanding,x.stateLabel])];
+  const content='\uFEFF'+data.map(r=>r.map(csvCell).join(',')).join('\r\n');
+  const url=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8;'}));
+  const a=document.createElement('a');a.href=url;a.download='Cong_no_Quy_Phi_'+selectedMonth+'.csv';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+['qpDebtSearch','qpDebtScope','qpDebtStatus'].forEach(id=>document.getElementById(id)?.addEventListener(id==='qpDebtSearch'?'input':'change',qpRenderDebts));
+document.getElementById('qpDebtExport')?.addEventListener('click',qpExportDebtsCsv);
 function renderDashboard(){
   const bills=state.bills.filter(b=>b.month===selectedMonth).sort((a,b)=>a.roomName.localeCompare(b.roomName,'vi',{numeric:true}));
   const expected=bills.reduce((s,b)=>s+calc(b).total,0),collected=bills.reduce((s,b)=>s+billPaidAmount(b),0),offsetBills=bills.filter(b=>b.settledBy).reduce((s,b)=>s+billDueAmount(b),0);
@@ -3160,6 +3366,8 @@ function renderDashboard(){
   };
   $('dashboardBills').innerHTML=notice+(showTwoColumns?splitList():normalList);
   renderDashboardVisuals();
+  qpRenderDebts();
+  qpRenderGlobalSearch();
 }
 // v8.6.1: Hai biểu đồ chỉ đọc. Dữ liệu lấy từ hàm tổng hợp sẵn có, không ghi Cloud.
 function renderDashboardVisuals(){
@@ -3225,18 +3433,65 @@ function renderRooms(){
 // Không tạo bảng Supabase hoặc mã khách mới; tránh dữ liệu chồng chéo giữa khách cũ và mới.
 let roomDetailsView = 'rooms';
 function setRoomDetailsView(view){
-  roomDetailsView=view==='guests'?'guests':'rooms';
+  roomDetailsView=['rooms','guests','contracts'].includes(view)?view:'rooms';
   $('roomsListPanel').hidden=roomDetailsView!=='rooms';
   $('roomGuestPanel').hidden=roomDetailsView!=='guests';
-  [['roomsRoomsTab','rooms'],['roomsGuestsTab','guests']].forEach(([id,kind])=>{
+  $('roomContractPanel').hidden=roomDetailsView!=='contracts';
+  [['roomsRoomsTab','rooms'],['roomsGuestsTab','guests'],['roomsContractsTab','contracts']].forEach(([id,kind])=>{
     const selected=kind===roomDetailsView;
     $(id).classList.toggle('active',selected);
     $(id).setAttribute('aria-pressed',String(selected));
   });
   if(roomDetailsView==='guests')renderGuests();
+  if(roomDetailsView==='contracts')qpRenderContracts();
 }
 $('roomsRoomsTab').addEventListener('click',()=>{setRoomDetailsView('rooms');qpScrollTopAfterNavigation();});
 $('roomsGuestsTab').addEventListener('click',()=>{setRoomDetailsView('guests');qpScrollTopAfterNavigation();});
+$('roomsContractsTab').addEventListener('click',()=>{setRoomDetailsView('contracts');qpScrollTopAfterNavigation();});
+
+// Báo hạn hợp đồng: lấy dữ liệu từ room.leaseEnd, không tạo bản ghi hoặc thay đổi Cloud.
+function qpContractDays(iso){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(iso||'')))return null;
+  const [y,m,d]=iso.split('-').map(Number);
+  const target=Date.UTC(y,m-1,d);
+  if(new Date(target).toISOString().slice(0,10)!==iso)return null;
+  const [ty,tm,td]=localToday().split('-').map(Number);
+  return Math.round((target-Date.UTC(ty,tm-1,td))/86400000);
+}
+function qpContractRows(){
+  return state.rooms.filter(r=>activeTenancy(r)).map(r=>{
+    const days=qpContractDays(r.leaseEnd);
+    const status=days===null?'missing':days<0?'expired':days<=30?'soon':'active';
+    return {room:r,days,status};
+  }).sort((a,b)=>{
+    const score=x=>x.status==='expired'?0:x.status==='soon'?1:x.status==='missing'?2:3;
+    return score(a)-score(b)||(a.days??99999)-(b.days??99999)||a.room.name.localeCompare(b.room.name,'vi',{numeric:true});
+  });
+}
+function qpRenderContracts(){
+  const all=qpContractRows();
+  const count=k=>all.filter(x=>x.status===k).length;
+  $('qpContractKpis').innerHTML=[['Đang thuê',all.length],['Đã hết hạn',count('expired')],['Sắp hết hạn ≤ 30 ngày',count('soon')],['Chưa có ngày hết hạn',count('missing')]].map(([name,value])=>`<div class="finance-kpi"><span>${name}</span><strong>${value}</strong></div>`).join('');
+  const query=$('qpContractSearch').value.trim().toLocaleLowerCase('vi');
+  const filter=$('qpContractFilter').value;
+  const rows=all.filter(x=>(filter==='all'||x.status===filter||(filter==='urgent'&&['expired','soon'].includes(x.status)))&&
+    (!query||[x.room.name,x.room.tenant,x.room.phone].some(v=>String(v||'').toLocaleLowerCase('vi').includes(query))));
+  $('qpContractList').innerHTML=rows.length?rows.map(({room:r,days,status})=>{
+    const label=status==='expired'?`Quá hạn ${Math.abs(days)} ngày`:status==='soon'?days===0?'Hết hạn hôm nay':`Còn ${days} ngày`:status==='missing'?'Chưa nhập ngày kết thúc':`Còn ${days} ngày`;
+    const className=status==='expired'?'danger-note':status==='soon'?'warn':'';
+    return `<article class="item"><div class="item-head"><div><div class="item-title">Phòng ${safe(r.name)}</div><div class="detail">${safe(r.tenant||'Chưa có người đại diện')} · ${safe(r.phone||'Chưa có SĐT')}<br>Bắt đầu: ${r.leaseStart?safe(r.leaseStart):'Chưa nhập'} · Kết thúc: ${r.leaseEnd?safe(r.leaseEnd):'Chưa nhập'}</div></div><div class="badge ${status==='active'?'paid':'unpaid'}">${safe(label)}</div></div><div class="actions"><button class="btn secondary" type="button" data-action="edit-room" data-id="${safe(r.id)}">✏ Sửa ngày thuê</button>${status!=='missing'?`<button class="btn soft" type="button" data-qp-contract-remind="${safe(r.id)}">📋 Sao chép lời nhắc</button>`:''}</div></article>`;
+  }).join(''):empty('Không có hợp đồng phù hợp bộ lọc.');
+}
+['qpContractSearch','qpContractFilter'].forEach(id=>$(id).addEventListener(id==='qpContractSearch'?'input':'change',qpRenderContracts));
+$('qpContractList').addEventListener('click',async e=>{
+  const button=e.target.closest('[data-qp-contract-remind]');if(!button)return;
+  const room=getRoom(button.dataset.qpContractRemind);
+  if(!room||!activeTenancy(room))return;
+  const message=`Xin chào ${room.tenant||'Anh/Chị'}, hợp đồng thuê phòng ${room.name} dự kiến kết thúc ngày ${room.leaseEnd}. Anh/Chị vui lòng liên hệ để xác nhận việc gia hạn hoặc lịch bàn giao. Xin cảm ơn!`;
+  try{await navigator.clipboard.writeText(message);toast('Đã sao chép nội dung nhắc hợp đồng; chưa gửi cho khách.');}
+  catch(err){window.prompt('Sao chép lời nhắc hợp đồng (chưa gửi):',message);}
+});
+
 $('guestSearch').addEventListener('input',()=>renderGuests());
 $('guestStatus').addEventListener('change',()=>renderGuests());
 function customerRecords(){
