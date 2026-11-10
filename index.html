@@ -1613,11 +1613,7 @@ body.qp-viewer #qpDebtPanel .qp-debt-tools { display: none !important; }
   <div class="cloud-toolbar qp-cloud-side" id="cloudToolbar" hidden>
     <div><div id="cloudSyncStatus" class="cloud-status" aria-live="polite">☁️ Đang kết nối...</div><div class="cloud-account" id="cloudAccount"></div>
       <div id="qpCloudHealth" class="qp-cloud-health" role="status" aria-live="polite"></div>
-      <div class="qp-release-label" id="qpReleaseLabel"></div>
-      <div id="qpReleaseNotice" class="qp-release-notice" hidden>
-        <div id="qpReleaseNoticeText"></div>
-        <button type="button" class="btn secondary" id="qpReleaseUpdateBtn">↻ Cập nhật phiên bản</button>
-      </div></div>
+</div>
     <div class="cloud-actions"><button class="btn secondary" id="cloudRefreshBtn" type="button">↻ Tải dữ liệu mới</button><button class="btn secondary" id="cloudLogoutBtn" type="button">Đăng xuất</button></div>
   </div>
   </aside>
@@ -2172,7 +2168,7 @@ body.qp-viewer #qpDebtPanel .qp-debt-tools { display: none !important; }
 <!-- Cấu hình của riêng bạn và thư viện Supabase (client-side, không có khóa bí mật). -->
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="cloud.js?v=2026.11.10.2"></script>
+<script src="cloud.js"></script>
 <script>
 'use strict';
 // Mọi dữ liệu của ứng dụng được lưu ở một khóa localStorage duy nhất.
@@ -5679,90 +5675,39 @@ document.querySelectorAll('[data-viewer-invoice-status]').forEach(el=>el.addEven
 })();
 </script>
 <script>
-/* QUY PHI Release Monitor — giao dien thong bao, KHONG tu dong reload. */
+/* Quý Phi – Giám sát tình trạng Cloud; không kiểm tra phiên bản website. */
 (function(){
   'use strict';
-  const VERSION='2026.11.10.2';
-  const CHECK_INTERVAL_MS=180000; // 3 phut khi tab dang mo
-  let availableVersion='';
-  let checking=false;
-  const el=id=>document.getElementById(id);
-  const validVersion=v=>typeof v==='string'&&/^[0-9a-z][0-9a-z._-]{1,50}$/i.test(v);
-
-  function pendingReason(){
-    // Khong reload khi Admin chua dong bo xong hoac du lieu dang xung dot.
-    if(typeof cloudConflict!=='undefined'&&cloudConflict)return 'Dữ liệu Cloud đang xung đột. Hãy xử lý trước khi cập nhật.';
-    if(typeof cloudDirty!=='undefined'&&cloudDirty)return 'Còn dữ liệu chưa gửi lên Cloud. Hãy đồng bộ trước khi cập nhật.';
-    if(typeof cloudSending!=='undefined'&&cloudSending)return 'Đang gửi dữ liệu lên Cloud. Hãy kiểm tra lại khi hoàn tất.';
-    if(typeof cloudPollBusy!=='undefined'&&cloudPollBusy)return 'Đang tải dữ liệu từ Cloud. Hãy thử lại sau.';
-    if([ ...document.querySelectorAll('dialog') ].some(x=>x.open))return 'Hãy đóng hộp thoại đang mở trước khi cập nhật.';
-    return '';
-  }
-  function renderHealth(){
-    const node=el('qpCloudHealth');if(!node)return;
-    let level='good';let msg='';
-    if(!navigator.onLine){level='error';msg='● Mất mạng — dữ liệu chưa thể cập nhật từ Cloud';}
-    else if(typeof cloudConflict!=='undefined'&&cloudConflict){level='error';msg='● Xung đột dữ liệu — không tải lại';}
-    else if(typeof cloudDirty!=='undefined'&&cloudDirty){level='pending';msg='● Còn thay đổi đang chờ đồng bộ';}
-    else if(typeof cloudSending!=='undefined'&&cloudSending){level='pending';msg='● Đang ghi dữ liệu lên Cloud';}
-    else if(typeof cloudReady==='undefined'||!cloudReady){level='pending';msg='● Chưa hoàn tất tải dữ liệu Cloud';}
-    else if(el('cloudSyncStatus')?.dataset.level==='error'){level='error';msg='● Có lỗi kết nối Cloud — xem thông báo phía trên';}
-    else if(typeof cloudRole!=='undefined'&&cloudRole==='viewer'){msg='● Đang xem dữ liệu Cloud (không có quyền ghi)';}
-    else msg='● Không có thay đổi đang chờ gửi';
-    node.dataset.level=level;
-    if(node.textContent!==msg)node.textContent=msg;
-    const button=el('qpReleaseUpdateBtn');
-    if(button){button.disabled=Boolean(pendingReason())||!navigator.onLine;}
-  }
-  async function checkVersion(){
-    if(checking||!navigator.onLine||location.protocol==='file:')return;
-    if(document.hidden)return;
-    checking=true;
-    try{
-      const url=new URL('version.json',document.baseURI);
-      url.searchParams.set('check',String(Date.now()));
-      const res=await fetch(url,{cache:'no-store',credentials:'same-origin'});
-      if(!res.ok)throw Error('HTTP '+res.status);
-      const info=await res.json();
-      if(!validVersion(info.version))throw Error('Mã phiên bản không hợp lệ');
-      if(info.version!==VERSION){
-        availableVersion=info.version;
-        el('qpReleaseNoticeText').textContent='Đã có phiên bản '+info.version+'. Hãy cập nhật sau khi Cloud đồng bộ xong.';
-        el('qpReleaseNotice').hidden=false;
-      } else {
-        availableVersion='';el('qpReleaseNotice').hidden=true;
-      }
-    }catch(err){
-      // Khong lam gian doan hoat dong khi Pages chua xuat ban version.json.
-      console.info('Chưa kiểm tra được phiên bản Quý Phi:',err.message);
-    }finally {checking=false;renderHealth();}
-  }
-  function updateVersion(){
-    if(!availableVersion)return;
-    const reason=pendingReason();
-    if(reason||!navigator.onLine){alert(reason||'Chưa có kết nối mạng.');return;}
-    if(!confirm('Tải bản Quý Phi '+availableVersion+'? Hãy đảm bảo dữ liệu Cloud đã đồng bộ.'))return;
-    // Query string moi giup trinh duyet kiem tra HTML moi, khong thay doi du lieu Supabase.
-    const url=new URL(location.href);
-    url.searchParams.set('qp_version',availableVersion);
-    location.replace(url.toString());
-  }
-  const init=()=>{
-    el('qpReleaseLabel').textContent='Phiên bản '+VERSION;
-    el('qpReleaseUpdateBtn').addEventListener('click',updateVersion);
-    renderHealth();
-    if(location.protocol==='file:'){
-      el('qpReleaseLabel').textContent+=' · Bản chạy trên máy';
-      return; // file:// khong the kiem tra manifest qua HTTP
+  const status=document.getElementById('qpCloudHealth');
+  if(!status)return;
+  function updateCloudHealth(){
+    if(!status.isConnected)return;
+    let level='good', message='';
+    if(!navigator.onLine){
+      level='error';message='● Mất kết nối Internet — không thể tải Cloud';
+    }else if(typeof cloudConflict!=='undefined'&&cloudConflict){
+      level='error';message='● Xung đột dữ liệu Cloud — cần xử lý';
+    }else if(typeof cloudDirty!=='undefined'&&cloudDirty){
+      level='pending';message='● Có dữ liệu chưa đồng bộ';
+    }else if(typeof cloudSending!=='undefined'&&cloudSending){
+      level='pending';message='● Đang gửi dữ liệu lên Cloud';
+    }else if(typeof cloudReady==='undefined'||!cloudReady){
+      level='pending';message='● Đang tải dữ liệu Cloud';
+    }else if(document.getElementById('cloudSyncStatus')?.dataset.level==='error'){
+      level='error';message='● Lỗi kết nối Cloud — kiểm tra thông báo phía trên';
+    }else{
+      message='● Cloud đã tải xong';
     }
-    void checkVersion();
-    setInterval(()=>{renderHealth();void checkVersion();},CHECK_INTERVAL_MS);
-    // Nhan biet du lieu vua duoc luu tam ma khong can cho ba phut.
-    setInterval(renderHealth,3000);
-    window.addEventListener('online',()=>{renderHealth();void checkVersion();});
-    window.addEventListener('offline',renderHealth);
-    document.addEventListener('visibilitychange',()=>{if(!document.hidden){renderHealth();void checkVersion();}});
-  };
+    status.dataset.level=level;
+    if(status.textContent!==message)status.textContent=message;
+  }
+  function init(){
+    updateCloudHealth();
+    setInterval(updateCloudHealth,5000);
+    window.addEventListener('online',updateCloudHealth);
+    window.addEventListener('offline',updateCloudHealth);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateCloudHealth();});
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
