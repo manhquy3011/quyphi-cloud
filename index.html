@@ -1812,7 +1812,7 @@ body.qp-viewer #qpDebtPanel .qp-debt-tools { display: none !important; }
     <div class="section-intro">Báo cáo thu chi chính <b>chỉ tính hóa đơn chính</b>. Các công tơ điện và khoản chi khác được trừ trong <b>thu chi chính</b>. Tiền nước tổng được ghi riêng, chỉ trừ vào <b>Khoản thu khác</b>; hai số dư không cộng lẫn.</div>
     <div id="financeSummary" class="finance-kpis"></div>
     <h3 class="finance-section-title">⚡ Tiền điện phải đóng hằng tháng (<span id="visibleMeterCount">3</span> công tơ)</h3>
-    <p class="soft-muted">Tên từng công tơ được khai báo tại <b>Cài đặt → Tên công tơ điện</b>. Mục này chỉ nhập <b>số tiền điện phải đóng</b> hằng tháng và đánh dấu đã đóng. Chỉ khoản đã đóng mới trừ vào tiền còn lại.</p>
+    <p class="soft-muted">Tên từng công tơ được khai báo tại <b>Cài đặt → Tên công tơ điện</b>. Nhập <b>số tiền điện bằng đồng (đ)</b>, ví dụ <b>2632759</b> = <b>2.632.759 đ</b>, không nhân 1.000. Chỉ khoản đã đóng mới trừ vào tiền còn lại. <b>Lưu ý:</b> các khoản điện đã ghi ở phiên bản cũ không tự thay đổi; hãy đối chiếu và sửa từng khoản sai nếu có.</p>
     <div id="meterList"></div>
     <div class="section-head" style="margin-top:22px"><h3>🧾 Các khoản chi khác</h3></div>
     <form id="expenseForm" class="finance-card">
@@ -5240,7 +5240,7 @@ function renderFinance(){
     const archived=state.meterAccounts.indexOf(m)>=state.settings.meterCount;
     return `<div class="finance-card"><form class="meter-form" data-meter="${safe(m.id)}">
       <div class="field"><label>Tên công tơ (cố định)</label><div class="readonly-meter-name">${safe(m.name)}${archived?'<span class="meter-archived">(đang ẩn)</span>':''}</div></div>
-      <div class="field"><label>Tiền phải đóng (nghìn đ)</label><input class="meter-amount" type="number" min="0" step="any" required value="${dongToNghin(x?x.amount:'')}" placeholder="Nhập số tiền"></div>
+      <div class="field"><label>Tiền phải đóng (đồng)</label><input class="meter-amount" type="number" min="0" step="1" required value="${x?.amount??''}" placeholder="Ví dụ: 2632759 (đ)"></div>
       <label class="check-pay"><input type="checkbox" class="meter-paid" ${x?.paid?'checked':''}> Đã đóng</label>
       <div class="field"><label>Ngày đóng thực tế</label><input type="date" class="meter-paid-date" value="${safe(x?.paidDate||(!x?.paid?localToday():''))}"></div>
       <button type="submit" class="btn">Lưu</button>
@@ -5274,8 +5274,8 @@ $('deleteFlexWater').addEventListener('click',()=>{
 });
 $('meterList').addEventListener('submit',e=>{
   const f=e.target.closest('form[data-meter]');if(!f)return;e.preventDefault();
-  const meterId=f.dataset.meter,amount=nghinToDong(f.querySelector('.meter-amount').value),paid=f.querySelector('.meter-paid').checked,rawDate=f.querySelector('.meter-paid-date').value;
-  if(!Number.isSafeInteger(amount)||amount<0){alert('Tiền điện phải là số nguyên không âm.');return;}
+  const meterId=f.dataset.meter,amount=Number(f.querySelector('.meter-amount').value),paid=f.querySelector('.meter-paid').checked,rawDate=f.querySelector('.meter-paid-date').value;
+  if(f.querySelector('.meter-amount').value.trim()===''||!Number.isSafeInteger(amount)||amount<0){alert('Vui lòng nhập số tiền điện chính xác bằng đồng (ví dụ: 2632759).');return;}
   const meter=state.meterAccounts.find(x=>x.id===meterId);if(!meter)return;
   const old=copy(state);
   const existing=state.meterPayments.find(x=>x.meterId===meterId&&x.month===selectedMonth);
