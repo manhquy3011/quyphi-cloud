@@ -21,11 +21,30 @@ let cloudPollBusy = false;
 let cloudStarted = false;
 let cloudLastError = '';
 let cloudLastUpdatedAt = null;
+let cloudRole = 'unknown';
+let cloudDataOwnerId = null;
 
 function cloudEl(name){return document.getElementById(name);}
 function cloudCacheKey(){
   const project = new URL(window.QUYPHI_CLOUD.url).hostname;
-  return `${CLOUD_CACHE_PREFIX}${project}:${cloudUser.id}`;
+  return cloudRole==='viewer'
+    ? `${CLOUD_CACHE_PREFIX}${project}:${cloudUser.id}:viewer:${cloudDataOwnerId}`
+    : `${CLOUD_CACHE_PREFIX}${project}:${cloudUser.id}`;
+}
+async function cloudResolveRole(){
+  // Fail closed if the RLS-enabled membership table is missing/inaccessible.
+  const {data,error}=await cloudClient.from('quyphi_access')
+    .select('owner_id,role').eq('user_id',cloudUser.id).maybeSingle();
+  if(error)throw Error('Không xác minh được quyền truy cập: '+error.message);
+  cloudRole=data?.role==='viewer'?'viewer':'admin';
+  cloudDataOwnerId=cloudRole==='viewer'?data.owner_id:cloudUser.id;
+  if(!cloudDataOwnerId)throw Error('Thiếu chủ sở hữu dữ liệu.');
+}
+function cloudRequireAdmin(){
+  if(cloudRole!=='admin'){
+    alert('Tài khoản chỉ xem không được thay đổi dữ liệu.');return false;
+  }
+  return true;
 }
 function cloudReadCache(){
   try {
@@ -64,7 +83,7 @@ function cloudLastUpdateLabel(){
 async function cloudReadUpdatedAt(revision){
   try{
     const {data,error}=await cloudClient.from('quyphi_app_state')
-      .select('updated_at').eq('owner_id',cloudUser.id)
+      .select('updated_at').eq('owner_id',cloudDataOwnerId)
       .eq('revision',revision).maybeSingle();
     if(error) throw error;
     return data?.updated_at||null;
@@ -88,9 +107,10 @@ function cloudShowGate(message, mode='login'){
 function cloudOpenApp(){
   cloudEl('cloudGate').hidden=true;
   document.body.classList.remove('cloud-locked');
-  cloudEl('cloudAccount').textContent=cloudUser.email || 'Chủ trọ';
+  cloudEl('cloudAccount').textContent=cloudUser.email||'Tài khoản';
   cloudEl('cloudToolbar').hidden=false;
   render();
+  if(typeof window.qpSetAccessRole==='function')window.qpSetAccessRole(cloudRole);
 }
 function cloudMakeDefaultData(){
   return {
@@ -106,7 +126,7 @@ function cloudReadLegacy(){
 }
 async function cloudGetRemote(){
   const {data,error} = await cloudClient.from('quyphi_app_state')
-    .select('revision,data,updated_at').eq('owner_id',cloudUser.id).maybeSingle();
+    .select('revision,data,updated_at').eq('owner_id',cloudDataOwnerId).maybeSingle();
   if (error) throw error;
   return data;
 }
@@ -120,6 +140,7 @@ function cloudBlockConflict(){
 }
 // Lệnh đồng bộ có revision: máy khác vừa lưu thì SQL từ chối ghi đè.
 async function cloudFlush(){
+  if(cloudRole!=='admin')return;
   if (!cloudClient || !cloudUser || !cloudReady || cloudSending || !cloudDirty || cloudConflict) return;
   cloudSending=true;
   try {
@@ -157,6 +178,7 @@ async function cloudFlush(){
 // Được gọi từ các chức năng v7. Trả về đồng bộ để tương thích `if(!save())`.
 // Đây là bước lưu bản tạm, việc Cloud xác nhận diễn ra sau đó.
 function cloudSaveLocal(){
+  if(!cloudRequireAdmin())return false;
   if (!cloudReady || !cloudUser || cloudConflict) {
     alert('Chưa sẵn sàng lưu Cloud hoặc đang có xung đột dữ liệu.');
     return false;
@@ -192,8 +214,9 @@ async function cloudPull(){
       state=fresh;
       cloudRevision=newRevision;
       cloudLastUpdatedAt=remote.updated_at||null;
-      cloudPersistCache();
+      if(cloudRole==='admin')cloudPersistCache();
       render();
+      if(typeof window.qpSetAccessRole==='function')window.qpSetAccessRole(cloudRole);
       cloudStatus(cloudLastUpdateLabel(),'good');
     } else {
       cloudLastUpdatedAt=remote.updated_at||cloudLastUpdatedAt;
@@ -211,6 +234,7 @@ async function cloudLoadAccount(){
   cloudSequence=0;
   cloudLastUpdatedAt=null;
   cloudShowGate('Đang kiểm tra dữ liệu trên Cloud...', 'loading');
+  try{await cloudResolveRole();}catch(error){cloudShowGate(error.message+' — hãy kiểm tra SQL phân quyền.', 'retry');return;}
   let remote;
   try { remote=await cloudGetRemote(); }
   catch(error){
@@ -218,7 +242,7 @@ async function cloudLoadAccount(){
     cloudShowGate('Không tải được dữ liệu từ Supabase: '+error.message+'. Hãy kiểm tra SQL, kết nối mạng và thử lại.', 'retry');
     return;
   }
-  const cache=cloudReadCache();
+  const cache=cloudRole==='viewer'?null:cloudReadCache();
   if (remote) {
     try {
       const fresh=validateData(remote.data);
@@ -234,13 +258,17 @@ async function cloudLoadAccount(){
         state=cache.data; cloudDirty=true; cloudSequence=1;
       } else { state=fresh; cloudDirty=false; }
       cloudReady=true;
-      cloudPersistCache();
+      if(cloudRole==='admin')cloudPersistCache();
       cloudOpenApp();
       cloudStatus(cloudDirty?'⏳ Có thay đổi chưa gửi từ lần trước. Đang đồng bộ...':cloudLastUpdateLabel(),cloudDirty?'pending':'good');
       if (cloudDirty) void cloudFlush();
     } catch(error) {
       cloudShowGate('Dữ liệu trên Cloud không hợp lệ: '+error.message+'. Không thể tự động sửa hoặc ghi đè.', 'retry');
     }
+    return;
+  }
+  if(cloudRole==='viewer'){
+    cloudShowGate('Chưa có dữ liệu của chủ trọ để xem. Liên hệ quản trị viên.', 'retry');
     return;
   }
   // Không có row Cloud: nếu có cache chưa gửi từ phiên trước thì khôi phục, không mất dữ liệu.
@@ -272,6 +300,7 @@ async function cloudLoadAccount(){
 // Xóa dữ liệu nghiệp vụ bằng việc GHI JSON rỗng trong cùng row (không xóa SQL, RLS, User).
 // Yêu cầu đồng bộ sạch, hai lần xác nhận, và RPC CAS để tránh mất dữ liệu từ thiết bị khác.
 async function cloudResetAllData(){
+  if(!cloudRequireAdmin())return;
   if(!cloudReady||!cloudUser||cloudConflict){alert('Bạn cần đăng nhập và tải dữ liệu Cloud thành công trước.');return;}
   if(cloudDirty||cloudSending||cloudPollBusy){alert('Còn thao tác đang đồng bộ. Hãy chờ trạng thái Đã cập nhật, rồi thử lại.');return;}
   if(!cloudEl('resetBackupConfirmed').checked){
@@ -327,6 +356,7 @@ async function cloudResetAllData(){
 }
 
 async function cloudBeginData(initial){
+  if(!cloudRequireAdmin())return;
   const previousState=state;
   cloudReady=true;
   cloudRevision=0;

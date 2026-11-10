@@ -1524,6 +1524,27 @@ body{
 #roomContractPanel .badge{white-space:normal;text-align:center;max-width:180px}
 @media(max-width:760px){#roomContractPanel .finance-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){#roomContractPanel .qp-contract-filters{grid-template-columns:1fr}}
+
+/* Quy Phi: viewer presentation only. Supabase RLS is REQUIRED for security. */
+body.qp-viewer [data-qp-mutation] {display:none!important}
+body.qp-viewer .qp-viewer-disabled {display:none!important}
+
+/* Quý Phi Viewer: 3 menu chỉ xem; không thay đổi thanh điều hướng Admin. */
+.qp-viewer-nav,.qp-viewer-only{display:none}
+body:not(.qp-viewer) .qp-side-rail > .tabs > .qp-viewer-nav{display:none!important}
+body.qp-viewer .qp-side-rail > .tabs > .tab:not([data-qp-viewer]){display:none!important}
+body.qp-viewer .qp-side-rail > .tabs > .qp-viewer-nav{display:block!important}
+body.qp-viewer #dashboard > #dashboardBills{display:none!important}
+body.qp-viewer #dashboard > h3:has(+ #dashboardBills){display:none!important}
+body.qp-viewer #viewer-invoices.view.active{display:block}
+body:not(.qp-viewer) #viewer-invoices{display:none!important}
+.qp-viewer-invoice-card .actions{margin-top:10px}
+.qp-viewer-invoice-card .detail{margin:5px 0}
+.qp-viewer-bill-subnav{position:sticky;top:var(--qp-sticky-subnav-top,82px);z-index:35;padding:9px 10px!important;background:rgba(248,251,249,.96)!important;backdrop-filter:blur(12px);border:1px solid #c6ddd4;border-radius:12px}
+@media print{.qp-viewer-bill-subnav{position:static}}
+/* Viewer chi xem: an cong cu tra cuu/xuat bao cao, Admin van su dung binh thuong. */
+body.qp-viewer #qpQuickTools,
+body.qp-viewer #qpDebtPanel .qp-debt-tools { display: none !important; }
 </style>
 </head>
 <body class="cloud-locked">
@@ -1569,12 +1590,13 @@ body{
   <!-- Thanh điều hướng trái: thông tin đồng bộ được đặt ngay dưới danh sách menu. -->
   <aside class="qp-side-rail" aria-label="Điều hướng và tài khoản">
   <nav class="tabs" aria-label="Chức năng">
-    <button class="tab active" data-tab="dashboard">📊 <span class="nav-desktop">Tổng quan</span><span class="nav-mobile">Tổng quan</span></button>
+    <button class="tab active" data-tab="dashboard" data-qp-viewer="true">📊 <span class="nav-desktop">Tổng quan</span><span class="nav-mobile">Tổng quan</span></button>
     <button class="tab" data-tab="readings" aria-label="Ghi số và hóa đơn">🧮 <span class="nav-desktop">Ghi số &amp; hóa đơn</span><span class="nav-mobile">Ghi số</span></button>
     <button class="tab" data-tab="annual" aria-controls="annualSubnav" aria-expanded="false">📊 <span class="nav-desktop">Tổng hợp</span><span class="nav-mobile">Tổng hợp</span></button>
     <button class="tab" data-tab="flex" aria-label="Khoản thu khác">🧾 <span class="nav-desktop">Khoản thu khác</span><span class="nav-mobile">Khoản thu</span></button>
     <button class="tab" data-tab="finance">💰 Thu chi</button>
-    <button class="tab" data-tab="rooms">🏘️ Phòng trọ</button>
+    <button class="tab qp-viewer-nav" data-tab="viewer-invoices" data-qp-viewer="true">🧾 Hóa đơn</button>
+    <button class="tab" data-tab="rooms" data-qp-viewer="true">🏘️ Phòng trọ</button>
     <button class="tab" data-tab="settings">⚙️ Cài đặt</button>
   </nav>
 
@@ -1595,15 +1617,7 @@ body{
       <section class="dashboard-chart" aria-label="Biểu đồ thu chi tháng"><h3>◕ Thu chi trong tháng</h3><p class="chart-caption">Đã thu · điện đã đóng · các khoản chi khác.</p><div id="dashboardMiniDonut" class="dashboard-mini-donut"></div></section>
     </div>
     <p class="soft-muted">Số dư này chỉ tính <b>khoản thu chi chính</b>: <b>đã thu − điện đã đóng − chi khác đã trả</b>. Khoản thu khác và tiền nước tổng được theo dõi riêng, không tính trùng.</p>
-    <section id="qpQuickTools" class="panel" aria-label="Tra cứu và xuất báo cáo">
-      <h3>🔎 Tra cứu nhanh</h3>
-      <p class="small muted">Tìm trong dữ liệu phòng, khách thuê, hóa đơn, sổ ghi số và khoản chi. Không thay đổi dữ liệu đã lưu.</p>
-      <div class="qp-query-tools">
-        <input type="search" id="qpGlobalSearch" placeholder="Nhập tên khách, phòng, số điện thoại, kỳ hóa đơn…" aria-label="Tìm trên toàn ứng dụng">
-        <select id="qpGlobalType" aria-label="Loại dữ liệu tra cứu"><option value="all">Tất cả loại dữ liệu</option><option value="room">Phòng trọ</option><option value="guest">Khách thuê</option><option value="bill">Hóa đơn</option><option value="meter">Ghi số điện nước</option><option value="expense">Khoản chi</option><option value="flex">Khoản thu khác</option></select>
-      </div>
-      <div id="qpGlobalResults" class="qp-global-results" role="status" aria-live="polite"><div class="small muted">Nhập từ khóa để bắt đầu tra cứu.</div></div>
-      <hr class="divider">
+    <section id="qpQuickTools" class="panel" aria-label="Xuất báo cáo chi tiết">
       <h3>📥 Xuất báo cáo chi tiết (Excel/CSV)</h3>
       <div class="qp-export-tools">
         <div class="field"><label for="qpReportType">Loại báo cáo</label><select id="qpReportType"><option value="bills">Hóa đơn & công nợ</option><option value="meter">Chỉ số điện nước</option><option value="expenses">Sổ chi phí</option><option value="flex">Khoản thu khác</option><option value="summary">Tổng hợp thu chi từng tháng</option></select></div>
@@ -1626,6 +1640,18 @@ body{
       <div id="qpDebtResults" class="qp-debt-table-wrap" aria-live="polite"></div>
     </section>
     <h3>Hóa đơn đã lập</h3><div id="dashboardBills" class="stack"></div>
+  </section>
+  <!-- Màn hình chỉ xem: chỉ xuất hiện với tài khoản Viewer đã xác thực qua Cloud. -->
+  <section id="viewer-invoices" class="view qp-viewer-only" hidden aria-label="Hóa đơn đã lập – chỉ xem">
+    <div class="section-head"><h2>🧾 Hóa đơn đã lập <span class="month-title"></span></h2></div>
+    <nav class="deposit-switch qp-viewer-bill-subnav" aria-label="Lọc hóa đơn theo trạng thái">
+      <button type="button" class="deposit-switch-btn active" data-viewer-invoice-status="all" aria-pressed="true">🧾 Tất cả hóa đơn</button>
+      <button type="button" class="deposit-switch-btn" data-viewer-invoice-status="unpaid" aria-pressed="true">🟠 Chưa thanh toán</button>
+      <button type="button" class="deposit-switch-btn" data-viewer-invoice-status="paid" aria-pressed="false">🟢 Đã thanh toán</button>
+    </nav>
+    <p class="small muted">Dữ liệu theo tháng/năm đang chọn. Tài khoản Viewer chỉ xem hóa đơn; không thể sửa hoặc xác nhận thu tiền.</p>
+    <div id="qpViewerInvoiceSummary" class="small muted" aria-live="polite"></div>
+    <div id="qpViewerInvoiceList" class="stack" aria-live="polite"></div>
   </section>
   <!-- Điều hướng cấp 2 nằm TRONG khu vực nội dung của Tổng hợp, không lẫn với menu chính. -->
   <section id="annual" class="view" hidden aria-label="Tổng hợp báo cáo năm">
@@ -2430,6 +2456,7 @@ function auditChanges(before,after){
   return result;
 }
 function save(){
+  if(window.qpCurrentRole==='viewer'){alert('Tài khoản chỉ xem không được phép lưu dữ liệu.');return false;}
   // Bảo vệ lịch sử đã quyết toán tại điểm ghi dữ liệu, kể cả khi một nút cũ còn xuất hiện.
   if(auditBaseline){
     const oldSettlements=new Map((auditBaseline.settlements||[]).map(x=>[x.id,x]));
@@ -3052,6 +3079,7 @@ function switchTab(tab){
     b.classList.toggle('active',active);
     b.setAttribute('aria-pressed',String(active));
   });
+  if(visibleTab==='viewer-invoices')renderViewerInvoices();
   qpScrollTopAfterNavigation();
 }
 function render(){
@@ -3060,6 +3088,7 @@ function render(){
   $('currentDate').textContent=nowLong();
   document.querySelectorAll('.month-title').forEach(n=>n.textContent=monthText(selectedMonth));
   renderDashboard();renderReadings();renderRooms();renderGuests();qpRenderContracts();renderSettings();renderFlex();renderFinance();renderDeposits();renderAnnualMain();renderAnnualOther();
+  if(typeof renderViewerInvoices==='function' && window.qpCurrentRole==='viewer')renderViewerInvoices();
 }
 function empty(message){return `<div class="empty">${safe(message)}</div>`;}
 // v8.5.16: Nút thanh toán tại Tổng quan hiển thị thao tác tiếp theo.
@@ -3368,6 +3397,7 @@ function renderDashboard(){
   renderDashboardVisuals();
   qpRenderDebts();
   qpRenderGlobalSearch();
+  renderViewerInvoices();
 }
 // v8.6.1: Hai biểu đồ chỉ đọc. Dữ liệu lấy từ hàm tổng hợp sẵn có, không ghi Cloud.
 function renderDashboardVisuals(){
@@ -5418,7 +5448,7 @@ $('exportBackup').addEventListener('click',exportBackup);
 
 // Khởi tạo dữ liệu sạch chỉ qua cơ chế Cloud có kiểm tra xung đột.
 $('resetDownloadBackup').addEventListener('click',exportBackup);
-$('resetAllCloud').addEventListener('click',()=>{void cloudResetAllData();});
+$('resetAllCloud').addEventListener('click',()=>{if(window.qpCurrentRole==='viewer'){alert('Tài khoản chỉ xem không được phép đặt lại dữ liệu.');return;}void cloudResetAllData();});
 $('importBackup').addEventListener('click',()=>$('backupFile').click());
 $('backupFile').addEventListener('change',async e=>{
   const file=e.target.files[0];e.target.value='';if(!file)return;
@@ -5498,6 +5528,42 @@ $('expensePaidDate').value=localToday();
   });
 })();
 startCloudApp();
+
+/* Danh sách hóa đơn riêng cho tài khoản Viewer. Chỉ đọc state hiện có. */
+let qpViewerInvoiceStatus='all';
+function renderViewerInvoices(){
+  const list=document.getElementById('qpViewerInvoiceList');
+  if(!list)return;
+  const bills=(state?.bills||[]).filter(b=>b.month===selectedMonth)
+    .filter(b=>qpViewerInvoiceStatus==='all'||(qpViewerInvoiceStatus==='paid'?Boolean(b.paid||b.settledBy):!b.paid&&!b.settledBy))
+    .sort((a,b)=>String(a.roomName||'').localeCompare(String(b.roomName||''),'vi',{numeric:true}));
+  const amount=bills.reduce((sum,b)=>sum+calc(b).total,0);
+  document.getElementById('qpViewerInvoiceSummary').textContent=
+    `${qpViewerInvoiceStatus==='all'?'Tất cả hóa đơn':qpViewerInvoiceStatus==='paid'?'Đã thanh toán':'Chưa thanh toán'}: ${bills.length} hóa đơn · ${money(amount)}`;
+  document.querySelectorAll('[data-viewer-invoice-status]').forEach(el=>{
+    const active=el.dataset.viewerInvoiceStatus===qpViewerInvoiceStatus;
+    el.classList.toggle('active',active);el.setAttribute('aria-pressed',String(active));
+  });
+  list.innerHTML=bills.length?bills.map(b=>{
+    const v=calc(b);
+    const paid=Boolean(b.paid||b.settledBy);
+    const partiallyPaid=billPaidAmount(b)>0&&!paid;
+    const note=b.settledBy?'Đã chuyển quyết toán':paid?'✓ Đã thanh toán':partiallyPaid?'◐ Còn thiếu tiền':'● Chưa thanh toán';
+    return `<article class="item qp-viewer-invoice-card"><div class="item-head"><div>
+      <div class="item-title">Phòng ${safe(b.roomName)}</div>
+      <div class="detail">${safe(b.tenant||'Chưa có tên người thuê')} · Tháng ${monthText(b.month)}</div>
+      </div><span class="badge ${paid?'paid':'unpaid'}">${note}</span></div>
+      <div class="price">${money(v.total)}</div>
+      <div class="detail small">Điện: ${money(v.electric)} · ${b.waterBillingPrior?'Nước kỳ trước':'Nước'}: ${money(v.water)} · Phí khác: ${money(v.other)}</div>
+      ${partiallyPaid?`<div class="detail small">Đã nhận ${money(billPaidAmount(b))} · Còn thu ${money(billDueAmount(b))}</div>`:''}
+      <div class="actions"><button type="button" class="btn secondary" data-action="invoice" data-id="${safe(b.id)}">Xem hóa đơn</button></div></article>`;
+  }).join(''):empty('Không có hóa đơn '+(qpViewerInvoiceStatus==='all'?'':qpViewerInvoiceStatus==='paid'?'đã thanh toán':'chưa thanh toán')+' trong tháng '+monthText(selectedMonth)+'.');
+}
+document.querySelectorAll('[data-viewer-invoice-status]').forEach(el=>el.addEventListener('click',()=>{
+  qpViewerInvoiceStatus=el.dataset.viewerInvoiceStatus;
+  renderViewerInvoices();qpScrollTopAfterNavigation();
+}));
+
 </script>
 
 <script>
@@ -5529,5 +5595,73 @@ startCloudApp();
 })();
 </script>
 
+
+<script>
+/*
+ * GUI viewer support. Role MUST be read from authenticated server-side membership.
+ * This is never a replacement for Supabase RLS. Do not populate roles from user-editable
+ * localStorage, a URL parameter, or an unauthenticated email matching rule.
+ * Expected trusted cloud.js integration after confirming Supabase membership:
+ *   window.qpSetAccessRole('viewer');  or window.qpSetAccessRole('admin');
+ */
+(function(){
+  'use strict';
+  const mutationWords=/^(?:\s*[+✎✏💾🗑✖✓↩⬆]|.*(?:thêm|sửa|xóa|xoá|lưu|tạo hóa đơn|lập hóa đơn mới|xác nhận đã thu|chưa thu|thu tiền|khôi phục|nhập dữ liệu|đặt lại dữ liệu|quyết toán|kết thúc đợt thuê|lập hợp đồng|thay công tơ|gia hạn hợp đồng|bắt đầu dữ liệu trống|chuyển dữ liệu|thêm khoản|cập nhật thông tin).*)$/i;
+  function isMutationButton(el){
+    if(!(el instanceof HTMLElement))return false;
+    if(!el.matches('button,input[type="submit"],input[type="button"]'))return false;
+    if(el.id==='cloudLogoutBtn'||el.id==='cloudRefreshBtn'||el.id==='cloudRetryBtn'||el.id==='cloudLoginBtn'||el.id==='printInvoice'||el.id==='exportBackup')return false;
+    // Các nút điều hướng không phải thao tác ghi, dù button thiếu type="button".
+    if(el.matches('.tabs .tab, [data-tab], [data-reading-view], [data-annual-view], [data-deposit-view], [data-room-view], .annual-subtab, .deposit-switch-btn'))return false;
+    const t=(el.textContent||el.getAttribute('value')||'').trim();
+    return (el.type==='submit' && !!el.closest('form')) || mutationWords.test(t) || /^(?:add|save|delete|remove|reset|import|edit|paid|undo|closeTenancy|switchMeter|billForm|payment)/i.test(el.id||'');
+  }
+  function update(){
+    const viewer=window.qpCurrentRole==='viewer';
+    document.body.classList.toggle('qp-viewer',viewer);
+    document.querySelectorAll('button,input[type="submit"],input[type="button"]').forEach(el=>{
+      if(isMutationButton(el))el.classList.toggle('qp-viewer-disabled',viewer);
+    });
+    document.querySelectorAll('form').forEach(form=>{
+      // Form views stay accessible, but editing fields are disabled only inside actual edit forms.
+      if(!form.querySelector('button[type="submit"],input[type="submit"]'))return;
+      if(form.id==='cloudLoginForm')return;
+      form.querySelectorAll('input,textarea,select').forEach(el=>{
+        if(viewer){if(!el.hasAttribute('data-qp-prior-disabled'))el.dataset.qpPriorDisabled=el.disabled?'1':'0';el.disabled=true;}
+        else if(el.hasAttribute('data-qp-prior-disabled')){el.disabled=el.dataset.qpPriorDisabled==='1';delete el.dataset.qpPriorDisabled;}
+      });
+    });
+  }
+  window.qpCurrentRole='admin'; // legacy account stays unchanged until cloud integration supplies a verified role.
+  window.qpSetAccessRole=function(role){
+    if(role!=='viewer'&&role!=='admin')throw new Error('Vai trò không hợp lệ');
+    window.qpCurrentRole=role;
+    update();
+  };
+  // Capture guard also handles buttons created dynamically after login.
+  document.addEventListener('click',function(e){
+    if(window.qpCurrentRole!=='viewer')return;
+    const button=e.target.closest?.('button,input[type="submit"],input[type="button"]');
+    if(button&&isMutationButton(button)){
+      e.preventDefault();e.stopImmediatePropagation();
+      alert('Tài khoản này chỉ có quyền xem.');
+    }
+  },true);
+  document.addEventListener('submit',function(e){
+    if(window.qpCurrentRole==='viewer'&&e.target.id!=='cloudLoginForm'){
+      e.preventDefault();e.stopImmediatePropagation();alert('Tài khoản này chỉ có quyền xem.');
+    }
+  },true);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',update);else update();
+  // Render functions rebuild DOM; reflect viewer visibility after each navigation/render.
+  const observer=new MutationObserver(()=>{if(window.qpCurrentRole==='viewer'){
+    document.querySelectorAll('button:not(.qp-viewer-disabled),input[type="submit"]:not(.qp-viewer-disabled)').forEach(el=>{
+      if(isMutationButton(el))el.classList.add('qp-viewer-disabled');
+    });
+  }});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>observer.observe(document.body,{childList:true,subtree:true}));
+  else observer.observe(document.body,{childList:true,subtree:true});
+})();
+</script>
 </body>
 </html>
