@@ -1,0 +1,13 @@
+QUÝ PHI — KIỂM TRA PHIÊN BẢN & TRẠNG THÁI CLOUD
+
+Bản 2026.11.10.2. Không thay đổi SQL, RLS, tài khoản hoặc dữ liệu Supabase.
+
+1. SAO LƯU: lưu bản cũ index.html, cloud.js, config.js; Admin xuất JSON và xác nhận đã đồng bộ.
+2. Thử trên máy: chép index.html mới vào thư mục chạy Quý Phi; giữ cloud.js và config.js hiện đang hoạt động. Trên file:// chỉ hiện phiên bản, không kiểm tra phiên bản online.
+3. CẬP NHẬT GITHUB PAGES: chép index.html và version.json trong ZIP vào thư mục gốc repository (cùng cấp cloud.js, config.js). File cloud.js đi kèm là bản phân quyền Viewer đã được kiểm tra để đối chiếu; nếu cloud.js trên website đang hoạt động đúng thì có thể giữ nguyên nội dung hiện tại. Tham số mới trong index.html: cloud.js?v=2026.11.10.2.
+4. GitHub Actions: chờ Pages build/deploy thành công. Sau đó dùng Ctrl+F5 / cửa sổ ẩn danh.
+5. Đăng nhập Admin và Viewer. Cả hai thấy phiên bản, trạng thái kết nối; Admin vẫn có thể lưu dữ liệu, Viewer chỉ đọc.
+6. Để THÔNG BÁO phiên bản mới ở những lần triển khai sau: đổi đồng thời mã VERSION trong script cuối index.html, cloud.js?v=... trong index.html, và trường version trong version.json. Nếu không tăng version, ứng dụng không thể phát hiện bản mới.
+7. Không bấm cập nhật nếu có cảnh báo dữ liệu chưa đồng bộ hoặc xung đột. Ứng dụng không tự reload.
+
+LƯU Ý: version.json là công bố phiên bản qua GitHub Pages (không phải số phiên bản dữ liệu). Không đưa file backup JSON hay khóa Supabase bí mật lên repository. Nếu website không có version.json, chức năng phát hiện bản mới sẽ im lặng bỏ qua, ứng dụng vẫn chạy bình thường.
