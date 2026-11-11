@@ -1554,6 +1554,41 @@ body.qp-viewer #qpDebtPanel .qp-debt-tools { display: none !important; }
 .qp-release-notice:not([hidden]){margin-top:8px;border:1px solid #a5cdbd;border-radius:10px;background:#f0faf4;padding:8px;font-size:11px;line-height:1.5;color:#125b4b}
 .qp-release-notice .btn{display:block;margin-top:8px;width:100%;white-space:normal}
 @media print{.qp-cloud-health,.qp-release-label,.qp-release-notice{display:none!important}}
+
+/* Danh sách xe đăng ký ngay trên thẻ phòng; tự xuống dòng trên điện thoại. */
+#roomList .qp-room-vehicles{margin-top:6px;line-height:1.6;overflow-wrap:anywhere;}
+#roomList .qp-room-vehicles b{color:#115f4e;}
+
+/* Thông tin phòng có icon rõ ràng; phương tiện dạng danh sách số thứ tự. */
+#roomList .qp-room-facts > div,#roomList .qp-room-costs > div {margin-bottom:3px;overflow-wrap:anywhere;}
+#roomList .qp-room-vehicles {margin-top:8px;line-height:1.6;overflow-wrap:anywhere;}
+#roomList .qp-room-vehicle-list {margin:2px 0 4px 26px;padding-left:16px;list-style:decimal outside;}
+#roomList .qp-room-vehicle-list li {padding-left:1px;line-height:1.55;}
+#roomList .qp-room-costs {margin-top:6px;}
+#roomList .qp-room-layout{display:grid;grid-template-columns:minmax(340px,1.5fr) minmax(260px,1fr);gap:14px 28px;align-items:start;width:100%;}
+#roomList .qp-room-main,#roomList .qp-room-side{min-width:0;}
+#roomList .qp-room-side{display:flex;flex-direction:column;align-items:flex-start;}
+#roomList .qp-room-side .price{margin:0 0 10px auto;text-align:right;width:100%;}
+#roomList .qp-room-side .qp-room-costs{margin-top:0;width:100%;}
+/* Phân tách thông tin phòng và phương tiện bằng đường kẻ mờ, căn theo thẻ phòng. */
+#roomList .qp-room-vehicles{
+  margin:11px 0 12px;
+  padding:11px 2px 0;
+  width:100%;
+  box-sizing:border-box;
+  border-top:1px solid rgba(22,106,88,.20);
+}
+#roomList .qp-room-vehicle-list{margin:3px 0 0 14px;padding-left:22px;}
+#roomList .qp-room-vehicle-list li{padding-left:1px;line-height:1.6;}
+#roomList .item-head{display:block;}
+#roomList .qp-room-layout{gap:10px 28px;}
+#roomList .qp-room-side .price{margin-bottom:8px;}
+
+@media (max-width: 900px){
+  #roomList .qp-room-layout{grid-template-columns:1fr;gap:10px;}
+  #roomList .qp-room-side .price{margin:0 0 8px 0;text-align:left;}
+}
+
 </style>
 </head>
 <body class="cloud-locked">
@@ -3457,12 +3492,19 @@ function renderRooms(){
     const t=activeTenancy(r),status=roomOccupancy(r),people=t?residentStats(r.residents||[],r.representativeId):null;
     const water=r.waterMode==='meter'?`${money(r.waterRate)}/m³`:`${money(r.waterPerPerson)}/người/tháng`;
     const fees=roomFees(r),oldDeposit=r.tenancies.filter(t=>t.status==='closed').reduce((a,t)=>a+t.depositBalance,0);
-    return `<article class="item"><div class="item-head"><div><div class="item-title">Phòng ${safe(r.name)} <span class="occupancy-badge ${status}">${status==='vacant'?'PHÒNG TRỐNG':status==='pending'?'CHỜ CHỐT TRẢ PHÒNG':'ĐANG CÓ KHÁCH'}</span></div>
-      <div class="detail">${t?`<b>Đại diện:</b> ${safe(r.tenant||'Chưa cập nhật')} · ${safe(r.phone||'Chưa có SĐT')}<br><b>Đang ở:</b> ${people.occupants} người · <b>Bắt đầu:</b> ${dateText(t.startedAt)}<br><b>Cọc đợt hiện tại:</b> ${money(t.depositBalance)}`:'<b>Chưa có đợt thuê đang hoạt động.</b>'}
-      ${oldDeposit>0?`<br><b style="color:#a04b1f">⚠️ Cọc khách cũ chưa quyết toán: ${money(oldDeposit)}</b>`:''}
-      <br><b>Lịch sử:</b> ${r.tenancies.length} đợt thuê</div>
-      <div class="detail small">Giá phòng hiện tại / tham khảo: ${money(r.rent)}/tháng · Điện: ${money(r.electricRate)}/kWh · Nước: ${water}${r.waterMode==='person'&&r.waterAllowance>0?` · Định mức ${r.waterAllowance} m³/phòng`:''}<br>Phí cố định: ${fees.length?fees.map(f=>`${safe(f.name)} (${money(f.amount)})`).join(' · '):'Không có'}</div></div>
-      <span class="price">${money(r.rent)}/tháng</span></div>
+    return `<article class="item"><div class="item-head"><div class="qp-room-layout"><div class="qp-room-main"><div class="item-title">Phòng ${safe(r.name)} <span class="occupancy-badge ${status}">${status==='vacant'?'PHÒNG TRỐNG':status==='pending'?'CHỜ CHỐT TRẢ PHÒNG':'ĐANG CÓ KHÁCH'}</span></div>
+      <div class="detail qp-room-facts">${t?`<div>👤 <b>Đại diện:</b> ${safe(r.tenant||'Chưa cập nhật')} · ${safe(r.phone||'Chưa có SĐT')}</div><div>👥 <b>Đang ở:</b> ${people.occupants} người</div><div>📅 <b>Bắt đầu:</b> ${dateText(t.startedAt)}</div><div>💰 <b>Cọc đợt hiện tại:</b> ${money(t.depositBalance)}</div>`:'<div>🏠 <b>Chưa có đợt thuê đang hoạt động.</b></div>'}
+      ${oldDeposit>0?`<div><b style="color:#a04b1f">⚠️ Cọc khách cũ chưa quyết toán: ${money(oldDeposit)}</b></div>`:''}
+      <div>📖 <b>Lịch sử:</b> ${r.tenancies.length} đợt thuê</div></div>
+      </div>
+      <div class="qp-room-side"><div class="price">${money(r.rent)}/tháng</div>
+      <div class="detail small qp-room-costs"><div>🏠 <b>Giá phòng:</b> ${money(r.rent)}/tháng</div><div>⚡ <b>Điện:</b> ${money(r.electricRate)}/kWh</div><div>💧 <b>Nước:</b> ${water}${r.waterMode==='person'&&r.waterAllowance>0?` · Định mức ${r.waterAllowance} m³/phòng`:''}</div><div>🧾 <b>Phí cố định:</b> ${fees.length?fees.map(f=>`${safe(f.name)} (${money(f.amount)})`).join(' · '):'Không có'}</div></div></div></div></div>
+      <div class="detail qp-room-vehicles"><b>🛵 Phương tiện:</b> ${t?(()=>{
+        // Chỉ liệt kê xe của đợt thuê hiện tại, giữ tương thích dữ liệu cũ.
+        const list=Array.isArray(r.vehicles)&&r.vehicles.length?r.vehicles:
+          (Array.isArray(t.vehicles)&&t.vehicles.length?t.vehicles:migrateVehicles(r));
+        return list.length?`<ol class="qp-room-vehicle-list">${list.map(v=>`<li>${safe(v.type||'Chưa cập nhật')}${v.plate?' — '+safe(v.plate):' — chưa có biển số'}</li>`).join('')}</ol>`:'Không có';
+      })():'Không có'}</div>
       <div class="actions">${t?`<button class="btn secondary" data-action="edit-room" data-id="${safe(r.id)}">✏ Sửa đợt thuê</button><button class="btn" data-action="close-tenancy" data-id="${safe(r.id)}">↪ Kết thúc đợt thuê</button>`:`<button class="btn" data-action="new-tenancy" data-id="${safe(r.id)}">+ Nhận khách mới</button>`}
       <button class="btn secondary" data-action="tenancy-history" data-id="${safe(r.id)}">📖 Lịch sử thuê</button>
       <button class="btn secondary" data-action="meter-history" data-id="${safe(r.id)}">⚡💧 Nhật ký công tơ</button>
