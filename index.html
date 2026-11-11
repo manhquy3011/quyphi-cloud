@@ -1604,6 +1604,38 @@ body.qp-viewer #roomList [data-vehicle-action]{display:none!important;}
   #roomList .qp-room-side .price{margin:0 0 8px 0;text-align:left;}
 }
 
+
+/* Bố cục Người ở / Phương tiện – nút thêm căn cùng cột phải theo mẫu đã duyệt. */
+#roomList .qp-room-occupants,
+#roomList .qp-room-vehicles{
+  border-top:1px solid rgba(22,106,88,.20);
+  width:100%; box-sizing:border-box;
+  padding:14px 4px 11px; margin:12px 0 0;
+}
+#roomList .qp-room-vehicles{margin:0 0 9px;}
+#roomList .qp-room-section-grid{
+  display:grid;grid-template-columns:minmax(0,1.5fr) minmax(180px,1fr);
+  align-items:start;gap:14px 28px;
+}
+#roomList .qp-room-section-list{min-width:0;line-height:1.6;}
+#roomList .qp-room-section-list>strong{display:block;margin:0 0 7px;color:#115f4e;font-size:14px;}
+#roomList .qp-room-section-action{display:flex;justify-content:flex-end;align-items:flex-start;padding-right:3px;}
+#roomList .qp-room-section-action .btn{min-height:32px;padding:7px 12px;font-size:12px;border-color:#95c9b8;white-space:nowrap;}
+#roomList .qp-room-people-list,#roomList .qp-room-vehicle-list{margin:4px 0 0 16px;padding-left:20px;}
+#roomList .qp-room-people-list li,#roomList .qp-room-vehicle-list li{padding:2px 0;line-height:1.6;overflow-wrap:anywhere;}
+#roomList .qp-room-occupants .qp-room-departed{margin-top:5px;color:#697e75;font-size:12px;}
+body.qp-viewer #roomList [data-person-action]{display:none!important;}
+#qpQuickPersonDialog{border:1px solid #9bc9b9;border-radius:14px;padding:20px;width:min(470px,calc(100vw - 30px));max-width:100%;box-shadow:0 16px 65px #0003;color:#0d5143;background:#fff;}
+#qpQuickPersonDialog::backdrop{background:#0c2c2688;}
+#qpQuickPersonDialog .field{margin:10px 0;}
+#qpQuickPersonDialog .field>*{display:block;width:100%;}
+#qpQuickPersonDialog select,#qpQuickPersonDialog input{padding:10px;border:1px solid #a8c8bb;border-radius:9px;background:#fff;box-sizing:border-box;}
+#qpQuickPersonDialog .actions{justify-content:flex-end;}
+@media(max-width:640px){
+ #roomList .qp-room-section-grid{grid-template-columns:minmax(0,1fr);gap:9px;}
+ #roomList .qp-room-section-action{justify-content:flex-start;}
+}
+
 </style>
 </head>
 <body class="cloud-locked">
@@ -3515,15 +3547,19 @@ function renderRooms(){
       </div>
       <div class="qp-room-side"><div class="price">${money(r.rent)}/tháng</div>
       <div class="detail small qp-room-costs"><div>🏠 <b>Giá phòng:</b> ${money(r.rent)}/tháng</div><div>⚡ <b>Điện:</b> ${money(r.electricRate)}/kWh</div><div>💧 <b>Nước:</b> ${water}${r.waterMode==='person'&&r.waterAllowance>0?` · Định mức ${r.waterAllowance} m³/phòng`:''}</div><div>🧾 <b>Phí cố định:</b> ${fees.length?fees.map(f=>`${safe(f.name)} (${money(f.amount)})`).join(' · '):'Không có'}</div></div></div></div></div>
-      <div class="detail qp-room-vehicles">${t?(()=>{
+      <div class="detail qp-room-occupants"><div class="qp-room-section-grid"><div class="qp-room-section-list"><strong>👥 Người ở</strong>${t?(()=>{
+        const persons=(r.residents||[]).filter(p=>!p.leftAt);
+        return persons.length?`<ol class="qp-room-people-list">${persons.map(p=>`<li>${safe(p.name||'Chưa cập nhật tên')}${p.id===people.representativeId?' · Đại diện':''}${p.phone?' · '+safe(p.phone):''}</li>`).join('')}</ol>`:'<span class="muted">Chưa có thông tin người đang ở</span>';
+      })():'<span class="muted">Phòng chưa có đợt thuê</span>'}</div><div class="qp-room-section-action">${t?`<button type="button" class="btn secondary" data-person-action="add" data-room="${safe(r.id)}">＋ Thêm người ở</button>`:''}</div></div></div>
+      <div class="detail qp-room-vehicles"><div class="qp-room-section-grid"><div class="qp-room-section-list">${t?(()=>{
         const list=Array.isArray(r.vehicles)?r.vehicles:[];
         const owners=new Map((r.residents||[]).map(p=>[p.id,p]));
         const active=list.map((v,i)=>({...v,index:i,owner:owners.get(v.ownerId)})).filter(v=>!v.owner?.leftAt);
         const departed=list.map((v,i)=>({...v,index:i,owner:owners.get(v.ownerId)})).filter(v=>!!v.owner?.leftAt);
-        return `<div class="qp-vehicle-heading"><b>🛵 Phương tiện:</b> <button type="button" class="btn secondary qp-vehicle-add" data-vehicle-action="add" data-room="${safe(r.id)}">＋ Thêm phương tiện</button></div>
+        return `<strong>🛵 Phương tiện</strong>
           ${active.length?`<ol class="qp-room-vehicle-list">${active.map(v=>`<li><span>${safe(v.type)} — ${safe(v.plate||'Chưa có biển số')}${v.owner?` · ${safe(v.owner.name||'Người ở')}`:' · Chưa gán chủ'}</span><span class="qp-vehicle-controls"><button type="button" class="btn secondary" data-vehicle-action="edit" data-room="${safe(r.id)}" data-index="${v.index}">✎ Sửa</button><button type="button" class="btn secondary" data-vehicle-action="remove" data-room="${safe(r.id)}" data-index="${v.index}">Xóa</button></span></li>`).join('')}</ol>`:'<span class="muted">Không có phương tiện đang sử dụng</span>'}
           ${departed.length?`<details class="qp-departed-vehicles"><summary>${departed.length} xe đã rời đi cùng chủ xe</summary>${departed.map(v=>`<div>↪ ${safe(v.type)} — ${safe(v.plate||'Chưa có biển số')} · ${safe(v.owner.name||'Người ở')} (ngày chuyển đi ${dateText(v.owner.leftAt)})</div>`).join('')}</details>`:''}`;
-      })():'<b>🛵 Phương tiện:</b> Không có'}</div>
+      })():'<strong>🛵 Phương tiện</strong><span class="muted">Không có</span>'}</div><div class="qp-room-section-action">${t?`<button type="button" class="btn secondary" data-vehicle-action="add" data-room="${safe(r.id)}">＋ Thêm phương tiện</button>`:''}</div></div></div>
       <div class="actions">${t?`<button class="btn secondary" data-action="edit-room" data-id="${safe(r.id)}">✏ Sửa đợt thuê</button><button class="btn" data-action="close-tenancy" data-id="${safe(r.id)}">↪ Kết thúc đợt thuê</button>`:`<button class="btn" data-action="new-tenancy" data-id="${safe(r.id)}">+ Nhận khách mới</button>`}
       <button class="btn secondary" data-action="tenancy-history" data-id="${safe(r.id)}">📖 Lịch sử thuê</button>
       <button class="btn secondary" data-action="meter-history" data-id="${safe(r.id)}">⚡💧 Nhật ký công tơ</button>
@@ -5785,6 +5821,19 @@ document.querySelectorAll('[data-viewer-invoice-status]').forEach(el=>el.addEven
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+<dialog id="qpQuickPersonDialog" aria-labelledby="qpQuickPersonTitle">
+  <h3 id="qpQuickPersonTitle">👥 Thêm người ở</h3>
+  <p class="small muted" id="qpQuickPersonRoom"></p>
+  <form id="qpQuickPersonForm">
+    <div class="field"><label for="qpQuickPersonName">Họ và tên *</label><input id="qpQuickPersonName" maxlength="100" required placeholder="Nhập họ tên người ở"></div>
+    <div class="field"><label for="qpQuickPersonType">Loại người ở</label><select id="qpQuickPersonType"><option value="adult">Người lớn</option><option value="child">Trẻ em</option></select></div>
+    <div class="field"><label for="qpQuickPersonPhone">Số điện thoại</label><input id="qpQuickPersonPhone" maxlength="30" type="tel" placeholder="Có thể để trống"></div>
+    <div class="field"><label for="qpQuickPersonCccd">CCCD / CMND</label><input id="qpQuickPersonCccd" maxlength="12" inputmode="numeric" placeholder="9 hoặc 12 số (nếu có)"></div>
+    <div class="field"><label for="qpQuickPersonJoined">Ngày bắt đầu ở</label><input id="qpQuickPersonJoined" type="date" required></div>
+    <p class="small muted">Chỉ cập nhật người ở từ ngày vào; không tự sửa các hóa đơn đã chốt.</p>
+    <div class="actions"><button type="button" class="btn secondary" id="qpQuickPersonCancel">Hủy</button><button type="submit" class="btn">Lưu người ở</button></div>
+  </form>
+</dialog>
 <dialog id="qpQuickVehicleDialog" aria-labelledby="qpQuickVehicleTitle">
   <h3 id="qpQuickVehicleTitle">🛵 Thêm phương tiện</h3>
   <form id="qpQuickVehicleForm">
@@ -5855,6 +5904,58 @@ document.querySelectorAll('[data-viewer-invoice-status]').forEach(el=>el.addEven
   r.vehicleCount=r.vehicles.length;syncActiveTenancy(r);
   if(!save()){state=before;return;}
   dlg.close();render();toast('Đã lưu phương tiện cho '+owner.name+'.');
+ });
+})();
+</script>
+<script>
+/* Thêm người ở nhanh: dùng chung danh sách cư dân, đợt thuê và đồng bộ Cloud của Quý Phi. */
+(function(){
+ 'use strict';
+ const dlg=document.getElementById('qpQuickPersonDialog');
+ const form=document.getElementById('qpQuickPersonForm');
+ let currentRoom='';
+ document.addEventListener('click',function(e){
+   const btn=e.target.closest('[data-person-action="add"]');
+   if(!btn)return;
+   if(window.qpCurrentRole==='viewer')return;
+   const room=getRoom(btn.dataset.room);
+   if(!room||!activeTenancy(room)){alert('Chỉ thêm người vào phòng có đợt thuê đang hoạt động.');return;}
+   if((room.residents||[]).length>=60){alert('Một phòng có tối đa 60 hồ sơ người ở, kể cả người đã chuyển đi.');return;}
+   currentRoom=room.id;form.reset();
+   document.getElementById('qpQuickPersonRoom').textContent='Phòng '+room.name;
+   document.getElementById('qpQuickPersonJoined').value=localToday();
+   dlg.showModal();document.getElementById('qpQuickPersonName').focus();
+ });
+ document.getElementById('qpQuickPersonCancel').addEventListener('click',()=>dlg.close());
+ form.addEventListener('submit',function(e){
+   e.preventDefault();
+   if(window.qpCurrentRole==='viewer')return;
+   const r=getRoom(currentRoom);
+   if(!r||!activeTenancy(r)){alert('Đợt thuê không còn hoạt động. Hãy tải lại dữ liệu.');return;}
+   const name=document.getElementById('qpQuickPersonName').value.trim();
+   const joinedAt=document.getElementById('qpQuickPersonJoined').value;
+   const phone=document.getElementById('qpQuickPersonPhone').value.trim();
+   const cccd=document.getElementById('qpQuickPersonCccd').value.trim();
+   const type=document.getElementById('qpQuickPersonType').value;
+   if(!name){alert('Vui lòng nhập họ tên người ở.');return;}
+   if(joinedAt<r.leaseStart){alert('Ngày vào ở không thể trước ngày bắt đầu thuê.');return;}
+   if(joinedAt>localToday()){alert('Ngày vào ở không thể ở tương lai.');return;}
+   const newPerson={id:id(),name,phone,cccd,type,joinedAt,leftAt:'',legacyPlaceholder:false};
+   let updated;
+   try{updated=cleanResidents([...(r.residents||[]),newPerson]);}
+   catch(err){alert(err.message);return;}
+   if(updated.length>60){alert('Đã đạt giới hạn 60 hồ sơ.');return;}
+   const previous=copy(state);
+   r.residents=updated;
+   const stats=residentStats(updated,r.representativeId);
+   r.representativeId=stats.representativeId;
+   r.occupants=stats.occupants;r.adults=stats.adults;r.children=stats.children;
+   r.tenant=stats.representative?.name||'';
+   r.phone=stats.representative?.phone||'';
+   r.cccd=stats.representative?.cccd||'';
+   syncActiveTenancy(r);
+   if(!save()){state=previous;return;}
+   dlg.close();render();toast('Đã thêm '+name+' vào phòng '+r.name+'.');
  });
 })();
 </script>
