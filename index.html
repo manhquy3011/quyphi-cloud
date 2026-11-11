@@ -167,6 +167,32 @@
   .finance-kpi.negative strong{color:#ae3c35}.finance-kpi.net{background:#e9f5ef;border-color:#b7dacc}
   .finance-card{background:#fff;border:1px solid #dce9e3;border-radius:14px;padding:16px;margin:12px 0}
   .finance-card h3{margin:0 0 8px}.finance-card .actions{margin-top:8px}
+  /* Quý Phi: nhập nhiều khoản chi trong một ngày, chỉ ảnh hưởng #expenseForm/#expenseList */
+  #expenseForm .qp-expense-input-row{border:1px solid rgba(145,184,169,.36);background:rgba(247,252,249,.82);border-radius:12px;padding:12px;margin:8px 0 10px;min-width:0}
+  #expenseForm .qp-expense-input-row:first-child{margin-top:2px}
+  #expenseForm .qp-expense-row-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 5px;font-size:13px;color:#17665a;font-weight:800}
+  #expenseForm .qp-expense-fields{display:grid;grid-template-columns:minmax(170px,2fr) minmax(140px,1fr) minmax(125px,1.05fr) minmax(125px,1.12fr);gap:10px;align-items:end}
+  #expenseForm .qp-expense-fields .field{min-width:0;margin:3px 0}
+  #expenseForm .qp-expense-fields .field input{width:100%;min-width:0}
+  #expenseForm .qp-expense-paid{display:flex;gap:7px;align-items:center;min-height:43px;padding:4px 0;font-size:12px;font-weight:600;color:#315e52}
+  #expenseForm .qp-expense-paid input{width:auto;flex-shrink:0}
+  #expenseForm .qp-expense-add-area{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin:10px 0 2px}
+  #expenseForm #addExpenseRow{background:rgba(236,248,241,.93);color:#11634d;border:1px solid rgba(55,143,112,.5);padding:8px 15px;min-height:38px}
+  #expenseForm #expenseBatchTotal{font-size:13px;font-weight:700;color:#155b4d}
+  #expenseForm .qp-expense-row-remove{min-height:30px;padding:5px 9px;font-size:12px}
+  #expenseList .qp-expense-day{background:rgba(255,255,255,.82);border:1px solid rgba(133,181,163,.48);border-radius:13px;padding:12px;margin:3px 0 8px}
+  #expenseList .qp-expense-day-head{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:9px}
+  #expenseList .qp-expense-day-head strong{color:#075c4b}
+  #expenseList .qp-expense-table-wrap{overflow-x:auto}
+  #expenseList .qp-expense-table{border-collapse:collapse;width:100%;font-size:13px;min-width:590px}
+  #expenseList .qp-expense-table th{background:rgba(226,241,233,.82);color:#205648;text-align:left;font-weight:800}
+  #expenseList .qp-expense-table th,#expenseList .qp-expense-table td{padding:8px;border-bottom:1px solid rgba(150,179,169,.31);vertical-align:middle}
+  #expenseList .qp-expense-table th:nth-child(2),#expenseList .qp-expense-table td:nth-child(2){text-align:right}
+  #expenseList .qp-expense-table .btn{padding:5px 8px;min-height:30px;font-size:12px;border-radius:7px;margin:1px 2px}
+  #expenseList .qp-expense-day-total{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:11px 6px 2px;font-weight:800;color:#075d49}
+  @media(max-width:970px){#expenseForm .qp-expense-fields{grid-template-columns:minmax(140px,2fr) minmax(130px,1fr)} }
+  @media(max-width:550px){#expenseForm .qp-expense-fields{grid-template-columns:1fr} #expenseForm .qp-expense-input-row{padding:10px} #expenseForm .qp-expense-paid{min-height:26px} }
+
   .line-list{display:grid;gap:9px}.line{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid #e5eeea;padding:8px 0}
   .line:last-child{border-bottom:0}.line .amount{font-weight:800;white-space:nowrap}.status-line{font-size:12px;color:#6d807a}
   .meter-form{display:grid;grid-template-columns:minmax(110px,1fr) minmax(120px,160px) auto auto;align-items:end;gap:10px}
@@ -544,11 +570,11 @@ html{
     background:#f5f6f3
   }
 body{
- background-image:linear-gradient(rgba(255,255,255,var(--qp-ink-wash)),rgba(255,255,255,var(--qp-ink-wash))),url('./nen-thuy-mac-goc.png')!important;
+ background-image:linear-gradient(rgba(255,255,255,var(--qp-ink-wash)),rgba(255,255,255,var(--qp-ink-wash))),url('./nen-son-thuy-do.png')!important;
  background-color:#f5f6f3!important;
  background-position:center top,center top!important;
  background-repeat:no-repeat,no-repeat!important;
- background-size:100% auto,100% auto!important;
+ background-size:cover,cover!important;
  background-attachment:fixed,fixed!important;
  min-height:100vh;color:#173b33;
 }
@@ -1895,13 +1921,23 @@ body.qp-viewer #roomList [data-person-action]{display:none!important;}
     <div class="section-head" style="margin-top:22px"><h3>🧾 Các khoản chi khác</h3></div>
     <form id="expenseForm" class="finance-card">
       <input type="hidden" id="expenseId">
-      <div class="grid2">
-        <div class="field"><label for="expenseName">Tên khoản chi</label><input id="expenseName" required maxlength="100" placeholder="VD: Sửa điện nước, phí vệ sinh"></div>
-        <div class="field"><label for="expenseAmount">Số tiền (nghìn đ)</label><input id="expenseAmount" type="number" min="0" step="any" required placeholder="250"></div>
+      <p class="soft-muted" style="margin:0 0 8px">Mỗi dòng là một khoản chi riêng. Có thể thêm nhiều khoản trong cùng ngày rồi lưu một lần. <b>Khoản chi khác vẫn nhập theo nghìn đồng</b> (250 = 250.000 đ).</p>
+      <div id="expenseRows" class="qp-expense-rows">
+        <div class="qp-expense-input-row" data-expense-input-row>
+          <div class="qp-expense-row-title">Khoản chi 1</div>
+          <div class="qp-expense-fields">
+            <div class="field"><label for="expenseName">Tên khoản chi</label><input id="expenseName" required maxlength="100" placeholder="VD: Sửa điện nước, phí vệ sinh"></div>
+            <div class="field"><label for="expenseAmount">Số tiền (nghìn đ)</label><input id="expenseAmount" type="number" min="0" step="any" required placeholder="250"></div>
+            <label class="qp-expense-paid"><input id="expensePaid" type="checkbox" checked> Đã thanh toán</label>
+            <div class="field"><label for="expensePaidDate">Ngày thực chi</label><input id="expensePaidDate" type="date"></div>
+          </div>
+        </div>
       </div>
-      <label style="display:flex;align-items:center;gap:8px;margin:10px 0"><input id="expensePaid" type="checkbox" checked> Đã thanh toán khoản chi này</label>
-      <div class="field"><label for="expensePaidDate">Ngày thực chi</label><input id="expensePaidDate" type="date"></div>
-      <div class="actions"><button class="btn" type="submit">💾 Lưu khoản chi</button><button class="btn secondary" type="button" id="cancelExpense">Hủy sửa</button></div>
+      <div class="qp-expense-add-area">
+        <button class="btn secondary" type="button" id="addExpenseRow">＋ Thêm dòng</button>
+        <div id="expenseBatchTotal" role="status" aria-live="polite"></div>
+      </div>
+      <div class="actions"><button class="btn" type="submit" id="saveExpenseRows">💾 Lưu khoản chi</button><button class="btn secondary" type="button" id="cancelExpense">Hủy sửa / Xóa nhập</button></div>
     </form>
     <div id="expenseList" class="stack"></div>
     </div>
@@ -5353,14 +5389,25 @@ function renderFinance(){
       <div class="status-line" style="grid-column:1/-1">${x?`Đã ghi: ${money(x.amount)} · ${x.paid?'Đã đóng':'Chưa đóng'} ${x.paid?(x.paidDate?'· '+dateText(x.paidDate):'· chưa rõ ngày đóng'):''}`:'Chưa ghi tiền điện tháng này'}</div>
     </form></div>`;
   }).join('');
+  // Nhóm riêng theo ngày thực chi để dễ đối chiếu nhiều khoản phát sinh cùng ngày.
   const list=state.expenses.filter(x=>x.month===selectedMonth);
-  $('expenseList').innerHTML=list.length?list.map(x=>`<article class="item"><div class="item-head">
-    <div><div class="item-title">${safe(x.name)}</div><div class="detail">${money(x.amount)}${x.paid?' · '+(x.paidDate?dateText(x.paidDate):'chưa rõ ngày chi'):''}</div></div>
-    <span class="badge ${x.paid?'paid':'unpaid'}">${x.paid?'Đã chi':'Chưa chi'}</span></div>
-    <div class="actions"><button class="btn secondary" data-action="expense-edit" data-id="${safe(x.id)}">Sửa</button>
-      <button class="btn soft" data-action="expense-paid" data-id="${safe(x.id)}">${x.paid?'↩ Chưa chi':'✓ Đã chi'}</button>
-      <button class="btn danger" data-action="expense-delete" data-id="${safe(x.id)}">Xóa</button></div></article>`).join(''):
-    empty('Tháng này chưa có khoản chi khác.');
+  const groups=new Map();
+  list.forEach(x=>{
+    const key=x.paid?(x.paidDate||'unknown'):'pending';
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(x);
+  });
+  const keys=[...groups.keys()].sort((a,b)=>a==='pending'?1:b==='pending'?-1:a==='unknown'?1:b==='unknown'?-1:b.localeCompare(a));
+  $('expenseList').innerHTML=keys.length?keys.map(key=>{
+    const rows=groups.get(key),paidTotal=rows.filter(x=>x.paid).reduce((sum,x)=>sum+x.amount,0);
+    const unPaidTotal=rows.filter(x=>!x.paid).reduce((sum,x)=>sum+x.amount,0);
+    const title=key==='pending'?'Các khoản chưa thanh toán':key==='unknown'?'Đã chi (chưa có ngày thực chi)':'Ngày '+dateText(key);
+    return `<section class="qp-expense-day"><div class="qp-expense-day-head"><strong>📅 ${safe(title)}</strong><span class="small">${rows.length} khoản chi</span></div>
+      <div class="qp-expense-table-wrap"><table class="qp-expense-table"><thead><tr><th>STT / Tên khoản chi</th><th>Số tiền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+      ${rows.map((x,i)=>`<tr><td>${i+1}. ${safe(x.name)}</td><td><b>${money(x.amount)}</b></td><td><span class="badge ${x.paid?'paid':'unpaid'}">${x.paid?'Đã chi':'Chưa chi'}</span></td>
+      <td><button type="button" class="btn secondary" data-action="expense-edit" data-id="${safe(x.id)}">Sửa</button><button type="button" class="btn soft" data-action="expense-paid" data-id="${safe(x.id)}">${x.paid?'↩ Chưa chi':'✓ Đã chi'}</button><button type="button" class="btn danger" data-action="expense-delete" data-id="${safe(x.id)}">Xóa</button></td></tr>`).join('')}
+      </tbody></table></div><div class="qp-expense-day-total"><span>${key==='pending'?'Tổng chưa thanh toán':'Tổng đã chi trong ngày'}</span><span>${money(key==='pending'?unPaidTotal:paidTotal)}</span></div></section>`;
+  }).join(''):empty('Tháng này chưa có khoản chi khác.');
 }
 $('flexWaterForm').addEventListener('submit',e=>{
   e.preventDefault();const amount=nghinToDong($('flexWaterMonthAmount').value),paid=$('flexWaterPaid').checked,rawDate=$('flexWaterPaidDate').value;
@@ -5391,24 +5438,95 @@ $('meterList').addEventListener('submit',e=>{
   if(existing)Object.assign(existing,{amount,paid,paidDate});else state.meterPayments.push({meterId,month:selectedMonth,amount,paid,paidDate});
   if(!save()){state=old;return;}render();toast('Đã lưu tiền điện '+meter.name+'.');
 });
-$('expenseForm').addEventListener('submit',e=>{
-  e.preventDefault();const eid=$('expenseId').value,name=$('expenseName').value.trim(),amount=nghinToDong($('expenseAmount').value),paid=$('expensePaid').checked,rawDate=$('expensePaidDate').value;
-  if(!name||!Number.isSafeInteger(amount)||amount<0){alert('Tên và số tiền chi chưa hợp lệ.');return;}
-  const existing=state.expenses.find(x=>x.id===eid);
-  if(rawDate&&!validDate(rawDate)){alert('Ngày chi không hợp lệ.');return;}
-  if(paid&&!rawDate&&!existing?.paid){alert('Vui lòng nhập ngày thực chi.');return;}
-  const item={id:existing?.id||id(),month:existing?.month||selectedMonth,name,amount,paid,paidDate:paid?(rawDate||existing?.paidDate||''):''};
-  const old=copy(state);if(existing)state.expenses=state.expenses.map(x=>x.id===eid?item:x);else state.expenses.push(item);
-  if(!save()){state=old;return;}resetExpenseForm();render();toast('Đã lưu khoản chi.');
+// Nhiều dòng nhập (chỉ bổ sung giao diện, vẫn lưu từng expense độc lập vào mảng state.expenses).
+function refreshExpenseRowControls(){
+  const form=$('expenseForm'),editing=Boolean($('expenseId').value);
+  const rows=form.querySelectorAll('[data-expense-input-row]');
+  rows.forEach((row,i)=>{
+    const heading=row.querySelector('.qp-expense-row-title');
+    if(heading)heading.firstChild.textContent=editing?'Sửa khoản chi':'Khoản chi '+(i+1);
+  });
+  $('addExpenseRow').hidden=editing;
+  $('saveExpenseRows').textContent=editing?'💾 Lưu thay đổi':`💾 Lưu ${rows.length} khoản chi`;
+  const total=[...rows].reduce((sum,row)=>{
+    const input=row.querySelector('[data-expense-amount]')||$('expenseAmount');
+    const v=nghinToDong(input.value);
+    return Number.isSafeInteger(v)&&v>0?sum+v:sum;
+  },0);
+  $('expenseBatchTotal').textContent=rows.length>1?'Tổng tiền đang nhập: '+money(total):'';
+}
+function clearExpenseExtraRows(){
+  $('expenseRows').querySelectorAll('.qp-expense-extra-row').forEach(row=>row.remove());
+  refreshExpenseRowControls();
+}
+$('addExpenseRow').addEventListener('click',()=>{
+  if($('expenseId').value)return;
+  const count=$('expenseRows').querySelectorAll('[data-expense-input-row]').length;
+  if(count>=25){alert('Để dễ kiểm tra, chỉ thêm tối đa 25 khoản trong một lần lưu.');return;}
+  const row=document.createElement('div');
+  row.className='qp-expense-input-row qp-expense-extra-row';
+  row.setAttribute('data-expense-input-row','');
+  const date=$('expensePaidDate').value||localToday();
+  row.innerHTML=`<div class="qp-expense-row-title">Khoản chi ${count+1}<button class="btn danger qp-expense-row-remove" type="button" aria-label="Xóa dòng nhập này">✕ Bỏ dòng</button></div>
+    <div class="qp-expense-fields">
+      <div class="field"><label>Tên khoản chi</label><input data-expense-name maxlength="100" required placeholder="VD: Mua bóng đèn"></div>
+      <div class="field"><label>Số tiền (nghìn đ)</label><input data-expense-amount type="number" min="0" step="any" required placeholder="120"></div>
+      <label class="qp-expense-paid"><input data-expense-paid type="checkbox" ${$('expensePaid').checked?'checked':''}> Đã thanh toán</label>
+      <div class="field"><label>Ngày thực chi</label><input data-expense-date type="date" value="${safe(date)}"></div>
+    </div>`;
+  $('expenseRows').appendChild(row);
+  refreshExpenseRowControls();
+  row.querySelector('[data-expense-name]').focus();
 });
-function resetExpenseForm(){$('expenseForm').reset();$('expenseId').value='';$('expensePaid').checked=true;$('expensePaidDate').value=localToday();}
+$('expenseRows').addEventListener('click',e=>{
+  if(!e.target.closest('.qp-expense-row-remove'))return;
+  e.target.closest('.qp-expense-extra-row')?.remove();
+  refreshExpenseRowControls();
+});
+$('expenseRows').addEventListener('input',refreshExpenseRowControls);
+$('expenseRows').addEventListener('change',refreshExpenseRowControls);
+$('expenseForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const eid=$('expenseId').value;
+  const existing=eid?state.expenses.find(x=>x.id===eid):null;
+  if(eid&&!existing){alert('Không tìm thấy khoản chi cần sửa. Hãy tải dữ liệu mới.');return;}
+  const inputRows=[...$('expenseRows').querySelectorAll('[data-expense-input-row]')];
+  if(existing&&inputRows.length!==1){alert('Khi sửa khoản chi đã lưu, vui lòng chỉ sửa một khoản.');return;}
+  const items=[];
+  for(let i=0;i<inputRows.length;i++){
+    const row=inputRows[i];
+    const name=(row.querySelector('[data-expense-name]')||$('expenseName')).value.trim();
+    const amountInput=(row.querySelector('[data-expense-amount]')||$('expenseAmount')).value.trim();
+    const amount=nghinToDong(amountInput);
+    const paid=(row.querySelector('[data-expense-paid]')||$('expensePaid')).checked;
+    const rawDate=(row.querySelector('[data-expense-date]')||$('expensePaidDate')).value;
+    if(!name||!amountInput||!Number.isSafeInteger(amount)||amount<0){
+      alert('Dòng '+(i+1)+': Vui lòng nhập tên và số tiền hợp lệ.');return;
+    }
+    if(rawDate&&!validDate(rawDate)){alert('Dòng '+(i+1)+': Ngày thực chi không hợp lệ.');return;}
+    if(paid&&!rawDate&&!existing?.paid){alert('Dòng '+(i+1)+': Vui lòng nhập ngày thực chi.');return;}
+    items.push({id:existing?.id||id(),month:existing?.month||selectedMonth,name,amount,paid,
+      paidDate:paid?(rawDate||existing?.paidDate||''):''});
+  }
+  const old=copy(state);
+  if(existing)state.expenses=state.expenses.map(x=>x.id===eid?items[0]:x);
+  else state.expenses.push(...items);
+  // Một lần save(): lưu nguyên nhóm hoặc hoàn tác toàn bộ, không làm rơi mất khoản giữa chừng.
+  if(!save()){state=old;return;}
+  resetExpenseForm();render();toast(existing?'Đã cập nhật khoản chi.':'Đã lưu '+items.length+' khoản chi riêng biệt.');
+});
+function resetExpenseForm(){
+  $('expenseForm').reset();$('expenseId').value='';$('expensePaid').checked=true;
+  $('expensePaidDate').value=localToday();clearExpenseExtraRows();refreshExpenseRowControls();
+}
 $('cancelExpense').addEventListener('click',resetExpenseForm);
 function editExpense(eid){
   const x=state.expenses.find(e=>e.id===eid);if(!x)return;
   // Khi sửa một chi phí tháng cũ, tự chuyển về tháng đó.
   if(selectedMonth!==x.month){selectedMonth=x.month;render();}
+  clearExpenseExtraRows();
   $('expenseId').value=x.id;$('expenseName').value=x.name;$('expenseAmount').value=dongToNghin(x.amount);$('expensePaid').checked=x.paid;$('expensePaidDate').value=x.paidDate||'';
-  $('expenseName').focus();
+  refreshExpenseRowControls();$('expenseName').focus();
 }
 function toggleExpensePaid(eid){
   const x=state.expenses.find(e=>e.id===eid);if(!x)return;
@@ -5629,7 +5747,7 @@ function buildMonthPicker(){
 function pickMonth(){selectedMonth=$('yearSel').value+'-'+String($('monthSel').value).padStart(2,'0');meterHistoryScope='month';resetExpenseForm();render();}
 $('monthSel').addEventListener('change',pickMonth);$('yearSel').addEventListener('change',pickMonth);
 setInterval(()=>{$('currentDate').textContent=nowLong();},60000);
-$('expensePaidDate').value=localToday();
+$('expensePaidDate').value=localToday();refreshExpenseRowControls();
 // Lưu lựa chọn cường độ tranh chỉ trên máy này, không đồng bộ vào dữ liệu nghiệp vụ.
 (function initQpInkStrength(){
   const select=document.getElementById('qpInkStrength');
