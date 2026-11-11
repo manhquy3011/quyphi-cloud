@@ -1583,6 +1583,21 @@ body.qp-viewer #qpDebtPanel .qp-debt-tools { display: none !important; }
 #roomList .item-head{display:block;}
 #roomList .qp-room-layout{gap:10px 28px;}
 #roomList .qp-room-side .price{margin-bottom:8px;}
+#roomList .qp-vehicle-heading{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:5px;}
+#roomList .qp-vehicle-add{padding:6px 11px;min-height:31px;font-size:12px;border-color:#97ccbb;}
+#roomList .qp-room-vehicle-list li{padding:3px 0;}
+#roomList .qp-vehicle-controls{display:inline-flex;gap:5px;margin-left:10px;vertical-align:middle;}
+#roomList .qp-vehicle-controls .btn{font-size:11px;padding:4px 7px;min-height:25px;}
+#roomList .qp-departed-vehicles{color:#647d73;font-size:12px;margin-top:8px;}
+#roomList .qp-departed-vehicles summary{cursor:pointer;}
+#roomList .qp-departed-vehicles>div{padding:3px 10px;}
+body.qp-viewer #roomList [data-vehicle-action]{display:none!important;}
+#qpQuickVehicleDialog{border:1px solid #9bc9b9;border-radius:14px;padding:20px;width:min(430px,calc(100vw - 30px));max-width:100%;box-shadow:0 16px 65px #0003;color:#0d5143;background:#fff;}
+#qpQuickVehicleDialog::backdrop{background:#0c2c2688;}
+#qpQuickVehicleDialog .field{margin:10px 0;}
+#qpQuickVehicleDialog .field>*{display:block;width:100%;}
+#qpQuickVehicleDialog select,#qpQuickVehicleDialog input{padding:10px;border:1px solid #a8c8bb;border-radius:9px;background:#fff;}
+#qpQuickVehicleDialog .actions{justify-content:flex-end;}
 
 @media (max-width: 900px){
   #roomList .qp-room-layout{grid-template-columns:1fr;gap:10px;}
@@ -2252,7 +2267,8 @@ function migrateVehicles(r){
 function cleanVehicles(list){
   if(!Array.isArray(list)||list.length>30)throw Error('Danh sách phương tiện vượt quá 30 xe.');
   return list.map(x=>{const type=String(x?.type??'Chưa cập nhật').trim().slice(0,50),plate=String(x?.plate??'').trim().toUpperCase().slice(0,30);
-    if(!type)throw Error('Loại xe chưa hợp lệ.');return {type,plate};});
+    const ownerId=String(x?.ownerId??'').slice(0,100);
+    if(!type)throw Error('Loại xe chưa hợp lệ.');return {type,plate,ownerId};});
 }
 function vehiclesText(list){return (list||[]).map(v=>`${v.type}${v.plate?' – '+v.plate:' – chưa nhập biển số'}`).join('; ');}
 
@@ -3499,12 +3515,15 @@ function renderRooms(){
       </div>
       <div class="qp-room-side"><div class="price">${money(r.rent)}/tháng</div>
       <div class="detail small qp-room-costs"><div>🏠 <b>Giá phòng:</b> ${money(r.rent)}/tháng</div><div>⚡ <b>Điện:</b> ${money(r.electricRate)}/kWh</div><div>💧 <b>Nước:</b> ${water}${r.waterMode==='person'&&r.waterAllowance>0?` · Định mức ${r.waterAllowance} m³/phòng`:''}</div><div>🧾 <b>Phí cố định:</b> ${fees.length?fees.map(f=>`${safe(f.name)} (${money(f.amount)})`).join(' · '):'Không có'}</div></div></div></div></div>
-      <div class="detail qp-room-vehicles"><b>🛵 Phương tiện:</b> ${t?(()=>{
-        // Chỉ liệt kê xe của đợt thuê hiện tại, giữ tương thích dữ liệu cũ.
-        const list=Array.isArray(r.vehicles)&&r.vehicles.length?r.vehicles:
-          (Array.isArray(t.vehicles)&&t.vehicles.length?t.vehicles:migrateVehicles(r));
-        return list.length?`<ol class="qp-room-vehicle-list">${list.map(v=>`<li>${safe(v.type||'Chưa cập nhật')}${v.plate?' — '+safe(v.plate):' — chưa có biển số'}</li>`).join('')}</ol>`:'Không có';
-      })():'Không có'}</div>
+      <div class="detail qp-room-vehicles">${t?(()=>{
+        const list=Array.isArray(r.vehicles)?r.vehicles:[];
+        const owners=new Map((r.residents||[]).map(p=>[p.id,p]));
+        const active=list.map((v,i)=>({...v,index:i,owner:owners.get(v.ownerId)})).filter(v=>!v.owner?.leftAt);
+        const departed=list.map((v,i)=>({...v,index:i,owner:owners.get(v.ownerId)})).filter(v=>!!v.owner?.leftAt);
+        return `<div class="qp-vehicle-heading"><b>🛵 Phương tiện:</b> <button type="button" class="btn secondary qp-vehicle-add" data-vehicle-action="add" data-room="${safe(r.id)}">＋ Thêm phương tiện</button></div>
+          ${active.length?`<ol class="qp-room-vehicle-list">${active.map(v=>`<li><span>${safe(v.type)} — ${safe(v.plate||'Chưa có biển số')}${v.owner?` · ${safe(v.owner.name||'Người ở')}`:' · Chưa gán chủ'}</span><span class="qp-vehicle-controls"><button type="button" class="btn secondary" data-vehicle-action="edit" data-room="${safe(r.id)}" data-index="${v.index}">✎ Sửa</button><button type="button" class="btn secondary" data-vehicle-action="remove" data-room="${safe(r.id)}" data-index="${v.index}">Xóa</button></span></li>`).join('')}</ol>`:'<span class="muted">Không có phương tiện đang sử dụng</span>'}
+          ${departed.length?`<details class="qp-departed-vehicles"><summary>${departed.length} xe đã rời đi cùng chủ xe</summary>${departed.map(v=>`<div>↪ ${safe(v.type)} — ${safe(v.plate||'Chưa có biển số')} · ${safe(v.owner.name||'Người ở')} (ngày chuyển đi ${dateText(v.owner.leftAt)})</div>`).join('')}</details>`:''}`;
+      })():'<b>🛵 Phương tiện:</b> Không có'}</div>
       <div class="actions">${t?`<button class="btn secondary" data-action="edit-room" data-id="${safe(r.id)}">✏ Sửa đợt thuê</button><button class="btn" data-action="close-tenancy" data-id="${safe(r.id)}">↪ Kết thúc đợt thuê</button>`:`<button class="btn" data-action="new-tenancy" data-id="${safe(r.id)}">+ Nhận khách mới</button>`}
       <button class="btn secondary" data-action="tenancy-history" data-id="${safe(r.id)}">📖 Lịch sử thuê</button>
       <button class="btn secondary" data-action="meter-history" data-id="${safe(r.id)}">⚡💧 Nhật ký công tơ</button>
@@ -3743,6 +3762,7 @@ function updateResidentSummary(){
   const history=list.filter(p=>p.leftAt);
   $('residentArchive').hidden=!history.length;
   $('residentArchive').innerHTML=history.length?'<b>Lịch sử người đã chuyển đi</b>'+history.map(p=>`<div class="resident-archive-item">${safe(p.name||'(Chưa có tên)')} — vào: ${dateText(p.joinedAt)}; chuyển đi: ${dateText(p.leftAt)}${p.cccd?` · CCCD: ****${safe(p.cccd.slice(-4))}`:''}</div>`).join(''):'';
+  updateVehicleOwnerChoices();
   updateRoomWaterExplanation();
 }
 function updateRoomWaterExplanation(){
@@ -3781,11 +3801,22 @@ function addVehicleRow(vehicle={type:'Xe máy',plate:''}){
   const chosen=types.includes(vehicle.type)?vehicle.type:'Khác';
   box.innerHTML=`<div class="vehicle-header"><strong>Phương tiện <span class="vehicle-index"></span></strong><button class="btn danger remove-vehicle" type="button">Xóa xe</button></div>
     <div class="grid2"><div class="field"><label>Loại xe</label><select class="vehicle-type">${types.map(t=>`<option value="${safe(t)}" ${t===chosen?'selected':''}>${safe(t)}</option>`).join('')}</select></div>
-    <div class="field"><label>Biển số xe</label><input class="vehicle-plate" maxlength="30" placeholder="VD: 29-B1 123.45" value="${safe(vehicle.plate||'')}"></div></div>`;
-  $('vehicleRows').appendChild(box);renumberVehicles();
+    <div class="field"><label>Biển số xe</label><input class="vehicle-plate" maxlength="30" placeholder="VD: 29-B1 123.45" value="${safe(vehicle.plate||'')}"></div></div>
+    <div class="field"><label>Chủ phương tiện</label><select class="vehicle-owner"><option value="">Chưa gán chủ xe (dữ liệu cũ)</option></select></div>`;
+  box.querySelector('.vehicle-owner').dataset.selected=vehicle.ownerId||'';
+  $('vehicleRows').appendChild(box);renumberVehicles();updateVehicleOwnerChoices();
 }
 function renumberVehicles(){[...$('vehicleRows').children].forEach((node,i)=>node.querySelector('.vehicle-index').textContent=i+1);}
-function formVehicles(){return [...$('vehicleRows').querySelectorAll('.vehicle-editor')].map(node=>({type:node.querySelector('.vehicle-type').value,plate:node.querySelector('.vehicle-plate').value.trim().toUpperCase()}));}
+function updateVehicleOwnerChoices(){
+  const residents=formResidents();
+  document.querySelectorAll('#vehicleRows .vehicle-owner').forEach(select=>{
+    const selected=select.value||select.dataset.selected||'';
+    select.innerHTML='<option value="">Chưa gán chủ xe (dữ liệu cũ)</option>'+residents.map(p=>`<option value="${safe(p.id)}" ${p.id===selected?'selected':''}>${safe(p.name||'Người chưa có tên')}${p.leftAt?' · Đã chuyển đi':''}</option>`).join('');
+    select.value=residents.some(p=>p.id===selected)?selected:'';
+    select.dataset.selected=select.value;
+  });
+}
+function formVehicles(){return [...$('vehicleRows').querySelectorAll('.vehicle-editor')].map(node=>({type:node.querySelector('.vehicle-type').value,plate:node.querySelector('.vehicle-plate').value.trim().toUpperCase(),ownerId:node.querySelector('.vehicle-owner').value}));}
 $('addVehicle').addEventListener('click',()=>{if($('vehicleRows').children.length>=30){alert('Tối đa 30 phương tiện mỗi phòng.');return;}addVehicleRow();});
 $('vehicleRows').addEventListener('click',e=>{if(e.target.closest('.remove-vehicle')){e.target.closest('.vehicle-editor').remove();renumberVehicles();}});
 let roomFormMode='edit';
@@ -3854,6 +3885,7 @@ $('roomForm').addEventListener('submit',e=>{
   const personInfo=residentStats(residents,selectedRep);
   const {adults,children,occupants}=personInfo;
   const vehicles=formVehicles(),vehicleCount=vehicles.length;
+  if(vehicles.some(v=>v.ownerId&&!residents.some(p=>p.id===v.ownerId))){alert('Có xe gắn với người không còn trong hồ sơ. Hãy kiểm tra chủ phương tiện.');return;}
   const leaseStart=$('roomLeaseStart').value,leaseEnd=$('roomLeaseEnd').value,deposit=nghinToDong($('roomDeposit').value);
   const waterAllowance=num($('roomWaterAllowance').value),waterExcessRate=nghinToDong($('roomWaterExcessRate').value);
   const cccd=personInfo.representative?.cccd||'';
@@ -5751,6 +5783,79 @@ document.querySelectorAll('[data-viewer-invoice-status]').forEach(el=>el.addEven
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateCloudHealth();});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+<dialog id="qpQuickVehicleDialog" aria-labelledby="qpQuickVehicleTitle">
+  <h3 id="qpQuickVehicleTitle">🛵 Thêm phương tiện</h3>
+  <form id="qpQuickVehicleForm">
+    <div class="field"><label for="qpQuickVehicleType">Loại xe</label><select id="qpQuickVehicleType" required><option>Xe máy</option><option>Xe điện</option><option>Ô tô</option><option>Xe đạp</option><option>Khác</option></select></div>
+    <div class="field"><label for="qpQuickVehiclePlate">Biển số</label><input id="qpQuickVehiclePlate" maxlength="30" placeholder="Ví dụ: 29-B1 123.45" required></div>
+    <div class="field"><label for="qpQuickVehicleOwner">Người sở hữu xe</label><select id="qpQuickVehicleOwner" required></select></div>
+    <div class="actions"><button type="button" class="btn secondary" id="qpQuickVehicleCancel">Hủy</button><button type="submit" class="btn">Lưu phương tiện</button></div>
+  </form>
+</dialog>
+<script>
+/* Quản lý xe nhanh: chủ xe gắn mã cư dân, giữ xe cũ trong lịch sử khi chuyển đi. */
+(function(){
+ 'use strict';
+ const dlg=document.getElementById('qpQuickVehicleDialog');
+ const form=document.getElementById('qpQuickVehicleForm');
+ const fieldType=document.getElementById('qpQuickVehicleType');
+ const fieldPlate=document.getElementById('qpQuickVehiclePlate');
+ const fieldOwner=document.getElementById('qpQuickVehicleOwner');
+ let currentRoom='',currentIndex=-1;
+ const editor=()=>window.qpCurrentRole!=='viewer';
+ function open(roomId,index){
+  if(!editor())return;
+  const r=getRoom(roomId), t=r&&activeTenancy(r);
+  if(!t){alert('Chỉ quản lý phương tiện khi phòng có đợt thuê đang hoạt động.');return;}
+  const owners=(r.residents||[]).filter(p=>!p.leftAt&&p.name);
+  if(!owners.length){alert('Hãy bổ sung tên người đang ở trước khi gán xe.');return;}
+  currentRoom=roomId;currentIndex=index;
+  const v=index>=0?r.vehicles[index]:null;
+  if(index<0&&r.vehicles.length>=30){alert('Một phòng tối đa 30 xe, kể cả xe đã rời đi được lưu lịch sử.');return;}
+  fieldType.value=v?.type||'Xe máy';
+  if(![...fieldType.options].some(opt=>opt.value===fieldType.value)){
+   fieldType.add(new Option(fieldType.value,fieldType.value));
+  }
+  fieldPlate.value=v?.plate||'';
+  fieldOwner.innerHTML='<option value="">— Chọn người sở hữu —</option>'+owners.map(p=>`<option value="${safe(p.id)}">${safe(p.name)}</option>`).join('');
+  fieldOwner.value=v?.ownerId||'';
+  document.getElementById('qpQuickVehicleTitle').textContent=index>=0?'🛵 Sửa phương tiện':'🛵 Thêm phương tiện';
+  dlg.showModal();
+ }
+ document.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-vehicle-action]');if(!btn)return;
+  if(!editor())return;
+  const action=btn.dataset.vehicleAction,roomId=btn.dataset.room,index=Number(btn.dataset.index);
+  if(action==='add')open(roomId,-1);
+  else if(action==='edit')open(roomId,index);
+  else if(action==='remove'){
+   const r=getRoom(roomId);if(!r||!activeTenancy(r)||!r.vehicles[index])return;
+   const v=r.vehicles[index];if(!confirm(`Xóa thông tin ${v.type} ${v.plate||''} khỏi phòng ${r.name}? Nếu xe đã rời đi cùng chủ, nên ghi nhận chuyển đi thay vì xóa.`))return;
+   const before=copy(state);
+   r.vehicles.splice(index,1);r.vehicleCount=r.vehicles.length;syncActiveTenancy(r);
+   if(!save()){state=before;return;}render();toast('Đã xóa phương tiện.');
+  }
+ });
+ document.getElementById('qpQuickVehicleCancel').addEventListener('click',()=>dlg.close());
+ form.addEventListener('submit',e=>{
+  e.preventDefault();if(!editor())return;
+  const r=getRoom(currentRoom);if(!r||!activeTenancy(r))return;
+  const ownerId=fieldOwner.value,owner=(r.residents||[]).find(p=>p.id===ownerId&&!p.leftAt);
+  if(!owner){alert('Vui lòng chọn người đang ở làm chủ xe.');return;}
+  const plate=fieldPlate.value.trim().toUpperCase(),type=fieldType.value;
+  if(!plate){alert('Vui lòng nhập biển số xe.');return;}
+  if(r.vehicles.some((v,i)=>i!==currentIndex&&v.plate&&v.plate.toUpperCase()===plate)){
+   alert('Biển số xe đã có trong phòng.');return;
+  }
+  const before=copy(state),v={type,plate,ownerId};
+  if(currentIndex>=0){if(!r.vehicles[currentIndex])return;r.vehicles[currentIndex]=v;}
+  else r.vehicles.push(v);
+  r.vehicleCount=r.vehicles.length;syncActiveTenancy(r);
+  if(!save()){state=before;return;}
+  dlg.close();render();toast('Đã lưu phương tiện cho '+owner.name+'.');
+ });
 })();
 </script>
 </body>
