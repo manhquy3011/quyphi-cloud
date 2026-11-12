@@ -1882,7 +1882,7 @@ body.qp-viewer #roomList [data-person-action]{display:none!important;}
     </div>
   </section>
   <section id="flex" class="view">
-    <div class="section-head"><h2>Phòng thu tiền linh hoạt <span class="month-title"></span></h2><button class="btn" type="button" id="addFlexRoom">+ Thêm phòng khoản thu khác</button></div>
+    <div class="section-head"><h2>Phòng thu tiền linh hoạt <span class="month-title"></span></h2><div class="actions" style="margin-top:0"><button class="btn secondary" type="button" id="qpFlexExportPaidExcel">⬇ Xuất Excel (đã nhận)</button><button class="btn" type="button" id="addFlexRoom">+ Thêm phòng khoản thu khác</button></div></div>
     <div class="section-intro"><b>Sổ Khoản thu khác – không cộng vào tổng thu chi chính.</b> Mỗi phòng có thể nhập số tiền khác nhau theo tháng. Tiền nước tổng hằng tháng sẽ được trừ <b>chỉ trong sổ Khoản thu khác</b>.</div>
     <!-- Tiền nước chỉ quản lý trong Khoản thu khác; khoản này không nhập lại tại Thu chi. -->
     <h3 class="finance-section-title">💧 Tiền nước phải đóng hằng tháng</h3>
@@ -6076,6 +6076,160 @@ document.querySelectorAll('[data-viewer-invoice-status]').forEach(el=>el.addEven
    dlg.close();render();toast('Đã thêm '+name+' vào phòng '+r.name+'.');
  });
 })();
+</script>
+<script>
+/* Quý Phi: xuất XLSX độc lập chỉ từ Khoản thu khác ĐÃ NHẬN, không thay đổi dữ liệu. */
+(function(){
+  'use strict';
+  const btn=document.getElementById('qpFlexExportPaidExcel');
+  if(!btn)return;
+  const NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+  const escapeXml=v=>String(v==null?'':v)
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]/g,'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+  // Chỉ thay mẫu bố cục XLSX; không can thiệp CSS, menu hay nghiệp vụ phần mềm.
+  const S={title:1,subtitle:2,info:3,head:4,center:5,name:6,money:7,
+    centerAlt:8,nameAlt:9,moneyAlt:10,totalLabel:11,totalMoney:12,
+    waterLabel:13,waterMoney:14,netLabel:15,netMoney:16,foot:17};
+  const escapeValue=v=>String(v==null?'':v);
+  const textCell=(col,row,val,style=S.name)=>`<c r="${col}${row}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(val)}</t></is></c>`;
+  const numCell=(col,row,val,style=S.money)=>`<c r="${col}${row}" s="${style}"><v>${Math.round(Number(val)||0)}</v></c>`;
+  const formulaCell=(col,row,formula,value,style=S.totalMoney)=>`<c r="${col}${row}" s="${style}"><f>${escapeXml(formula)}</f><v>${Math.round(Number(value)||0)}</v></c>`;
+  const blankCell=(col,row,style)=>`<c r="${col}${row}" s="${style}"/>`;
+  const mergedRow=(row,firstCol,otherCols,label,style,ht)=>xrow(row,[textCell(firstCol,row,label,style),...otherCols.map(c=>blankCell(c,row,style))],ht);
+  const xrow=(r,cells,ht=29)=>`<row r="${r}" ht="${ht}" customHeight="1">${cells.join('')}</row>`;
+  function worksheet(rows,widths,merges=[],freeze=0,printRange=''){
+    const cols=widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('');
+    const merged=merges.length?`<mergeCells count="${merges.length}">${merges.map(ref=>`<mergeCell ref="${ref}"/>`).join('')}</mergeCells>`:'';
+    const views=freeze?`<sheetViews><sheetView workbookViewId="0" showGridLines="0"><pane ySplit="${freeze}" topLeftCell="B${freeze+1}" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="B${freeze+1}" sqref="B${freeze+1}"/></sheetView></sheetViews>`:'<sheetViews><sheetView workbookViewId="0" showGridLines="0"/></sheetViews>';
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="${NS}"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>${views}<sheetFormatPr defaultRowHeight="18"/>`+
+      `<cols>${cols}</cols><sheetData>${rows.join('')}</sheetData>${merged}`+
+      `<printOptions horizontalCentered="1"/><pageMargins left="0.4" right="0.4" top="0.55" bottom="0.55" header="0.2" footer="0.2"/><pageSetup orientation="portrait" paperSize="9" fitToWidth="1" fitToHeight="1"/></worksheet>`;
+  }
+  // 18 kiểu ô có định dạng sẵn: tiêu đề, bảng xen kẽ, dòng tổng và số dư nổi bật.
+  const font=(size,color,bold=false,italic=false)=>`<font>${bold?'<b/>':''}${italic?'<i/>':''}<sz val="${size}"/><color rgb="FF${color}"/><name val="Aptos"/></font>`;
+  const fill=color=>`<fill><patternFill patternType="solid"><fgColor rgb="FF${color}"/><bgColor indexed="64"/></patternFill></fill>`;
+  const makeXf=(fontId,fillId,borderId=1,numFmtId=0,align='left',indent=0,wrap=false)=>`<xf numFmtId="${numFmtId}" fontId="${fontId}" fillId="${fillId}" borderId="${borderId}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"${numFmtId===164?' applyNumberFormat="1"':''}><alignment horizontal="${align}" vertical="center"${indent?` indent="${indent}"`:''}${wrap?' wrapText="1"':''}/></xf>`;
+  const fonts=[font(11,'213E36'),font(15,'FFFFFF',true),font(10,'2B6959',true),font(10,'687F75',false,true),font(10,'FFFFFF',true),font(11,'174E42',true),font(12,'FFFFFF',true),font(11,'B44435',true)];
+  const fills=['<fill><patternFill patternType="none"/></fill>','<fill><patternFill patternType="gray125"/></fill>',fill('176455'),fill('EAF5F0'),fill('F5F9F7'),fill('DFF2E9'),fill('FFF4EB'),fill('0C6655')];
+  const borders=['<border><left/><right/><top/><bottom/><diagonal/></border>',
+    '<border><left style="hair"><color rgb="FFD6E8E0"/></left><right style="hair"><color rgb="FFD6E8E0"/></right><top style="hair"><color rgb="FFD6E8E0"/></top><bottom style="hair"><color rgb="FFD6E8E0"/></bottom><diagonal/></border>'];
+  const cellFormats=[makeXf(0,0,0),makeXf(1,2,0,0,'center'),makeXf(2,3,0,0,'center'),
+    makeXf(3,0,0,0,'left',1),makeXf(4,2,1,0,'center'),makeXf(0,0,1,0,'center'),
+    makeXf(0,0,1,0,'left',1),makeXf(0,0,1,164,'right',1),
+    makeXf(0,4,1,0,'center'),makeXf(0,4,1,0,'left',1),makeXf(0,4,1,164,'right',1),
+    makeXf(5,5,1,0,'left',1),makeXf(5,5,1,164,'right',1),
+    makeXf(5,6,1,0,'left',1),makeXf(7,6,1,164,'right',1),
+    makeXf(6,7,1,0,'left',1),makeXf(6,7,1,164,'right',1),makeXf(3,0,0,0,'left',1,true)];
+  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="${NS}">`+
+    `<numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0 &quot;đ&quot;"/></numFmts>`+
+    `<fonts count="${fonts.length}">${fonts.join('')}</fonts><fills count="${fills.length}">${fills.join('')}</fills>`+
+    `<borders count="${borders.length}">${borders.join('')}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>`+
+    `<cellXfs count="${cellFormats.length}">${cellFormats.join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  const enc=new TextEncoder();
+  const crcTable=Array.from({length:256},(_,i)=>{let c=i;for(let k=0;k<8;k++)c=(c&1)?0xEDB88320^(c>>>1):c>>>1;return c>>>0;});
+  function crc32(bytes){let c=0xFFFFFFFF;for(const b of bytes)c=crcTable[(c^b)&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+  function u16(view,o,n){view.setUint16(o,n,true);}
+  function u32(view,o,n){view.setUint32(o,n>>>0,true);}
+  function createXlsx(files){
+    const parts=[],central=[];let offset=0;
+    for(const [path,xml] of Object.entries(files)){
+      const name=enc.encode(path),data=enc.encode(xml),crc=crc32(data),local=new Uint8Array(30+name.length);
+      const lv=new DataView(local.buffer);u32(lv,0,0x04034b50);u16(lv,4,20);u16(lv,6,0x800);u16(lv,8,0);u32(lv,14,crc);u32(lv,18,data.length);u32(lv,22,data.length);u16(lv,26,name.length);local.set(name,30);
+      parts.push(local,data);const c=new Uint8Array(46+name.length),cv=new DataView(c.buffer);
+      u32(cv,0,0x02014b50);u16(cv,4,20);u16(cv,6,20);u16(cv,8,0x800);u16(cv,10,0);u32(cv,16,crc);u32(cv,20,data.length);u32(cv,24,data.length);u16(cv,28,name.length);u32(cv,42,offset);c.set(name,46);central.push(c);
+      offset+=local.length+data.length;
+    }
+    const centralSize=central.reduce((s,b)=>s+b.length,0),end=new Uint8Array(22),ev=new DataView(end.buffer);
+    u32(ev,0,0x06054b50);u16(ev,8,central.length);u16(ev,10,central.length);u32(ev,12,centralSize);u32(ev,16,offset);
+    return new Blob([...parts,...central,end],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  }
+  function buildWorkbook(month,summary,detail,waterPaid){
+    const [year,mm]=month.split('-'),period=`Tháng ${Number(mm)}/${year}`;
+    const sum=summary.reduce((s,x)=>s+x.amount,0),water=Math.max(0,Number(waterPaid)||0);
+    // TỔNG HỢP: A/E là cột lề; dữ liệu B-D, title B:D căn giữa tuyệt đối.
+    const rows1=[
+      xrow(1,[],12),
+      mergedRow(2,'B',['C','D'],'BẢNG TỔNG HỢP KHOẢN THU KHÁC ĐÃ THU',S.title,43),
+      mergedRow(3,'B',['C','D'],`${period}  •  Chỉ tính các khoản đã nhận tiền`,S.subtitle,29),
+      mergedRow(4,'B',['C','D'],'Đơn vị: Đồng Việt Nam (VND)',S.info,23),
+      xrow(5,[],12),
+      xrow(6,[textCell('B',6,'STT',S.head),textCell('C',6,'TÊN PHÒNG',S.head),textCell('D',6,'SỐ TIỀN ĐÃ THU',S.head)],34)
+    ];
+    const first=7;
+    summary.forEach((entry,i)=>{
+      const row=first+i,odd=i%2===1;
+      rows1.push(xrow(row,[numCell('B',row,i+1,odd?S.centerAlt:S.center),
+        textCell('C',row,entry.room,odd?S.nameAlt:S.name),
+        numCell('D',row,entry.amount,odd?S.moneyAlt:S.money)],29));
+    });
+    const last=first+summary.length-1,totalRow=last+2,waterRow=last+3,netRow=last+4,noteRow=last+6;
+    rows1.push(xrow(last+1,[],12));
+    rows1.push(xrow(totalRow,[textCell('C',totalRow,'TỔNG TIỀN ĐÃ THU',S.totalLabel),
+      formulaCell('D',totalRow,`SUM(D${first}:D${last})`,sum,S.totalMoney)],33));
+    rows1.push(xrow(waterRow,[textCell('C',waterRow,'Tiền nước đã đóng',S.waterLabel),
+      numCell('D',waterRow,water,S.waterMoney)],31));
+    rows1.push(xrow(netRow,[textCell('C',netRow,'CÒN LẠI',S.netLabel),
+      formulaCell('D',netRow,`D${totalRow}-D${waterRow}`,sum-water,S.netMoney)],39));
+    rows1.push(xrow(netRow+1,[],12));
+    rows1.push(mergedRow(noteRow,'B',['C','D'],'* Chỉ trừ tiền nước đã đóng; không tính phiếu chưa nhận.',S.foot,29));
+    // CHI TIẾT: A/G là lề; bảng B:F; giữ đúng cùng hệ màu và font.
+    const rows2=[xrow(1,[],12),
+      mergedRow(2,'B',['C','D','E','F'],'CHI TIẾT KHOẢN THU KHÁC ĐÃ NHẬN',S.title,43),
+      mergedRow(3,'B',['C','D','E','F'],period,S.subtitle,29),xrow(4,[],12),
+      xrow(5,[textCell('B',5,'STT',S.head),textCell('C',5,'TÊN PHÒNG',S.head),
+        textCell('D',5,'KHOẢN THU',S.head),textCell('E',5,'SỐ TIỀN (Đ)',S.head),
+        textCell('F',5,'NGÀY NHẬN',S.head)],34)];
+    const detailFirst=6;
+    detail.forEach((item,i)=>{
+      const row=detailFirst+i,odd=i%2===1;
+      rows2.push(xrow(row,[numCell('B',row,i+1,odd?S.centerAlt:S.center),
+        textCell('C',row,item.room,odd?S.nameAlt:S.name),
+        textCell('D',row,item.name,odd?S.nameAlt:S.name),
+        numCell('E',row,item.amount,odd?S.moneyAlt:S.money),
+        textCell('F',row,item.date,odd?S.centerAlt:S.center)],29));
+    });
+    const detailLast=detailFirst+detail.length-1,rowDetailTotal=detailLast+2;
+    rows2.push(xrow(detailLast+1,[],12));
+    rows2.push(xrow(rowDetailTotal,[textCell('D',rowDetailTotal,'TỔNG CHI TIẾT',S.totalLabel),
+      formulaCell('E',rowDetailTotal,detail.length?`SUM(E${detailFirst}:E${detailLast})`:'0',
+        detail.reduce((a,b)=>a+b.amount,0),S.totalMoney)],35));
+    const sheet1=worksheet(rows1,[3,9,40,26,3],[`B2:D2`,`B3:D3`,`B4:D4`,`B${noteRow}:D${noteRow}`],6);
+    const sheet2=worksheet(rows2,[3,8,28,39,23,19,3],['B2:F2','B3:F3'],5);
+    return createXlsx({
+      '[Content_Types].xml':'<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+      '_rels/.rels':'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+      'xl/workbook.xml':`<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="${NS}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets><sheet name="Tổng hợp đã thu" sheetId="1" r:id="rId1"/><sheet name="Chi tiết đã thu" sheetId="2" r:id="rId2"/></sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`,
+      'xl/_rels/workbook.xml.rels':'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+      'xl/styles.xml':styles,'xl/worksheets/sheet1.xml':sheet1,'xl/worksheets/sheet2.xml':sheet2
+    });
+  }
+  btn.addEventListener('click',async()=>{
+    const period=selectedMonth;
+    const paid=state.flexEntries.filter(x=>x.month===period&&x.paid);
+    if(!paid.length){alert('Tháng '+period.slice(5)+'/'+period.slice(0,4)+' chưa có khoản thu khác đã nhận.');return;}
+    const names=new Map(state.flexRooms.map(x=>[x.id,x.name]));
+    const summary=paid.map(e=>({room:String(names.get(e.roomId)||'Phòng không xác định'),amount:(e.items||[]).reduce((s,it)=>s+Number(it.amount||0),0)}))
+      .sort((a,b)=>a.room.localeCompare(b.room,'vi',{numeric:true}));
+    const detail=[];
+    for(const e of paid){const room=String(names.get(e.roomId)||'Phòng không xác định');const paidDate=String(e.paidDate||'');const date=/^\d{4}-\d{2}-\d{2}$/.test(paidDate)?paidDate.slice(8,10)+'/'+paidDate.slice(5,7)+'/'+paidDate.slice(0,4):'';
+      for(const item of e.items||[])detail.push({room,name:String(item.name||''),amount:Number(item.amount||0),date});
+    }
+    detail.sort((a,b)=>a.room.localeCompare(b.room,'vi',{numeric:true})||a.name.localeCompare(b.name,'vi'));
+    const water=state.flexWaterPayments.find(x=>x.month===period&&x.paid);
+    const btnText=btn.textContent;btn.disabled=true;btn.textContent='Đang xuất Excel…';
+    try{
+      const blob=buildWorkbook(period,summary,detail,water?.amount||0);
+      const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;
+      link.download='Khoan_thu_khac_da_thu_'+period.replace('-','_')+'.xlsx';link.hidden=true;document.body.appendChild(link);link.click();link.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),20000);
+      const total=summary.reduce((s,x)=>s+x.amount,0),remaining=total-(water?.amount||0);
+      if(typeof toast==='function')toast('Đã xuất '+summary.length+' phòng đã nhận · Tổng '+total.toLocaleString('vi-VN')+' đ · Còn lại '+remaining.toLocaleString('vi-VN')+' đ.');
+    }catch(error){console.error('Lỗi xuất XLSX khoản thu khác',error);alert('Không thể tạo Excel: '+(error?.message||error));}
+    finally{btn.disabled=false;btn.textContent=btnText;}
+  });
+})();
+
 </script>
 </body>
 </html>
